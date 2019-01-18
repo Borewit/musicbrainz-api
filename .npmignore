@@ -1,0 +1,9 @@
+test/
+node_modules/
+example/
+doc-gen/
+coverage/
+src/
+.github
+.nyc_output/
+*.iml

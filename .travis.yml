@@ -1,0 +1,24 @@
+language: node_js
+node_js:
+ - "8"
+ - "9"
+ - "10"
+ - "11"
+install:
+- yarn install
+script:
+- yarn run lint
+- yarn run compile
+- yarn run test
+
+jobs:
+  include:
+    - stage: after_success
+      script:
+      - yarn install
+      - yarn run compile
+      - yarn run test-coverage
+      - yarn run send-coveralls
+      - yarn add -D codacy-coverage
+      - yarn run send-codacy
+      node_js: 10
