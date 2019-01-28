@@ -1,10 +1,7 @@
-import * as querystring from 'querystring';
 import * as assert from 'assert';
 
-import Axios, {AxiosInstance, AxiosProxyConfig, AxiosResponse} from 'axios';
-
 import * as HttpStatus from 'http-status-codes';
-import * as url from 'url';
+import * as Url from 'url';
 import * as Debug from 'debug';
 
 export {XmlMetadata} from './xml/xml-metadata';
@@ -15,10 +12,11 @@ export {XmlRecording} from './xml/xml-recording';
 import {XmlMetadata} from './xml/xml-metadata';
 import {DigestAuth} from './digest-auth';
 
-import {enableCookies, getCookies} from './axios-cookie-handler';
 import {RateLimiter} from './rate-limiter';
 import * as mb from './musicbrainz.types';
-import {ISearchQuery} from "./musicbrainz.types";
+
+import * as requestPromise from 'request-promise-native';
+import * as request from 'request';
 
 export * from './musicbrainz.types';
 
@@ -53,7 +51,7 @@ export interface IMusicBrainzConfig {
   /**
    * HTTP Proxy
    */
-  proxy?: AxiosProxyConfig,
+  proxy?: string,
 
   /**
    * User e-mail address
@@ -94,20 +92,23 @@ export class MusicBrainzApi {
     return str;
   }
 
-  private axios: AxiosInstance;
-
   private config: IMusicBrainzConfig = {
     baseUrl: 'https://musicbrainz.org'
   };
 
+  private request: request.RequestAPI<requestPromise.RequestPromise, request.CoreOptions, request.RequiredUriUrl>;
+
   private rateLimiter: RateLimiter;
+  private readonly cookieJar: request.CookieJar;
 
   public constructor(config?: IMusicBrainzConfig) {
 
     Object.assign(this.config, config);
 
-    this.axios = Axios.create({
-      baseURL: this.config.baseUrl,
+    this.cookieJar = request.jar();
+
+    this.request = requestPromise.defaults({
+      baseUrl: this.config.baseUrl,
       timeout: 20 * 1000,
       headers: {
         /**
@@ -115,47 +116,44 @@ export class MusicBrainzApi {
          */
         'User-Agent': `${this.config.appName}/${this.config.appVersion} ( ${this.config.appMail} )`
       },
-      proxy: this.config.proxy
+      proxy: this.config.proxy,
+      strictSSL: false,
+      jar:  this.cookieJar,
+      resolveWithFullResponse: true
     });
 
     this.rateLimiter = new RateLimiter(14, 14);
-
-    enableCookies(this.axios);
   }
 
   public async restGet<T>(relUrl: string, query: { [key: string]: any; } = {}, attempt: number = 1): Promise<T> {
 
     query.fmt = 'json';
 
-    // await MusicBrainzApi.coolDownTimer.coolDown();
-    // const response = await this.axios.get<T>('/ws/2' + relUrl, {params: query});
-    let response: AxiosResponse<T>;
+    let response: request.Response;
 
     await this.rateLimiter.limit();
     do {
-      response = await this.axios.get<T>('/ws/2' + relUrl, {
-        params: query,
-        validateStatus: status => {
-          return status === HttpStatus.OK || status === 503;
-        }
-      });
-      if (response.status !== 503)
+      response = await this.request.get('/ws/2' + relUrl, {
+        qs: query,
+        json: true
+      }, null);
+      if (response.statusCode !== 503)
         break;
       debug('Rate limiter kicked in, slowing down...');
       await RateLimiter.sleep(500);
     } while (true);
 
-    switch (response.status) {
+    switch (response.statusCode) {
       case HttpStatus.OK:
-        return response.data;
+        return response.body;
 
       case HttpStatus.BAD_REQUEST:
       case HttpStatus.NOT_FOUND:
-        throw new Error(`Got response status ${response.status}: ${HttpStatus.getStatusText(response.status)}`);
+        throw new Error(`Got response status ${response.statusCode}: ${HttpStatus.getStatusText(response.statusCode)}`);
 
       case HttpStatus.SERVICE_UNAVAILABLE: // 503
       default:
-        const msg = `Got response status ${response.status} on attempt #${attempt} (${HttpStatus.getStatusText(response.status)})`;
+        const msg = `Got response status ${response.statusCode} on attempt #${attempt} (${HttpStatus.getStatusText(response.statusCode)})`;
         debug(msg);
         if (attempt < retries) {
           return this.restGet<T>(relUrl, query, attempt + 1);
@@ -181,6 +179,7 @@ export class MusicBrainzApi {
   /**
    * Lookup area
    * @param areaId Area MBID
+   * @param inc Sub-queries
    */
   public getArea(areaId: string, inc: Includes[] = []): Promise<mb.IArea> {
     return this.getEntity<mb.IArea>('area', areaId, inc);
@@ -189,6 +188,7 @@ export class MusicBrainzApi {
   /**
    * Lookup artist
    * @param artistId Artist MBID
+   * @param inc Sub-queries
    */
   public getArtist(artistId: string, inc: Includes[] = []): Promise<mb.IArtist> {
     return this.getEntity<mb.IArtist>('artist', artistId, inc);
@@ -223,7 +223,7 @@ export class MusicBrainzApi {
 
   /**
    * Lookup label
-   * @param labelI Label MBID
+   * @param labelId Label MBID
    */
   public getLabel(labelId: string): Promise<mb.ILabel> {
     return this.getEntity<mb.ILabel>('label', labelId);
@@ -244,76 +244,90 @@ export class MusicBrainzApi {
     const path = `/ws/2/${entity}/`;
     // Get digest challenge
 
-    const response = await this.axios.post(path, null, {
-      params: {client: clientId},
-      headers: {
-        'Content-Type': 'application/xml'
-      },
-      validateStatus: status => {
-        return status === HttpStatus.UNAUTHORIZED;
-      }
-    });
+    let response;
+    try {
+      await this.request.post(path, {
+        qs: {client: clientId},
+        headers: {
+          'Content-Type': 'application/xml'
+        }
+      });
+    } catch (err) {
+      assert.ok(err.response.complete);
+      response = err.response;
+    }
+    assert(response.statusCode === HttpStatus.UNAUTHORIZED);
 
     //
     // Post data
     //
-
-    const postData = xmlMetadata.toXml();
+    const formData = xmlMetadata.toXml();
     const auth = new DigestAuth(this.config.botAccount);
 
-    const relpath = url.parse(response.request.path).path; // Ensure path is relative
+    const relpath = Url.parse(response.request.path).path; // Ensure path is relative
     const digest = auth.digest(response.request.method, relpath, response.headers['www-authenticate']);
-    await this.axios.post(`/ws/2/${entity}/`, postData, {
+    await this.request.post({
+      uri: `/ws/2/${entity}/`,
       headers: {
         authorization: digest,
         'Content-Type': 'application/xml'
       },
-      params: {client: clientId}
+      qs: {client: clientId},
+      body: formData
     });
   }
 
   public async login(): Promise<boolean> {
 
-    const cookies = await getCookies(this.config.baseUrl);
+    const cookies = this.getCookies(this.config.baseUrl);
 
     for (const cookie of cookies) {
       if (cookie.key === 'musicbrainz_server_session')
         return true;
     }
 
-    const formData = querystring.stringify({
-      username: this.config.botAccount.username,
-      password: this.config.botAccount.password
-    });
-
     const redirectUri = '/success';
 
-    const response = await this.axios.post('/login', formData, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      maxRedirects: 0, // Disable redirects,
-      params: {
-        uri: redirectUri
-      },
-      validateStatus: status => {
-        return status === HttpStatus.MOVED_TEMPORARILY; // Expect a 302, redirecting to '/success'
-      }
-    });
+    let response: request.Response;
+    try {
+      response = await this.request.post({
+        uri: '/login',
+        followRedirect: false, // Disable redirects,
+        qs: {
+          uri: redirectUri
+        },
+        form: {
+          username: this.config.botAccount.username,
+          password: this.config.botAccount.password
+        }
+      });
+    } catch (err) {
+      assert.ok(err.response.complete);
+      response = err.response;
+    }
+    assert.strictEqual(response.statusCode, HttpStatus.MOVED_TEMPORARILY);
     return response.headers.location === redirectUri;
   }
 
+  /**
+   * Submit entity
+   * @param entity Entity type e.g. 'recording'
+   * @param mbid
+   * @param formData
+   */
   public async editEntity(entity: mb.EntityType, mbid: string, formData: IFormData): Promise<void> {
-    const uri = `/${entity}/${mbid}/edit`;
-    await this.axios.post(uri, querystring.stringify(formData), {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      maxRedirects: 0, // Disable redirects,
-      validateStatus: status => {
-        return status === HttpStatus.MOVED_TEMPORARILY; // Expect a 302, redirecting to '/success'
-      }
-    });
+    let response: request.Response;
+    try {
+      response = await this.request.post({
+        uri: `/${entity}/${mbid}/edit`,
+        form: formData,
+        followRedirect: false
+      });
+    } catch (err) {
+      assert.ok(err.response.complete);
+      response = err.response;
+    }
+    assert.strictEqual(response.statusCode, HttpStatus.MOVED_TEMPORARILY);
   }
 
   /**
@@ -339,6 +353,7 @@ export class MusicBrainzApi {
   /**
    * Add ISRC to recording
    * @param recording Recording to update
+   * @param isrc ISRC code to add
    * @param editNote Edit note
    */
   public async addIsrc(recording: { id: string, title: string }, isrc: string, editNote: string = '') {
@@ -360,7 +375,7 @@ export class MusicBrainzApi {
    * @param entity e.g. 'recording'
    * @param query e.g.: '" artist: Madonna, track: Like a virgin"'
    */
-  public query<T>(entity: mb.EntityType, query: ISearchQuery): Promise<T> {
+  public query<T>(entity: mb.EntityType, query: mb.ISearchQuery): Promise<T> {
     return this.restGet<T>('/' + entity + '/', query);
   }
 
@@ -395,5 +410,9 @@ export class MusicBrainzApi {
   public searchReleaseGroupByTitleAndArtist(title: string, artist: string, offset?: number, limit?: number): Promise<mb.IReleaseGroupList> {
     const query = '"' + MusicBrainzApi.escapeText(title) + '" AND artist:"' + MusicBrainzApi.escapeText(artist) + '"';
     return this.query<mb.IReleaseGroupList>('release-group', {query, offset, limit});
+  }
+
+  private getCookies(url: string): request.Cookie[] {
+    return this.cookieJar.getCookies(url);
   }
 }
