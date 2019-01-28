@@ -20,5 +20,5 @@ jobs:
       - yarn run test-coverage
       - yarn run send-coveralls
       - yarn add -D codacy-coverage
-      - yarn run send-codacy
+      #- yarn run send-codacy
       node_js: 10
