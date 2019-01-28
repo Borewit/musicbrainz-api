@@ -26,7 +26,9 @@ const config = {
   appMail: process.env.MBEMAIL
 };
 
-describe('MusicBrainz-api', () => {
+describe('MusicBrainz-api', function() {
+
+  this.timeout(20000); // MusicBrainz has a rate limiter
 
   const mbid = {
     artist: {
