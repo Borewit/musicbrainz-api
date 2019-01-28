@@ -1,9 +1,7 @@
 import {LinkType, MusicBrainzApi} from '../src/musicbrainz-api';
 import {assert} from 'chai';
 import {XmlMetadata} from "../src/xml/xml-metadata";
-import * as url from 'url';
-import {AxiosProxyConfig} from "axios";
-import * as mb from "../src/musicbrainz.types";
+import * as mb from '../src/musicbrainz.types';
 
 assert.isDefined(process.env.MBUSER, 'Set environment variable MBUSER');
 assert.isDefined(process.env.MBPWD, 'Set environment variable MBPWD');
@@ -14,14 +12,6 @@ const testBotAccount = {
   password: process.env.MBPWD
 };
 
-function parseProxy(proxyUrl: string): AxiosProxyConfig {
-  const p = url.parse(proxyUrl);
-  return {
-    host: p.hostname,
-    port: parseInt(p.port, 10)
-  };
-}
-
 const config = {
   botAccount: testBotAccount,
   baseUrl: 'https://test.musicbrainz.org',
@@ -29,7 +19,7 @@ const config = {
   /**
    * Enable proxy, like Fiddler
    */
-  proxy: process.env.MBPROXY ? parseProxy(process.env.MBPROXY) : undefined,
+  proxy: process.env.MBPROXY,
 
   appName: 'what-music',
   appVersion: '0.1.0',
