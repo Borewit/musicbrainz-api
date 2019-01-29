@@ -40,6 +40,16 @@
     "tslint": "^5.12.1",
     "typescript": "^3.2.2"
   },
+  "engines": {
+    "node": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Borewit/musicbrainz-api.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Borewit/musicbrainz-api/issues"
+  },
   "dependencies": {
     "@types/caseless": "^0.12.1",
     "@types/request-promise-native": "^1.0.15",
