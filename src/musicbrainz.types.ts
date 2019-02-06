@@ -149,6 +149,12 @@ export interface IArtistMatch extends IArtist, IMatch {
 export interface IReleaseGroupMatch extends IReleaseGroup, IMatch {
 }
 
+export interface IReleaseMatch extends IRelease, IMatch {
+}
+
+export interface IAreaMatch extends IArea, IMatch {
+}
+
 export interface ISearchResult {
   created: DateTimeFormat;
   count: number;
@@ -157,6 +163,14 @@ export interface ISearchResult {
 
 export interface IArtistList extends ISearchResult {
   artists: IArtistMatch[]
+}
+
+export interface IAreaList extends ISearchResult {
+  areas: IAreaMatch[]
+}
+
+export interface IReleaseList extends ISearchResult {
+  releases: IReleaseMatch[]
 }
 
 export interface IReleaseGroupList extends ISearchResult {

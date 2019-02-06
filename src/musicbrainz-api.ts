@@ -43,7 +43,7 @@ export interface IMusicBrainzConfig {
     username: string,
     password: string
   },
-  baseUrl: string,
+  baseUrl?: string,
 
   appName?: string,
   appVersion?: string,
@@ -92,7 +92,7 @@ export class MusicBrainzApi {
     return str;
   }
 
-  private config: IMusicBrainzConfig = {
+  public readonly config: IMusicBrainzConfig = {
     baseUrl: 'https://musicbrainz.org'
   };
 
@@ -240,6 +240,8 @@ export class MusicBrainzApi {
 
   public async post(entity: mb.EntityType, xmlMetadata: XmlMetadata): Promise<void> {
 
+    await this.rateLimiter.limit();
+
     const clientId = 'WhatMusic-0.0.4';
     const path = `/ws/2/${entity}/`;
     // Get digest challenge
@@ -316,6 +318,9 @@ export class MusicBrainzApi {
    * @param formData
    */
   public async editEntity(entity: mb.EntityType, mbid: string, formData: IFormData): Promise<void> {
+
+    await this.rateLimiter.limit();
+
     let response: request.Response;
     try {
       response = await this.request.post({
@@ -372,11 +377,17 @@ export class MusicBrainzApi {
 
   /**
    * Search an entity using a search query
+   * @param query e.g.: '" artist: Madonna, track: Like a virgin"' or object with search terms: {artist: Madonna}
    * @param entity e.g. 'recording'
+   * @param offset
+   * @param limit
    * @param query e.g.: '" artist: Madonna, track: Like a virgin"'
    */
-  public query<T>(entity: mb.EntityType, query: mb.ISearchQuery): Promise<T> {
-    return this.restGet<T>('/' + entity + '/', query);
+  public search<T extends mb.ISearchResult>(entity: mb.EntityType, query: string | IFormData, offset?: number, limit?: number): Promise<T> {
+    if (typeof query === 'object') {
+      query = makeAndQueryString(query);
+    }
+    return this.restGet<T>('/' + entity + '/', {query, offset, limit});
   }
 
   // -----------------------------------------------------------------------------------------------------------------
@@ -399,20 +410,27 @@ export class MusicBrainzApi {
     });
   }
 
-  public searchArtist(name: string, offset?: number, limit?: number): Promise<mb.IArtistList> {
-    return this.query<mb.IArtistList>('artist', {query: name, offset, limit});
+  public searchArtist(query: string | IFormData, offset?: number, limit?: number): Promise<mb.IArtistList> {
+    return this.search<mb.IArtistList>('artist', query, offset, limit);
   }
 
-  public searchReleaseGroup(name: string, offset?: number, limit?: number): Promise<mb.IReleaseGroupList> {
-    return this.query<mb.IReleaseGroupList>('release-group', {query: `"${name}"`, offset, limit});
+  public searchRelease(query: string | IFormData, offset?: number, limit?: number): Promise<mb.IReleaseList> {
+    return this.search<mb.IReleaseList>('release', query, offset, limit);
   }
 
-  public searchReleaseGroupByTitleAndArtist(title: string, artist: string, offset?: number, limit?: number): Promise<mb.IReleaseGroupList> {
-    const query = '"' + MusicBrainzApi.escapeText(title) + '" AND artist:"' + MusicBrainzApi.escapeText(artist) + '"';
-    return this.query<mb.IReleaseGroupList>('release-group', {query, offset, limit});
+  public searchReleaseGroup(query: string | IFormData, offset?: number, limit?: number): Promise<mb.IReleaseGroupList> {
+    return this.search<mb.IReleaseGroupList>('release-group', query, offset, limit);
+  }
+
+  public searchArea(query: string | IFormData, offset?: number, limit?: number): Promise<mb.IAreaList> {
+    return this.search<mb.IAreaList>('area', query, offset, limit);
   }
 
   private getCookies(url: string): request.Cookie[] {
     return this.cookieJar.getCookies(url);
   }
+}
+
+export function makeAndQueryString(keyValuePairs: IFormData): string {
+  return Object.keys(keyValuePairs).map(key => `${key}:"${keyValuePairs[key]}"`).join(' AND ');
 }

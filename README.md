@@ -142,7 +142,38 @@ Implements [XML Web Service/Version 2/Search](https://wiki.musicbrainz.org/Devel
 
 There are different search fields depending on the entity.
 
-Searches can be performed on the function: `query(entityType: string, query: ISearchQuery)`:
+### Generic search function
+
+Searches can be performed using the generic search function: `query(entity: mb.EntityType, query: string | IFormData, offset?: number, limit?: number)`:
+
+##### Example: search Île-de-France
+
+```JavaScript
+ mbApi.search('area', 'Île-de-France');
+````
+
+##### Example: search release by barcode
+
+Search a release with the barcode 602537479870:
+```JavaScript
+ mbApi.search('release', {barcode: 602537479870});
+````
+
+##### Example: search by object
+
+Same as previous example, but automatically serialize parameters to search query
+```JavaScript
+ mbApi.search('release', 'barcode: 602537479870');
+````
+
+### Entity specific search functions:
+
+The following entity specific search functions are available:
+```TypeScript
+searchArtist(query: string | IFormData, offset?: number, limit?: number): Promise<mb.IArtistList>
+searchReleaseGroup(query: string | IFormData, offset?: number, limit?: number): Promise<mb.IReleaseGroupList>`
+```
+
 
 Arguments:
 *   Entity type, which can be one of:

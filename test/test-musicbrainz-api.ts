@@ -3,16 +3,21 @@ import {assert} from 'chai';
 import {XmlMetadata} from "../src/xml/xml-metadata";
 import * as mb from '../src/musicbrainz.types';
 
+/*
 assert.isDefined(process.env.MBUSER, 'Set environment variable MBUSER');
 assert.isDefined(process.env.MBPWD, 'Set environment variable MBPWD');
 assert.isDefined(process.env.MBPWD, 'Set environment variable MBEMAIL');
+*/
 
 const testBotAccount = {
   username: process.env.MBUSER,
   password: process.env.MBPWD
 };
 
-const config = {
+const appName = 'musicbrainz-api';
+const appVersion = '0.2.0';
+
+const testApiConfig = {
   botAccount: testBotAccount,
   baseUrl: 'https://test.musicbrainz.org',
 
@@ -21,10 +26,30 @@ const config = {
    */
   proxy: process.env.MBPROXY,
 
-  appName: 'what-music',
-  appVersion: '0.1.0',
+  appName,
+  appVersion,
   appMail: process.env.MBEMAIL
 };
+
+const searchApiConfig = {
+
+  baseUrl: 'https://musicbrainz.org',
+
+  /**
+   * Enable proxy, like Fiddler
+   */
+  proxy: process.env.MBPROXY,
+
+  appName,
+  appVersion,
+  appMail: process.env.MBEMAIL
+};
+
+const mbTestApi = new MusicBrainzApi(testApiConfig);
+const mbApi = new MusicBrainzApi(searchApiConfig);
+
+// Hack shared rate-limiter
+(mbApi as any).rateLimiter = (mbTestApi as any).rateLimiter;
 
 describe('MusicBrainz-api', function() {
 
@@ -40,7 +65,12 @@ describe('MusicBrainz-api', function() {
     },
     release: {
       Formidable: '976e0677-a480-4a5e-a177-6a86c1900bbf',
-      Anomalie: '478aaba4-9425-4a67-8951-a77739462df4'
+      Anomalie: '478aaba4-9425-4a67-8951-a77739462df4',
+      RacineCarree: [
+        '348662a8-54ce-4d14-adf5-3ce2cefd57bb',
+        'c22bdb3a-69c0-449a-9ef5-99796bb0f2d7',
+        'de57c1d9-5e65-420f-a896-1332e87d4c09'
+      ]
     },
     releaseGroup: {
       Formidable: '19099ea5-3600-4154-b482-2ec68815883e',
@@ -50,7 +80,8 @@ describe('MusicBrainz-api', function() {
       Formidable: 'b2aa02f4-6c95-43be-a426-aedb9f9a3805'
     },
     area: {
-      Belgium: '5b8a5ee5-0bb3-34cf-9a75-c27c44e341fc'
+      Belgium: '5b8a5ee5-0bb3-34cf-9a75-c27c44e341fc',
+      IleDeFrance: 'd79e4501-8cba-431b-96e7-bb9976f0ae76'
     },
     label: {
       Mosaert: '0550200c-22c1-4c62-b761-ef0b3665262b'
@@ -66,8 +97,6 @@ describe('MusicBrainz-api', function() {
   };
 
   describe('Read metadata', () => {
-
-    const mbApi = new MusicBrainzApi(config);
 
     describe('Lookup', () => {
 
@@ -194,7 +223,7 @@ describe('MusicBrainz-api', function() {
       it('query: Queen - We Will Rock You', async () => {
 
         const query = 'query="We Will Rock You" AND arid:0383dadf-2a4e-4d10-a46a-e9e041da8eb3';
-        const result = await mbApi.query<mb.IReleaseGroupList>('release-group', {query});
+        const result = await mbApi.search<mb.IReleaseGroupList>('release-group', {query});
         assert.isAtLeast(result.count, 1);
       });
 
@@ -202,25 +231,70 @@ describe('MusicBrainz-api', function() {
 
     describe('Search', () => {
 
-      it('find artist: Stromae', async () => {
-        const result = await mbApi.searchArtist('Stromae');
-        assert.isAtLeast(result.count, 1);
-        assert.isAtLeast(result.artists.length, 1);
-        assert.strictEqual(result.artists[0].id, mbid.artist.Stromae);
+      describe('generic search', () => {
+
+        it('find artist: Stromae', async () => {
+          const result = await mbApi.search('artist', 'Stromae');
+          assert.isAtLeast(result.count, 1);
+        });
+
       });
 
-      it('find release-group: Racine carrée', async () => {
-        const result = await mbApi.searchReleaseGroup('Racine carrée');
-        assert.isAtLeast(result.count, 1);
-        assert.isAtLeast(result['release-groups'].length, 1);
-        assert.strictEqual(result['release-groups'][0].id, mbid.releaseGroup.RacineCarree);
+      describe('searchArtist', () => {
+
+        it('find artist: Stromae', async () => {
+          const result = await mbApi.searchArtist('Stromae');
+          assert.isAtLeast(result.count, 1);
+          assert.isAtLeast(result.artists.length, 1);
+          assert.strictEqual(result.artists[0].id, mbid.artist.Stromae);
+        });
+
       });
 
-      it('find release-group: Racine carrée, by artist and group name', async () => {
-        const result = await mbApi.searchReleaseGroupByTitleAndArtist('Racine carrée', 'Stromae');
-        assert.isAtLeast(result.count, 1);
-        assert.isAtLeast(result['release-groups'].length, 1);
-        assert.strictEqual(result['release-groups'][0].id, mbid.releaseGroup.RacineCarree);
+      describe('searchReleaseGroup', () => {
+
+        it('find release-group: Racine carrée', async () => {
+          const result = await mbApi.searchReleaseGroup('Racine carrée');
+          assert.isAtLeast(result.count, 1);
+          assert.isAtLeast(result['release-groups'].length, 1);
+          assert.strictEqual(result['release-groups'][0].id, mbid.releaseGroup.RacineCarree);
+        });
+
+        it('find release-group: Racine carrée, by artist and group name', async () => {
+          const result = await mbApi.searchReleaseGroup({release: 'Racine carrée', artist: 'Stromae'});
+          assert.isAtLeast(result.count, 1);
+          assert.isAtLeast(result['release-groups'].length, 1);
+          assert.strictEqual(result['release-groups'][0].id, mbid.releaseGroup.RacineCarree);
+        });
+      });
+
+      describe('searchRelease', () => {
+
+        it('find release-group: Racine carrée', async () => {
+          const result = await mbApi.searchRelease({release: 'Racine carrée'});
+          assert.isAtLeast(result.count, 2);
+          assert.isAtLeast(result.releases.length, 2);
+          assert.includeMembers(result.releases.map(release => release.id), mbid.release.RacineCarree);
+        });
+
+        it('find release by barcode', async () => {
+          const result = await mbApi.searchRelease({barcode: 602537479870});
+          assert.isAtLeast(result.count, 1);
+          assert.isAtLeast(result.releases.length, 1);
+          assert.equal(result.releases[0].id, mbid.release.RacineCarree[2]);
+        });
+
+      });
+
+      describe('searchArea', () => {
+
+        it('find area by name', async () => {
+          const result = await mbApi.searchArea('Île-de-France');
+          assert.isAtLeast(result.count, 1);
+          assert.isAtLeast(result.areas.length, 1);
+          assert.strictEqual(result.areas[0].id, mbid.area.IleDeFrance);
+        });
+
       });
 
     });
@@ -229,8 +303,6 @@ describe('MusicBrainz-api', function() {
 
   describe('Submit API', () => {
 
-    const mbApi = new MusicBrainzApi(config);
-
     it('Post ISRC Formidable', async () => {
 
       const isrc_Formidable = 'BET671300161';
@@ -238,7 +310,7 @@ describe('MusicBrainz-api', function() {
       const xmlRecording = xmlMetadata.pushRecording(mbid.recording.Formidable);
       xmlRecording.isrcList.pushIsrc(isrc_Formidable);
 
-      await mbApi.post('recording', xmlMetadata);
+      await mbTestApi.post('recording', xmlMetadata);
     });
 
   });
@@ -248,11 +320,9 @@ describe('MusicBrainz-api', function() {
    */
   describe('User (bot) post form-data API', () => {
 
-    const mbApi = new MusicBrainzApi(config);
-
     it('login', async () => {
 
-      const succeed = await mbApi.login();
+      const succeed = await mbTestApi.login();
       assert.isTrue(succeed, 'Login successful');
     });
 
@@ -260,13 +330,13 @@ describe('MusicBrainz-api', function() {
 
       it('add link', async () => {
 
-        const recording = await mbApi.getRecording(mbid.recording.Formidable);
+        const recording = await mbTestApi.getRecording(mbid.recording.Formidable);
         assert.strictEqual(recording.id, mbid.recording.Formidable);
         assert.strictEqual(recording.title, 'Formidable');
 
-        const succeed = await mbApi.login();
+        const succeed = await mbTestApi.login();
         assert.isTrue(succeed, 'Login successful');
-        await mbApi.addUrlToRecording(recording, {
+        await mbTestApi.addUrlToRecording(recording, {
           linkTypeId: LinkType.stream_for_free,
           text: 'https://open.spotify.com/track/' + spotify.track.Formidable.id
         });
@@ -274,11 +344,11 @@ describe('MusicBrainz-api', function() {
 
       it('add Spotify-ID', async () => {
 
-        const recording = await mbApi.getRecording(mbid.recording.Formidable);
+        const recording = await mbTestApi.getRecording(mbid.recording.Formidable);
 
-        const succeed = await mbApi.login();
+        const succeed = await mbTestApi.login();
         assert.isTrue(succeed, 'Login successful');
-        await mbApi.addSpotifyIdToRecording(recording, spotify.track.Formidable.id);
+        await mbTestApi.addSpotifyIdToRecording(recording, spotify.track.Formidable.id);
       });
 
     });
@@ -287,13 +357,13 @@ describe('MusicBrainz-api', function() {
 
       it('add ISRC', async () => {
 
-        const recording = await mbApi.getRecording(mbid.recording.Formidable);
+        const recording = await mbTestApi.getRecording(mbid.recording.Formidable);
         assert.strictEqual(recording.id, mbid.recording.Formidable);
         assert.strictEqual(recording.title, 'Formidable');
 
-        const succeed = await mbApi.login();
+        const succeed = await mbTestApi.login();
         assert.isTrue(succeed, 'Login successful');
-        await mbApi.addIsrc(recording, 'BET671300161');
+        await mbTestApi.addIsrc(recording, 'BET671300161');
       });
 
     });
