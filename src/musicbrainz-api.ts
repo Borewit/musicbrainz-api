@@ -22,7 +22,7 @@ export * from './musicbrainz.types';
 
 const retries = 3;
 
-type Includes =
+export type Includes =
   'artists'
   | 'releases'
   | 'recordings'
