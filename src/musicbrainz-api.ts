@@ -258,16 +258,20 @@ export class MusicBrainzApi {
       assert.ok(err.response.complete);
       response = err.response;
     }
-    assert(response.statusCode === HttpStatus.UNAUTHORIZED);
 
-    //
-    // Post data
-    //
-    const formData = xmlMetadata.toXml();
-    const auth = new DigestAuth(this.config.botAccount);
+    let digest: string;
+    if (response.statusCode === HttpStatus.UNAUTHORIZED) {
+      //
+      // Post data
+      //
+      const auth = new DigestAuth(this.config.botAccount);
 
-    const relpath = Url.parse(response.request.path).path; // Ensure path is relative
-    const digest = auth.digest(response.request.method, relpath, response.headers['www-authenticate']);
+      const relpath = Url.parse(response.request.path).path; // Ensure path is relative
+      digest = auth.digest(response.request.method, relpath, response.headers['www-authenticate']);
+    } else {
+      assert.strictEqual(response.statusCode, HttpStatus.OK, 'Expect the session to be already authorized');
+    }
+
     await this.request.post({
       uri: `/ws/2/${entity}/`,
       headers: {
@@ -275,7 +279,7 @@ export class MusicBrainzApi {
         'Content-Type': 'application/xml'
       },
       qs: {client: clientId},
-      body: formData
+      body: xmlMetadata.toXml()
     });
   }
 
@@ -318,6 +322,8 @@ export class MusicBrainzApi {
    * @param formData
    */
   public async editEntity(entity: mb.EntityType, mbid: string, formData: IFormData): Promise<void> {
+
+    assert.ok(this.login(), `should be logged in to ${this.config.botAccount.username} with username ${this.config.baseUrl}`);
 
     await this.rateLimiter.limit();
 
