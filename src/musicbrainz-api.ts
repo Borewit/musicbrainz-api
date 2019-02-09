@@ -323,7 +323,7 @@ export class MusicBrainzApi {
    */
   public async editEntity(entity: mb.EntityType, mbid: string, formData: IFormData): Promise<void> {
 
-    assert.ok(this.login(), `should be logged in to ${this.config.botAccount.username} with username ${this.config.baseUrl}`);
+    assert.ok(await this.login(), `should be logged in to ${this.config.botAccount.username} with username ${this.config.baseUrl}`);
 
     await this.rateLimiter.limit();
 
