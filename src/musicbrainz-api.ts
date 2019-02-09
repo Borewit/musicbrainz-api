@@ -381,7 +381,6 @@ export class MusicBrainzApi {
    * @param entity e.g. 'recording'
    * @param offset
    * @param limit
-   * @param query e.g.: '" artist: Madonna, track: Like a virgin"'
    */
   public search<T extends mb.ISearchResult>(entity: mb.EntityType, query: string | IFormData, offset?: number, limit?: number): Promise<T> {
     if (typeof query === 'object') {
