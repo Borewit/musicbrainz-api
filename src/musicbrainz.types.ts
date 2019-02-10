@@ -48,6 +48,10 @@ export interface IArtist {
   begin_area?: IArea;
   end_area?: IArea;
   relations?: IRelation[];
+  /**
+   * Only defined if 'releases' are includes
+   */
+  releases?: IRelease[];
 }
 
 export interface IArtistCredit {

@@ -294,9 +294,7 @@ describe('MusicBrainz-api', function() {
           assert.isAtLeast(result.areas.length, 1);
           assert.strictEqual(result.areas[0].id, mbid.area.IleDeFrance);
         });
-
       });
-
     });
 
   });
@@ -349,6 +347,16 @@ describe('MusicBrainz-api', function() {
         const succeed = await mbTestApi.login();
         assert.isTrue(succeed, 'Login successful');
         await mbTestApi.addSpotifyIdToRecording(recording, spotify.track.Formidable.id);
+      });
+
+      it('add Spotify-ID to recording with ISRC', async () => {
+
+        // https://test.musicbrainz.org/recording/a75b85bf-63dd-4fe1-8008-d15541b93bac
+        const recording_id = 'a75b85bf-63dd-4fe1-8008-d15541b93bac';
+
+        const recording = await mbTestApi.getRecording(recording_id);
+
+        await mbTestApi.addSpotifyIdToRecording(recording, '3ZDO5YINwfoifRQ3ElshPM');
       });
 
     });
