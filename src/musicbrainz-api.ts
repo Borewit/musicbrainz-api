@@ -304,7 +304,7 @@ export class MusicBrainzApi {
       assert.ok(err.response.complete);
       response = err.response;
     }
-    assert.strictEqual(response.statusCode, HttpStatus.MOVED_TEMPORARILY);
+    assert.strictEqual(response.statusCode, HttpStatus.MOVED_TEMPORARILY, 'Expect redirect to /success');
     return response.headers.location === redirectUri;
   }
 
