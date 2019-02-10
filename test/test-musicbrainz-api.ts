@@ -351,6 +351,16 @@ describe('MusicBrainz-api', function() {
         await mbTestApi.addSpotifyIdToRecording(recording, spotify.track.Formidable.id);
       });
 
+      it('add Spotify-ID to recording with ISRC', async () => {
+
+        // https://test.musicbrainz.org/recording/a75b85bf-63dd-4fe1-8008-d15541b93bac
+        const recording_id = 'a75b85bf-63dd-4fe1-8008-d15541b93bac';
+
+        const recording = await mbTestApi.getRecording(recording_id);
+
+        await mbTestApi.addSpotifyIdToRecording(recording, '3ZDO5YINwfoifRQ3ElshPM');
+      });
+
     });
 
     describe('ISRC', () => {

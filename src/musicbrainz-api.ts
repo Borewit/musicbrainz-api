@@ -347,14 +347,20 @@ export class MusicBrainzApi {
    * @param url2add URL to add to the recording
    * @param editNote Edit note
    */
-  public async addUrlToRecording(recording: { id: string, title: string }, url2add: { linkTypeId: mb.LinkType, text: string }, editNote: string = '') {
+  public async addUrlToRecording(recording: mb.IRecording, url2add: { linkTypeId: mb.LinkType, text: string }, editNote: string = '') {
 
     const formData = {};
 
     formData[`edit-recording.name`] = recording.title; // Required
+    formData[`edit-recording.comment`] = recording.disambiguation;
+    formData[`edit-recording.make_votable`] = true;
 
     formData[`edit-recording.url.0.link_type_id`] = url2add.linkTypeId;
     formData[`edit-recording.url.0.text`] = url2add.text;
+
+    for (const i in recording.isrcs) {
+      formData[`edit-recording.isrcs.${i}`] = recording.isrcs[i];
+    }
 
     formData['edit-recording.edit_note'] = editNote;
 
@@ -367,7 +373,7 @@ export class MusicBrainzApi {
    * @param isrc ISRC code to add
    * @param editNote Edit note
    */
-  public async addIsrc(recording: { id: string, title: string }, isrc: string, editNote: string = '') {
+  public async addIsrc(recording: mb.IRecording, isrc: string, editNote: string = '') {
 
     const formData = {};
 
@@ -405,7 +411,7 @@ export class MusicBrainzApi {
    * @param recording MBID of the recording
    * @param spotifyId Spotify ID
    */
-  public addSpotifyIdToRecording(recording: { id: string, title: string }, spotifyId: string) {
+  public addSpotifyIdToRecording(recording: mb.IRecording, spotifyId: string) {
 
     assert.strictEqual(spotifyId.length, 22);
 
