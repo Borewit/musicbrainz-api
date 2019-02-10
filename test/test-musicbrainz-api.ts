@@ -294,9 +294,7 @@ describe('MusicBrainz-api', function() {
           assert.isAtLeast(result.areas.length, 1);
           assert.strictEqual(result.areas[0].id, mbid.area.IleDeFrance);
         });
-
       });
-
     });
 
   });

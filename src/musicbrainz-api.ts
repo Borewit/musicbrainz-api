@@ -240,47 +240,40 @@ export class MusicBrainzApi {
 
   public async post(entity: mb.EntityType, xmlMetadata: XmlMetadata): Promise<void> {
 
-    await this.rateLimiter.limit();
-
     const clientId = 'WhatMusic-0.0.4';
     const path = `/ws/2/${entity}/`;
     // Get digest challenge
 
-    let response;
-    try {
-      await this.request.post(path, {
-        qs: {client: clientId},
-        headers: {
-          'Content-Type': 'application/xml'
-        }
-      });
-    } catch (err) {
-      assert.ok(err.response.complete);
-      response = err.response;
-    }
-
     let digest: string;
-    if (response.statusCode === HttpStatus.UNAUTHORIZED) {
-      //
-      // Post data
-      //
-      const auth = new DigestAuth(this.config.botAccount);
+    let n = 1;
+    const postData = xmlMetadata.toXml();
 
-      const relpath = Url.parse(response.request.path).path; // Ensure path is relative
-      digest = auth.digest(response.request.method, relpath, response.headers['www-authenticate']);
-    } else {
-      assert.strictEqual(response.statusCode, HttpStatus.OK, 'Expect the session to be already authorized');
-    }
-
-    await this.request.post({
-      uri: `/ws/2/${entity}/`,
-      headers: {
-        authorization: digest,
-        'Content-Type': 'application/xml'
-      },
-      qs: {client: clientId},
-      body: xmlMetadata.toXml()
-    });
+    do {
+      try {
+        await this.rateLimiter.limit();
+        await this.request.post(path, {
+          qs: {client: clientId},
+          headers: {
+            'Content-Type': 'application/xml'
+          },
+          body: postData
+        });
+      } catch (err) {
+        const response = err.response;
+        assert.ok(response.complete);
+        if (response.statusCode === HttpStatus.UNAUTHORIZED) {
+          // Respond to digest challenge
+          const auth = new DigestAuth(this.config.botAccount);
+          const relPath = Url.parse(response.request.path).path; // Ensure path is relative
+          digest = auth.digest(response.request.method, relPath, response.headers['www-authenticate']);
+          continue;
+        } else if (response.statusCode === 503) {
+          continue;
+        }
+        break;
+      }
+      break;
+    } while (n++ < 5);
   }
 
   public async login(): Promise<boolean> {
