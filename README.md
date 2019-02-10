@@ -236,6 +236,9 @@ await mbApi.post('recording', xmlMetadata);
 For all of the following function you need to use a dedicated bot account. 
 
 ## Submitting ISRC via post user form-data
+
+<img width="150" src="http://www.clker.com/cliparts/i/w/L/q/u/1/work-in-progress.svg"/>
+Use with caution, and only on a test server, it may clear existing metadata as side effect.
       
 ```JavaScript
 
