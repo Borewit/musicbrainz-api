@@ -89,6 +89,11 @@ describe('MusicBrainz-api', function() {
   };
 
   const spotify = {
+    album: {
+      RacineCarree: {
+        id: '6uyslsVGFsHKzdGUosFwBM'
+      }
+    },
     track: {
       Formidable: {
         id: '2AMysGXOe0zzZJMtH3Nizb'
@@ -293,6 +298,18 @@ describe('MusicBrainz-api', function() {
           assert.isAtLeast(result.count, 1);
           assert.isAtLeast(result.areas.length, 1);
           assert.strictEqual(result.areas[0].id, mbid.area.IleDeFrance);
+        });
+      });
+
+      describe('searchUrl', () => {
+
+        const spotifyUrl = 'https://open.spotify.com/album/' + spotify.album.RacineCarree.id;
+
+        it('find url by url', async () => {
+          const result = await mbApi.searchUrl({url: spotifyUrl});
+          assert.isAtLeast(result.count, 1);
+          assert.isAtLeast(result.urls.length, 1);
+          assert.strictEqual(result.urls[0].resource, spotifyUrl);
         });
       });
     });

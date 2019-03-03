@@ -181,6 +181,9 @@ export interface IReleaseGroupList extends ISearchResult {
   'release-groups': IReleaseGroupMatch[]
 }
 
+export interface IUrlList extends ISearchResult {
+  urls: IUrlMatch[]
+}
 export type RelationDirection = 'backward' | 'forward';
 
 export interface IRelation {

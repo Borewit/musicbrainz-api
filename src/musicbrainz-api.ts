@@ -430,6 +430,10 @@ export class MusicBrainzApi {
     return this.search<mb.IAreaList>('area', query, offset, limit);
   }
 
+  public searchUrl(query: string | IFormData, offset?: number, limit?: number): Promise<mb.IUrlList> {
+    return this.search<mb.IUrlList>('url', query, offset, limit);
+  }
+
   private getCookies(url: string): request.Cookie[] {
     return this.cookieJar.getCookies(url);
   }
