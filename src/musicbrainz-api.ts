@@ -403,15 +403,16 @@ export class MusicBrainzApi {
    * This function will automatically lookup the recording title, which is required to submit the recording URL
    * @param recording MBID of the recording
    * @param spotifyId Spotify ID
+   * @param editNote Comment to add.
    */
-  public addSpotifyIdToRecording(recording: mb.IRecording, spotifyId: string) {
+  public addSpotifyIdToRecording(recording: mb.IRecording, spotifyId: string, editNote: string) {
 
     assert.strictEqual(spotifyId.length, 22);
 
     return this.addUrlToRecording(recording, {
       linkTypeId: mb.LinkType.stream_for_free,
       text: 'https://open.spotify.com/track/' + spotifyId
-    });
+    }, editNote);
   }
 
   public searchArtist(query: string | IFormData, offset?: number, limit?: number): Promise<mb.IArtistList> {

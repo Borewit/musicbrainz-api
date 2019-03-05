@@ -9,6 +9,8 @@ assert.isDefined(process.env.MBPWD, 'Set environment variable MBPWD');
 assert.isDefined(process.env.MBPWD, 'Set environment variable MBEMAIL');
 */
 
+const repoUrl = 'https://github.com/Borewit/musicbrainz-api';
+
 const testBotAccount = {
   username: process.env.MBUSER,
   password: process.env.MBPWD
@@ -363,7 +365,8 @@ describe('MusicBrainz-api', function() {
 
         const succeed = await mbTestApi.login();
         assert.isTrue(succeed, 'Login successful');
-        await mbTestApi.addSpotifyIdToRecording(recording, spotify.track.Formidable.id);
+        const editNote = `Unit-test musicbrainz-api (${repoUrl}), test augment recording with Spotify URL & ISRC`;
+        await mbTestApi.addSpotifyIdToRecording(recording, spotify.track.Formidable.id, editNote);
       });
 
       it('add Spotify-ID to recording with ISRC', async () => {
@@ -372,8 +375,8 @@ describe('MusicBrainz-api', function() {
         const recording_id = 'a75b85bf-63dd-4fe1-8008-d15541b93bac';
 
         const recording = await mbTestApi.getRecording(recording_id);
-
-        await mbTestApi.addSpotifyIdToRecording(recording, '3ZDO5YINwfoifRQ3ElshPM');
+        const editNote = `Unit-test musicbrainz-api (${repoUrl}), test augment recording with Spotify URL & ISRC`;
+        await mbTestApi.addSpotifyIdToRecording(recording, '3ZDO5YINwfoifRQ3ElshPM', editNote);
       });
 
     });
