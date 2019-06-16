@@ -30,7 +30,8 @@ export type Includes =
   | 'artist-credits'
   | 'isrcs'
   | 'url-rels'
-  | 'release-groups';
+  | 'release-groups'
+  | 'aliases';
 
 const debug = Debug('musicbrainz-api');
 
