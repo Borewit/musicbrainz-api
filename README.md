@@ -31,7 +31,7 @@ If you plan to use this module for submitting metadata, please ensure you comply
 Import the module
 JavaScript example, how to import 'musicbrainz-api:
 ```javascript
-const MusicbrainzApi = require('musicbrainz-api');
+const MusicbrainzApi = require('musicbrainz-api').MusicbrainzApi;
 
 const mbApi = new MusicbrainzApi({
   appName: 'my-app',
