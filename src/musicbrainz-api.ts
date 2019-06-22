@@ -102,9 +102,9 @@ export class MusicBrainzApi {
   private rateLimiter: RateLimiter;
   private readonly cookieJar: request.CookieJar;
 
-  public constructor(config?: IMusicBrainzConfig) {
+  public constructor(_config?: IMusicBrainzConfig) {
 
-    Object.assign(this.config, config);
+    Object.assign(this.config, _config);
 
     this.cookieJar = request.jar();
 
@@ -288,6 +288,9 @@ export class MusicBrainzApi {
 
     const redirectUri = '/success';
 
+    assert.ok(this.config.botAccount.username, 'bot username should be set');
+    assert.ok(this.config.botAccount.password, 'bot password should be set');
+
     let response: request.Response;
     try {
       response = await this.request.post({
@@ -302,8 +305,12 @@ export class MusicBrainzApi {
         }
       });
     } catch (err) {
-      assert.ok(err.response.complete);
-      response = err.response;
+      if (err.response) {
+        assert.ok(err.response.complete);
+        response = err.response;
+      } else {
+        throw err;
+      }
     }
     assert.strictEqual(response.statusCode, HttpStatus.MOVED_TEMPORARILY, 'Expect redirect to /success');
     return response.headers.location === redirectUri;
