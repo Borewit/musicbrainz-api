@@ -278,3 +278,8 @@ const succeed = await mbApi.login();
 assert.isTrue(succeed, 'Login successful');
 await mbApi.addSpotifyIdToRecording(recording, '2AMysGXOe0zzZJMtH3Nizb');
 ```
+
+## Compatibility
+
+The JavaScript in runtime is compliant with [ECMAScript 2017 (ES8)](https://en.wikipedia.org/wiki/ECMAScript#8th_Edition_-_ECMAScript_2017).
+Requires [Node.js®](https://nodejs.org/) version 6 or higher.
