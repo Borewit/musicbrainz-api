@@ -2,7 +2,7 @@
 [![NPM version](https://img.shields.io/npm/v/musicbrainz-api.svg)](https://npmjs.org/package/musicbrainz-api)
 [![npm downloads](http://img.shields.io/npm/dm/musicbrainz-api.svg)](https://npmcharts.com/compare/musicbrainz-api)
 [![Coverage Status](https://coveralls.io/repos/github/Borewit/musicbrainz-api/badge.svg?branch=master)](https://coveralls.io/github/Borewit/musicbrainz-api?branch=master)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/4816bf96e965489ea82ba5d0476304e5)](https://www.codacy.com/app/Borewit/musicbrainz-client?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Borewit/musicbrainz-client&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/5289de6ccf224ca8a94f430f8a9f1784)](https://www.codacy.com/app/Borewit/musicbrainz-augmentation?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Borewit/musicbrainz-augmentation&amp;utm_campaign=Badge_Grade)
 [![Dependencies](https://david-dm.org/Borewit/musicbrainz-api.svg)](https://david-dm.org/Borewit/musicbrainz-api)
 [![Known Vulnerabilities](https://snyk.io/test/github/Borewit/musicbrainz-api/badge.svg?targetFile=package.json)](https://snyk.io/test/github/Borewit/musicbrainz-api?targetFile=package.json)
 [![Discord](https://img.shields.io/discord/460524735235883049.svg)](https://discord.gg/958xT5X)
