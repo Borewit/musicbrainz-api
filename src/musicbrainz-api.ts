@@ -22,6 +22,9 @@ export * from './musicbrainz.types';
 
 const retries = 3;
 
+/**
+ * https://musicbrainz.org/doc/Development/XML_Web_Service/Version_2#Subqueries
+ */
 export type Includes =
   'artists'
   | 'releases'
@@ -31,7 +34,22 @@ export type Includes =
   | 'isrcs'
   | 'url-rels'
   | 'release-groups'
-  | 'aliases';
+  | 'aliases'
+  | 'discids'
+  | 'annotation'
+  | 'media' // release-groups
+  | 'area-rels'
+  | 'artist-rels'
+  | 'event-rels'
+  | 'instrument-rels'
+  | 'label-rels'
+  | 'place-rels'
+  | 'recording-rels'
+  | 'release-rels'
+  | 'release-group-rels'
+  | 'series-rels'
+  | 'url-rels'
+  | 'work-rels';
 
 const debug = Debug('musicbrainz-api');
 
