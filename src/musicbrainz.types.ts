@@ -108,6 +108,7 @@ export interface IRecording {
   releases?: IRelease;
   relations?: IRelation[];
   'artist-credit'?: IArtistCredit[];
+  aliases?: IAlias[];
 }
 
 export interface ITrack {
