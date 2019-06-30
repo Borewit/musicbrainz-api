@@ -1,25 +1,18 @@
-import {LinkType, MusicBrainzApi} from '../src/musicbrainz-api';
+import { IMusicBrainzConfig, LinkType, MusicBrainzApi } from '../src/musicbrainz-api';
 import {assert} from 'chai';
 import {XmlMetadata} from "../src/xml/xml-metadata";
 import * as mb from '../src/musicbrainz.types';
 
-/*
-assert.isDefined(process.env.MBUSER, 'Set environment variable MBUSER');
-assert.isDefined(process.env.MBPWD, 'Set environment variable MBPWD');
-assert.isDefined(process.env.MBPWD, 'Set environment variable MBEMAIL');
-*/
+const packageInfo = require ('../package.json');
 
-const repoUrl = 'https://github.com/Borewit/musicbrainz-api';
+const appUrl = 'https://github.com/Borewit/musicbrainz-api';
 
 const testBotAccount = {
   username: process.env.MBUSER,
   password: process.env.MBPWD
 };
 
-const appName = 'musicbrainz-api';
-const appVersion = '0.2.0';
-
-const testApiConfig = {
+const testApiConfig: IMusicBrainzConfig = {
   botAccount: testBotAccount,
   baseUrl: 'https://test.musicbrainz.org',
 
@@ -28,12 +21,12 @@ const testApiConfig = {
    */
   proxy: process.env.MBPROXY,
 
-  appName,
-  appVersion,
-  appMail: process.env.MBEMAIL
+  appName: packageInfo.name,
+  appVersion: packageInfo.version,
+  appContactInfo: appUrl
 };
 
-const searchApiConfig = {
+const searchApiConfig: IMusicBrainzConfig = {
 
   baseUrl: 'https://musicbrainz.org',
 
@@ -42,9 +35,9 @@ const searchApiConfig = {
    */
   proxy: process.env.MBPROXY,
 
-  appName,
-  appVersion,
-  appMail: process.env.MBEMAIL
+  appName: packageInfo.name,
+  appVersion: packageInfo.version,
+  appContactInfo: appUrl
 };
 
 const mbTestApi = new MusicBrainzApi(testApiConfig);
@@ -365,7 +358,7 @@ describe('MusicBrainz-api', function() {
 
         const succeed = await mbTestApi.login();
         assert.isTrue(succeed, 'Login successful');
-        const editNote = `Unit-test musicbrainz-api (${repoUrl}), test augment recording with Spotify URL & ISRC`;
+        const editNote = `Unit-test musicbrainz-api (${appUrl}), test augment recording with Spotify URL & ISRC`;
         await mbTestApi.addSpotifyIdToRecording(recording, spotify.track.Formidable.id, editNote);
       });
 
@@ -375,7 +368,7 @@ describe('MusicBrainz-api', function() {
         const recording_id = 'a75b85bf-63dd-4fe1-8008-d15541b93bac';
 
         const recording = await mbTestApi.getRecording(recording_id);
-        const editNote = `Unit-test musicbrainz-api (${repoUrl}), test augment recording with Spotify URL & ISRC`;
+        const editNote = `Unit-test musicbrainz-api (${appUrl}), test augment recording with Spotify URL & ISRC`;
         await mbTestApi.addSpotifyIdToRecording(recording, '3ZDO5YINwfoifRQ3ElshPM', editNote);
       });
 
@@ -385,13 +378,30 @@ describe('MusicBrainz-api', function() {
 
       it('add ISRC', async () => {
 
-        const recording = await mbTestApi.getRecording(mbid.recording.Formidable);
+        const recording = await mbTestApi.getRecording(mbid.recording.Formidable, ['isrcs']);
         assert.strictEqual(recording.id, mbid.recording.Formidable);
         assert.strictEqual(recording.title, 'Formidable');
 
         const succeed = await mbTestApi.login();
         assert.isTrue(succeed, 'Login successful');
         await mbTestApi.addIsrc(recording, 'BET671300161');
+      });
+
+    });
+
+    /**
+     * https://musicbrainz.org/doc/Development/XML_Web_Service/Version_2#ISRC_submission
+     */
+    describe('ISRC submission', () => {
+
+      it('add ISRC', () => {
+
+        // await mbTestApi.login();
+
+        const xmlMedata = new XmlMetadata();
+        const xmlRec = xmlMedata.pushRecording('94fb868b-9233-4f9e-966b-e8036bf7461e');
+        xmlRec.isrcList.pushIsrc('GB5EM1801762');
+        return mbTestApi.post('recording', xmlMedata);
       });
 
     });

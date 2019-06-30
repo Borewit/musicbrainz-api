@@ -18,7 +18,7 @@
     "arrow-parens": [true, "ban-single-arg-parens"],
     "no-implicit-dependencies": [true, "dev"],
     "no-submodule-imports": [true, "uuid"],
-    "no-var-requires": true
+    "no-var-requires": false
   },
   "jsRules": {
     "curly": false
