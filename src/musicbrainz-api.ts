@@ -397,9 +397,19 @@ export class MusicBrainzApi {
     const formData = {};
 
     formData[`edit-recording.name`] = recording.title; // Required
-    formData[`edit-recording.isrc.0`] = isrc;
 
-    return this.editEntity('recording', recording.id, formData);
+    if (!recording.isrcs) {
+      throw new Error('You must retrieve recording with existing ISRC values');
+    }
+
+    if (recording.isrcs.indexOf(isrc) === -1) {
+      recording.isrcs.push(isrc);
+
+      for (const i in recording.isrcs) {
+        formData[`edit-recording.isrcs.${i}`] = recording.isrcs[i];
+      }
+      return this.editEntity('recording', recording.id, formData);
+    }
   }
 
   // -----------------------------------------------------------------------------------------------------------------

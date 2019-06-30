@@ -385,7 +385,7 @@ describe('MusicBrainz-api', function() {
 
       it('add ISRC', async () => {
 
-        const recording = await mbTestApi.getRecording(mbid.recording.Formidable);
+        const recording = await mbTestApi.getRecording(mbid.recording.Formidable, ['isrcs']);
         assert.strictEqual(recording.id, mbid.recording.Formidable);
         assert.strictEqual(recording.title, 'Formidable');
 
