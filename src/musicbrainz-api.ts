@@ -273,6 +273,7 @@ export class MusicBrainzApi {
         await this.request.post(path, {
           qs: {client: clientId},
           headers: {
+            authorization: digest,
             'Content-Type': 'application/xml'
           },
           body: postData
