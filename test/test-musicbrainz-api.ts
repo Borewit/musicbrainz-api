@@ -389,6 +389,23 @@ describe('MusicBrainz-api', function() {
 
     });
 
+    /**
+     * https://musicbrainz.org/doc/Development/XML_Web_Service/Version_2#ISRC_submission
+     */
+    describe('ISRC submission', () => {
+
+      it('add ISRC', () => {
+
+        // await mbTestApi.login();
+
+        const xmlMedata = new XmlMetadata();
+        const xmlRec = xmlMedata.pushRecording('94fb868b-9233-4f9e-966b-e8036bf7461e');
+        xmlRec.isrcList.pushIsrc('GB5EM1801762');
+        return mbTestApi.post('recording', xmlMedata);
+      });
+
+    });
+
   });
 
 });
