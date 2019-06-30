@@ -73,9 +73,9 @@ export interface IMusicBrainzConfig {
   proxy?: string,
 
   /**
-   * User e-mail address
+   * User e-mail address or application URL
    */
-  appMail?: string
+  appContactInfo?: string
 }
 
 export class MusicBrainzApi {
@@ -133,7 +133,7 @@ export class MusicBrainzApi {
         /**
          * https://musicbrainz.org/doc/XML_Web_Service/Rate_Limiting#Provide_meaningful_User-Agent_strings
          */
-        'User-Agent': `${this.config.appName}/${this.config.appVersion} ( ${this.config.appMail} )`
+        'User-Agent': `${this.config.appName}/${this.config.appVersion} ( ${this.config.appContactInfo} )`
       },
       proxy: this.config.proxy,
       strictSSL: false,
@@ -259,11 +259,16 @@ export class MusicBrainzApi {
 
   public async post(entity: mb.EntityType, xmlMetadata: XmlMetadata): Promise<void> {
 
-    const clientId = 'WhatMusic-0.0.4';
+    if (!this.config.appName || !this.config.appVersion) {
+      throw new Error(`XML-Post requires the appName & appVersion to be defined`);
+    }
+
+    const clientId = `${this.config.appName.replace(/-/g, '.')}-${this.config.appVersion}`;
+
     const path = `/ws/2/${entity}/`;
     // Get digest challenge
 
-    let digest: string;
+    let digest: string = null;
     let n = 1;
     const postData = xmlMetadata.toXml();
 

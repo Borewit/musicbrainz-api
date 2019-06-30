@@ -47,7 +47,7 @@ import {MusicBrainzApi} from '../src/musicbrainz-api';
 const mbApi = new MusicbrainzApi({
   appName: 'my-app',
   appVersion: '0.1.0',
-  appMail: 'user@mail.org'
+  appContactInfo: 'user@mail.org' // Or URL to application home page
 });
 ```
 
