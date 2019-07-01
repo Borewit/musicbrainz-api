@@ -36,7 +36,7 @@ const MusicbrainzApi = require('musicbrainz-api').MusicbrainzApi;
 const mbApi = new MusicbrainzApi({
   appName: 'my-app',
   appVersion: '0.1.0',
-  appMail: 'user@mail.org'
+  appContactInfo: 'user@mail.org'
 });
 ```
 
