@@ -8,7 +8,7 @@ export interface IPeriod {
 
 export interface IArea {
   id: string,
-  'iso-3166-1-codes': string,
+  'iso-3166-1-codes': string[],
   name: string,
   'sort-name': string,
   disambiguation: string
@@ -65,35 +65,28 @@ export type ReleaseQuality = 'normal';  // ToDo
 export interface IRelease {
   id: string;
   title: string;
-  'text-representation': { 'language': 'eng', 'script': 'Latn' },
+  'text-representation': { 'language': string, 'script': string },
   disambiguation: string;
   asin: string,
   'status-id': string;
   packaging?: string;
   status: string;
   'packaging-id'?: string;
-  'release-events'?: IReleaseEvent;
+  'release-events'?: IReleaseEvent[];
   date: string;
   media: IMedium[];
   'cover-art-archive': ICoverArtArchive;
   country: string;
-  quality: ReleaseQuality;
+  quality: string; // type ReleaseQuality doesnt work here
   barcode: string;
   relations?: IRelation[];
   'artist-credit'?: IArtistCredit[]; // Include 'artist-credits '
   'release-group'?: IReleaseGroup; // Include: 'release-groups'
 }
 
-export interface IArea {
-  id: string;
-  name: string;
-  disambiguation: string;
-  'iso-3166-1-codes': string;
-  'sort-name': string;
-}
-
 export interface IReleaseEvent {
   area?: IArea;
+  date?: string;
 }
 
 export type MediaFormatType = 'Digital Media'; // ToDo
@@ -115,14 +108,15 @@ export interface ITrack {
   id: string;
   position: number;
   recording: IRecording;
-  number: number;
+  number: string; // in JSON, this is a string field
   length: number;
   title: string;
+  'artist-credit'?: IArtistCredit[];
 }
 
 export interface IMedium {
   title: string;
-  format: MediaFormatType;
+  format?: string; // optional, type dosent work
   'format-id': string;
   'tracks': ITrack[];
   'track-count': number;
@@ -134,7 +128,7 @@ export interface ICoverArtArchive {
   count: number;
   front: boolean;
   darkened: boolean;
-  artwork: true;
+  artwork: boolean;
   back: boolean;
 }
 
@@ -224,8 +218,8 @@ export interface ILabel {
 }
 
 export interface IUrl {
-  id: '1a150a68-13b2-4bab-a96b-4966924cbc7f',
-  resource: 'https://open.spotify.com/album/13bRrqlPDErhpXDUxYQCUU',
+  id: string,
+  resource: string,
   'relation-list': IRelationList[];
 }
 
@@ -237,7 +231,7 @@ export interface IUrlSearchResult extends ISearchResult {
 }
 
 export interface IIsrcSearchResult {
-  'isrc': 'GBCVZ0802435';
+  'isrc': string;
   'recordings': IRecording[];
 }
 
