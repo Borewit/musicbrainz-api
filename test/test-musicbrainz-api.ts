@@ -96,6 +96,11 @@ describe('MusicBrainz-api', function() {
     }
   };
 
+  it('Required environment variable', () => {
+    assert.isDefined(process.env.MBUSER, 'process.env.MBUSER');
+    assert.isDefined(process.env.MBPWD, 'process.env.MBPWD');
+  });
+
   describe('Read metadata', () => {
 
     describe('Lookup', () => {
