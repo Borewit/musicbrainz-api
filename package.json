@@ -1,6 +1,6 @@
 {
   "name": "musicbrainz-api",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "MusicBrainz API client for reading and submitting metadata",
   "main": "lib/musicbrainz-api",
   "types": "lib/musicbrainz-api",
