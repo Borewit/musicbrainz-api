@@ -148,32 +148,31 @@ Searches can be performed using the generic search function: `query(entity: mb.E
 
 ##### Example: search Île-de-France
 
-```JavaScript
+```javascript
  mbApi.search('area', 'Île-de-France');
 ````
 
 ##### Example: search release by barcode
 
 Search a release with the barcode 602537479870:
-```JavaScript
+```javascript
  mbApi.search('release', {barcode: 602537479870});
 ````
 
 ##### Example: search by object
 
 Same as previous example, but automatically serialize parameters to search query
-```JavaScript
+```javascript
  mbApi.search('release', 'barcode: 602537479870');
 ````
 
-### Entity specific search functions:
+### Entity specific search functions
 
 The following entity specific search functions are available:
 ```TypeScript
 searchArtist(query: string | IFormData, offset?: number, limit?: number): Promise<mb.IArtistList>
 searchReleaseGroup(query: string | IFormData, offset?: number, limit?: number): Promise<mb.IReleaseGroupList>`
 ```
-
 
 Arguments:
 *   Entity type, which can be one of:
@@ -199,17 +198,17 @@ const result = await mbApi.query<mb.IReleaseGroupList>('release-group', {query})
 ## Specialized search functions
 
 Search artist:
-```JavaScript
+````javascript
 const result = await mbApi.searchArtist('Stromae');
 ```
 
 Search release-group:
-```JavaScript
+```javascript
 const result = await mbApi.searchReleaseGroup('Racine carrée');
 ```
 
 Search a combination of a release-group and an artist.
-```JavaScript
+```javascript
 const result = await mbApi.searchReleaseGroupByTitleAndArtist('Racine carrée', 'Stromae');
 ```
 
@@ -221,7 +220,7 @@ const result = await mbApi.searchReleaseGroupByTitleAndArtist('Racine carrée', 
 
 Using the [XML ISRC submission](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2#ISRC_submission) API.
 
-```JavaScript
+```javascript
 const mbid_Formidable = '16afa384-174e-435e-bfa3-5591accda31c';
 const isrc_Formidable = 'BET671300161';
 
@@ -240,7 +239,7 @@ For all of the following function you need to use a dedicated bot account.
 <img width="150" src="http://www.clker.com/cliparts/i/w/L/q/u/1/work-in-progress.svg"/>
 Use with caution, and only on a test server, it may clear existing metadata as side effect.
       
-```JavaScript
+```javascript
 
 const mbid_Formidable = '16afa384-174e-435e-bfa3-5591accda31c';
 const isrc_Formidable = 'BET671300161';
@@ -258,7 +257,7 @@ await mbApi.addIsrc(recording, isrc_Formidable);
 
 ### Submit recording URL
 
-```JavaScript
+```javascript
 const recording = await mbApi.getRecording('16afa384-174e-435e-bfa3-5591accda31c');
 
 const succeed = await mbApi.login();
@@ -271,7 +270,7 @@ await mbApi.addUrlToRecording(recording, {
 ```
 
 Actually a Spotify-track-ID can be submitted easier: 
-```JavaScript
+```javascript
 const recording = await mbApi.getRecording('16afa384-174e-435e-bfa3-5591accda31c');
 
 const succeed = await mbApi.login();
