@@ -4,7 +4,7 @@
     "curly": false,
     "max-classes-per-file": false,
     "semicolon": [true, "always", "ignore-interfaces"],
-    "quotemark": false,
+    "quotemark": [true, "single"],
     "no-bitwise": false,
     "trailing-comma": [true, {"multiline": "never", "singleline": "never"}],
     "object-literal-key-quotes": [true, "as-needed"],
