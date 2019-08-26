@@ -26,18 +26,18 @@
   "license": "MIT",
   "private": false,
   "devDependencies": {
-    "@types/chai": "^4.1.7",
-    "@types/mocha": "^5.2.5",
-    "@types/node": "^10.12.18",
+    "@types/chai": "^4.2.0",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^12.7.2",
     "chai": "^4.2.0",
-    "coveralls": "^3.0.2",
-    "del-cli": "^1.1.0",
-    "mocha": "^5.2.0",
-    "nyc": "^13.1.0",
-    "remark-cli": "^6.0.1",
-    "remark-preset-lint-recommended": "^3.0.2",
-    "ts-node": "^7.0.1",
-    "tslint": "^5.12.1",
+    "coveralls": "^3.0.6",
+    "del-cli": "^2.0.0",
+    "mocha": "^6.2.0",
+    "nyc": "^14.1.1",
+    "remark-cli": "^7.0.0",
+    "remark-preset-lint-recommended": "^3.0.3",
+    "ts-node": "^8.3.0",
+    "tslint": "^5.19.0",
     "typescript": "^3.2.2"
   },
   "engines": {
@@ -61,6 +61,7 @@
     "jsontoxml": "^1.0.1",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.5",
+    "source-map-support": "^0.5.13",
     "uuid": "^3.3.2"
   },
   "scripts": {
@@ -71,11 +72,28 @@
     "lint-ts": "tslint 'src/**/*.ts' --exclude 'src/**/*.d.ts' 'test/**/*.ts' --exclude 'test/**/*.d.ts'",
     "lint-md": "remark -u preset-lint-recommended .",
     "lint": "npm run lint-md && npm run lint-ts",
-    "test": "mocha --require ts-node/register --full-trace test",
+    "test": "mocha --require ts-node/register --require source-map-support/register --full-trace test/test-*.ts",
     "build": "npm run clean && npm run compile",
     "start": "npm-run-all compile lint cover-test",
     "test-coverage": "nyc npm run test",
     "send-coveralls": "nyc report --reporter=text-lcov | coveralls",
     "send-codacy": "nyc report --reporter=text-lcov | codacy-coverage"
+  },
+  "nyc": {
+    "exclude": [
+      "lib/**",
+      "test/**/*.ts",
+      "src/**/*.js"
+    ],
+    "extension": [
+      ".ts"
+    ],
+    "sourceMap": true,
+    "instrument": true,
+    "reporter": [
+      "lcov",
+      "text"
+    ],
+    "report-dir": "coverage"
   }
 }
