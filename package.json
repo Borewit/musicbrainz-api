@@ -61,6 +61,7 @@
     "jsontoxml": "^1.0.1",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.5",
+    "source-map-support": "^0.5.13",
     "uuid": "^3.3.2"
   },
   "scripts": {
@@ -71,11 +72,28 @@
     "lint-ts": "tslint 'src/**/*.ts' --exclude 'src/**/*.d.ts' 'test/**/*.ts' --exclude 'test/**/*.d.ts'",
     "lint-md": "remark -u preset-lint-recommended .",
     "lint": "npm run lint-md && npm run lint-ts",
-    "test": "mocha --require ts-node/register --full-trace test",
+    "test": "mocha --require ts-node/register --require source-map-support/register --full-trace test/test-*.ts",
     "build": "npm run clean && npm run compile",
     "start": "npm-run-all compile lint cover-test",
     "test-coverage": "nyc npm run test",
     "send-coveralls": "nyc report --reporter=text-lcov | coveralls",
     "send-codacy": "nyc report --reporter=text-lcov | codacy-coverage"
+  },
+  "nyc": {
+    "exclude": [
+      "lib/**",
+      "test/**/*.ts",
+      "src/**/*.js"
+    ],
+    "extension": [
+      ".ts"
+    ],
+    "sourceMap": true,
+    "instrument": true,
+    "reporter": [
+      "lcov",
+      "text"
+    ],
+    "report-dir": "coverage"
   }
 }
