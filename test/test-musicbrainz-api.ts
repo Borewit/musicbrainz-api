@@ -1,9 +1,9 @@
 import { IMusicBrainzConfig, LinkType, MusicBrainzApi } from '../src/musicbrainz-api';
-import {assert} from 'chai';
-import {XmlMetadata} from "../src/xml/xml-metadata";
+import { assert } from 'chai';
+import { XmlMetadata } from '../src/xml/xml-metadata';
 import * as mb from '../src/musicbrainz.types';
 
-const packageInfo = require ('../package.json');
+const packageInfo = require('../package.json');
 
 const appUrl = 'https://github.com/Borewit/musicbrainz-api';
 

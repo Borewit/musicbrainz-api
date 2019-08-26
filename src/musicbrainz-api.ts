@@ -257,6 +257,10 @@ export class MusicBrainzApi {
     return this.getEntity<mb.IRecording>('recording', recordingId, inc);
   }
 
+  public async postRecording(xmlMetadata: XmlMetadata): Promise<void> {
+    return this.post('recording', xmlMetadata);
+  }
+
   public async post(entity: mb.EntityType, xmlMetadata: XmlMetadata): Promise<void> {
 
     if (!this.config.appName || !this.config.appVersion) {

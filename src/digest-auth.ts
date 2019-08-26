@@ -1,5 +1,5 @@
 import * as uuid from 'uuid/v4';
-import * as crypto from "crypto";
+import * as crypto from 'crypto';
 
 interface IChallenge {
   algorithm?: string;
