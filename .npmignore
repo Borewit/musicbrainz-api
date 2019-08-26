@@ -8,3 +8,5 @@ src/
 .nyc_output/
 *.iml
 lib/**/*.js.map
+**/*.yml
+**/*.json
