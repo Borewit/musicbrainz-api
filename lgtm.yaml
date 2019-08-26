@@ -1,0 +1,2 @@
+queries:
+  - exclude: js/weak-cryptographic-algorithm # MD5 is part of the digest protocol
