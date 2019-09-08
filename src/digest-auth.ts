@@ -15,7 +15,7 @@ export interface ICredentials {
 }
 
 function md5(str) {
-  return crypto.createHash('md5').update(str).digest('hex');
+  return crypto.createHash('md5').update(str).digest('hex'); // lgtm [js/insufficient-password-hash]
 }
 
 export class DigestAuth {
@@ -29,7 +29,7 @@ export class DigestAuth {
    *   HA1=MD5(MD5(username:realm:password):nonce:cnonce)
    */
   public static ha1Compute(algorithm, user, realm, pass, nonce, cnonce) {
-    const ha1 = md5(user + ':' + realm + ':' + pass);
+    const ha1 = md5(user + ':' + realm + ':' + pass); // lgtm [js/insufficient-password-hash]
     if (algorithm && algorithm.toLowerCase() === 'md5-sess') {
       return md5(ha1 + ':' + nonce + ':' + cnonce);
     } else {
@@ -71,10 +71,10 @@ export class DigestAuth {
     const nc = qop && '00000001';
     const cnonce = qop && uuid().replace(/-/g, '');
     const ha1 = DigestAuth.ha1Compute(challenge.algorithm, this.credentials.username, challenge.realm, this.credentials.password, challenge.nonce, cnonce);
-    const ha2 = md5(method + ':' + path);
+    const ha2 = md5(method + ':' + path); // lgtm [js/insufficient-password-hash]
     const digestResponse = qop
-      ? md5(ha1 + ':' + challenge.nonce + ':' + nc + ':' + cnonce + ':' + qop + ':' + ha2)
-      : md5(ha1 + ':' + challenge.nonce + ':' + ha2);
+      ? md5(ha1 + ':' + challenge.nonce + ':' + nc + ':' + cnonce + ':' + qop + ':' + ha2) // lgtm [js/insufficient-password-hash]
+      : md5(ha1 + ':' + challenge.nonce + ':' + ha2); // lgtm [js/insufficient-password-hash]
     const authValues = {
       username: this.credentials.username,
       realm: challenge.realm,
