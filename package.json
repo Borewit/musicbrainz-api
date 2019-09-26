@@ -26,7 +26,7 @@
   "license": "MIT",
   "private": false,
   "devDependencies": {
-    "@types/chai": "^4.2.2",
+    "@types/chai": "^4.2.3",
     "@types/mocha": "^5.2.7",
     "@types/node": "^12.7.8",
     "chai": "^4.2.0",
