@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@types/caseless": "^0.12.1",
-    "@types/request-promise-native": "^1.0.15",
+    "@types/request-promise-native": "^1.0.17",
     "@types/uuid": "^3.4.4",
     "caseless": "^0.12.0",
     "debug": "^4.1.1",
