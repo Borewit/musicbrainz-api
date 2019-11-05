@@ -59,7 +59,7 @@
     "json-stringify-safe": "^5.0.1",
     "jsontoxml": "^1.0.1",
     "request": "^2.88.0",
-    "request-promise-native": "^1.0.5",
+    "request-promise-native": "^1.0.8",
     "source-map-support": "^0.5.16",
     "uuid": "^3.3.2"
   },
