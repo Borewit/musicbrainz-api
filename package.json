@@ -27,7 +27,7 @@
   "devDependencies": {
     "@types/chai": "^4.2.5",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^12.12.5",
+    "@types/node": "^13.1.0",
     "chai": "^4.2.0",
     "coveralls": "^3.0.9",
     "del-cli": "^3.0.0",
