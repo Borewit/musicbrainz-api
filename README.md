@@ -201,7 +201,7 @@ const result = await mbApi.query<mb.IReleaseGroupList>('release-group', {query})
 ## Specialized search functions
 
 Search artist:
-````javascript
+```javascript
 const result = await mbApi.searchArtist('Stromae');
 ```
 
