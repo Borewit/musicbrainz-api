@@ -47,7 +47,7 @@ In TypeScript you it would look like this:
 ```javascript
 import {MusicBrainzApi} from '../src/musicbrainz-api';
 
-const mbApi = new MusicbrainzApi({
+const mbApi = new MusicBrainzApi({
   appName: 'my-app',
   appVersion: '0.1.0',
   appContactInfo: 'user@mail.org' // Or URL to application home page
