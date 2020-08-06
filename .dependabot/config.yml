@@ -25,3 +25,5 @@ update_configs:
           dependency_name: "@types/mocha"
       - match:
           dependency_name: "@types/node"
+      - match:
+          dependency_name: "source-map-support"
