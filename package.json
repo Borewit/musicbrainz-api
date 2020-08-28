@@ -34,7 +34,7 @@
     "mocha": "^8.1.2",
     "nyc": "^15.0.0",
     "remark-cli": "^7.0.1",
-    "remark-preset-lint-recommended": "^3.0.3",
+    "remark-preset-lint-recommended": "^4.0.1",
     "ts-node": "^9.0.0",
     "tslint": "^6.1.1",
     "typescript": "^4.0.2"
