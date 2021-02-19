@@ -45,7 +45,7 @@ const mbApi = new MusicBrainzApi({
 
 In TypeScript you it would look like this:
 ```javascript
-import {MusicBrainzApi} from '../src/musicbrainz-api';
+import {MusicBrainzApi} from 'musicbrainz-api';
 
 const mbApi = new MusicBrainzApi({
   appName: 'my-app',
@@ -212,7 +212,7 @@ const result = await mbApi.searchReleaseGroup('Racine carrée');
 
 Search a combination of a release-group and an artist.
 ```javascript
-const result = await mbApi.searchReleaseGroupByTitleAndArtist('Racine carrée', 'Stromae');
+const result = await mbApi.searchReleaseGroup({artist: 'Racine carrée', releasegroup: 'Stromae'});
 ```
 
 # Submitting data via XML POST
