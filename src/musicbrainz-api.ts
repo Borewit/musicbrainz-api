@@ -149,7 +149,7 @@ export class MusicBrainzApi {
       resolveWithFullResponse: true
     });
 
-    this.rateLimiter = new RateLimiter(14, 14);
+    this.rateLimiter = new RateLimiter(60, 50);
   }
 
   public async restGet<T>(relUrl: string, query: { [key: string]: any; } = {}, attempt: number = 1): Promise<T> {
