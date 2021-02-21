@@ -78,6 +78,14 @@ export interface IMusicBrainzConfig {
   appContactInfo?: string
 }
 
+export interface ISessionInformation {
+  csrf: {
+    sessionKey: string;
+    token: string;
+  }
+  cookies: request.Cookie[];
+}
+
 export class MusicBrainzApi {
 
   private static escapeText(text) {
@@ -307,9 +315,9 @@ export class MusicBrainzApi {
 
   public async login(): Promise<boolean> {
 
-    const cookies = this.getCookies(this.config.baseUrl);
+    const session = await this.getSession(this.config.baseUrl);
 
-    for (const cookie of cookies) {
+    for (const cookie of session.cookies) {
       if (cookie.key === 'musicbrainz_server_session')
         return true;
     }
@@ -325,11 +333,13 @@ export class MusicBrainzApi {
         uri: '/login',
         followRedirect: false, // Disable redirects,
         qs: {
-          uri: redirectUri
+          returnto: redirectUri
         },
         form: {
           username: this.config.botAccount.username,
-          password: this.config.botAccount.password
+          password: this.config.botAccount.password,
+          csrf_session_key: session.csrf.sessionKey,
+          csrf_token: session.csrf.token
         }
       });
     } catch (err) {
@@ -481,8 +491,36 @@ export class MusicBrainzApi {
     return this.search<mb.IUrlList>('url', query, offset, limit);
   }
 
-  private getCookies(url: string): request.Cookie[] {
-    return this.cookieJar.getCookies(url);
+  private fetchValue(html: string, key: string) {
+    let pos = html.indexOf(`name="${key}"`);
+    if (pos >= 0) {
+      pos = html.indexOf('value="', pos + key.length + 7);
+      if (pos >= 0) {
+        pos += 7;
+        const startValuePos = pos + key.length + 15;
+        if (startValuePos >= 0) {
+          const endValuePos = html.indexOf('"', startValuePos);
+          const value = html.substring(startValuePos, endValuePos);
+          return value;
+        }
+      }
+    }
+  }
+
+  private async getSession(url: string): Promise<ISessionInformation> {
+
+    const response = await this.request.get({
+      uri: '/login',
+      followRedirect: false // Disable redirects,
+    });
+
+    return {
+      csrf: {
+        sessionKey: this.fetchValue(response.body, 'csrf_session_key'),
+        token: this.fetchValue(response.body, 'csrf_session_key')
+      },
+      cookies: this.cookieJar.getCookies(url)
+    };
   }
 }
 
