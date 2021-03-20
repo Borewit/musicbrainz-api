@@ -86,7 +86,7 @@ const mbApi = new MusicbrainzApi(config);
 
 ## Lookup MusicBrainz Entities
 
-MusicBrainz API documentation: [XML Web Service/Version 2 Lookups](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2/#Lookups)
+MusicBrainz API documentation: [XML Web Service/Version 2 Lookups](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2#Lookups)
 
 ### Generic lookup function
 
