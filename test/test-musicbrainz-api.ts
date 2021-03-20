@@ -104,7 +104,7 @@ describe('MusicBrainz-api', function() {
   });
 
   it('Extract CSRF', () => {
-    const html =  fs.readFileSync(path.join(__dirname, 'csrf.html'), 'utf8');
+    const html = fs.readFileSync(path.join(__dirname, 'csrf.html'), 'utf8');
     const csrf = MusicBrainzApi.fetchCsrf(html);
     assert.deepStrictEqual(csrf, {
       sessionKey: 'csrf_token:x0VIlHob5nPcWKqJIwNPwE5Y3kE+nGQ9fccgTSYbuMU=',
@@ -237,7 +237,6 @@ describe('MusicBrainz-api', function() {
     describe('Query', () => {
 
       it('query: Queen - We Will Rock You', async () => {
-
         const query = 'query="We Will Rock You" AND arid:0383dadf-2a4e-4d10-a46a-e9e041da8eb3';
         const result = await mbApi.search<mb.IReleaseGroupList>('release-group', {query});
         assert.isAtLeast(result.count, 1);
@@ -330,7 +329,6 @@ describe('MusicBrainz-api', function() {
   describe('Submit API', () => {
 
     it('Post ISRC Formidable', async () => {
-
       const isrc_Formidable = 'BET671300161';
       const xmlMetadata = new XmlMetadata();
       const xmlRecording = xmlMetadata.pushRecording(mbid.recording.Formidable);
@@ -344,18 +342,18 @@ describe('MusicBrainz-api', function() {
   /**
    * https://wiki.musicbrainz.org/Development/Release_Editor_Seeding
    */
-  describe('User (bot) post form-data API', () => {
+  describe.skip('User (bot) post form-data API', () => {
 
-    it('login', async () => {
-
-      const succeed = await mbTestApi.login();
-      assert.isTrue(succeed, 'Login successful');
+    it('login & logout', async () => {
+      for (let n = 1; n <= 2; ++n) {
+        assert.isTrue(await mbTestApi.login(), `Login ${n}`);
+        assert.isTrue(await mbTestApi.logout(), `Logout ${n}`);
+      }
     });
 
     describe('Recording', () => {
 
       it('add link', async () => {
-
         const recording = await mbTestApi.getRecording(mbid.recording.Formidable);
         assert.strictEqual(recording.id, mbid.recording.Formidable);
         assert.strictEqual(recording.title, 'Formidable');
@@ -368,12 +366,12 @@ describe('MusicBrainz-api', function() {
 
       it('add Spotify-ID', async () => {
         const recording = await mbTestApi.getRecording(mbid.recording.Formidable);
+
         const editNote = `Unit-test musicbrainz-api (${appUrl}), test augment recording with Spotify URL & ISRC`;
         await mbTestApi.addSpotifyIdToRecording(recording, spotify.track.Formidable.id, editNote);
       });
 
       it('add Spotify-ID to recording with ISRC', async () => {
-
         // https://test.musicbrainz.org/recording/a75b85bf-63dd-4fe1-8008-d15541b93bac
         const recording_id = 'a75b85bf-63dd-4fe1-8008-d15541b93bac';
 
@@ -387,13 +385,10 @@ describe('MusicBrainz-api', function() {
     describe('ISRC', () => {
 
       it('add ISRC', async () => {
-
         const recording = await mbTestApi.getRecording(mbid.recording.Formidable, ['isrcs']);
         assert.strictEqual(recording.id, mbid.recording.Formidable);
         assert.strictEqual(recording.title, 'Formidable');
 
-        const succeed = await mbTestApi.login();
-        assert.isTrue(succeed, 'Login successful');
         await mbTestApi.addIsrc(recording, 'BET671300161');
       });
 
@@ -404,14 +399,11 @@ describe('MusicBrainz-api', function() {
      */
     describe('ISRC submission', () => {
 
-      it('add ISRC', () => {
-
-        // await mbTestApi.login();
-
+      it('add ISRC', async () => {
         const xmlMedata = new XmlMetadata();
         const xmlRec = xmlMedata.pushRecording('94fb868b-9233-4f9e-966b-e8036bf7461e');
         xmlRec.isrcList.pushIsrc('GB5EM1801762');
-        return mbTestApi.post('recording', xmlMedata);
+        await mbTestApi.post('recording', xmlMedata);
       });
 
     });
