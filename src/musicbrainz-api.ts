@@ -82,6 +82,7 @@ export interface ISessionInformation {
     token: string;
   }
   cookies: request.Cookie[];
+  loggedIn?: boolean;
 }
 
 export class MusicBrainzApi {
@@ -125,6 +126,13 @@ export class MusicBrainzApi {
 
   private rateLimiter: RateLimiter;
   private readonly cookieJar: request.CookieJar;
+
+  public static fetchCsrf(html: string) {
+    return {
+      sessionKey: MusicBrainzApi.fetchValue(html, 'csrf_session_key'),
+      token: MusicBrainzApi.fetchValue(html, 'csrf_token')
+    };
+  }
 
   public constructor(_config?: IMusicBrainzConfig) {
 
@@ -315,9 +323,12 @@ export class MusicBrainzApi {
 
     const session = await this.getSession(this.config.baseUrl);
 
-    for (const cookie of session.cookies) {
-      if (cookie.key === 'musicbrainz_server_session')
-        return true;
+    if (session.loggedIn) {
+      for (const cookie of session.cookies) {
+        if (cookie.key === 'musicbrainz_server_session') {
+          return true;
+        }
+      }
     }
 
     const redirectUri = '/success';
@@ -344,6 +355,7 @@ export class MusicBrainzApi {
       if (err.response) {
         assert.ok(err.response.complete);
         response = err.response;
+        session.loggedIn = true;
       } else {
         throw err;
       }
@@ -489,18 +501,15 @@ export class MusicBrainzApi {
     return this.search<mb.IUrlList>('url', query, offset, limit);
   }
 
-  private fetchValue(html: string, key: string) {
+  private static fetchValue(html: string, key: string) {
     let pos = html.indexOf(`name="${key}"`);
     if (pos >= 0) {
       pos = html.indexOf('value="', pos + key.length + 7);
       if (pos >= 0) {
         pos += 7;
-        const startValuePos = pos + key.length + 15;
-        if (startValuePos >= 0) {
-          const endValuePos = html.indexOf('"', startValuePos);
-          const value = html.substring(startValuePos, endValuePos);
-          return value;
-        }
+        const endValuePos = html.indexOf('"', pos);
+        const value = html.substring(pos, endValuePos);
+        return value;
       }
     }
   }
@@ -513,10 +522,7 @@ export class MusicBrainzApi {
     });
 
     return {
-      csrf: {
-        sessionKey: this.fetchValue(response.body, 'csrf_session_key'),
-        token: this.fetchValue(response.body, 'csrf_session_key')
-      },
+      csrf: MusicBrainzApi.fetchCsrf(response.body),
       cookies: this.cookieJar.getCookies(url)
     };
   }

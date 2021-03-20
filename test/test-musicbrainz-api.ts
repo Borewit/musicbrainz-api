@@ -2,6 +2,8 @@ import { IMusicBrainzConfig, LinkType, MusicBrainzApi } from '../src/musicbrainz
 import { assert } from 'chai';
 import { XmlMetadata } from '../src/xml/xml-metadata';
 import * as mb from '../src/musicbrainz.types';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const packageInfo = require('../package.json');
 
@@ -99,6 +101,15 @@ describe('MusicBrainz-api', function() {
   it('Required environment variable', () => {
     assert.isDefined(process.env.MBUSER, 'process.env.MBUSER');
     assert.isDefined(process.env.MBPWD, 'process.env.MBPWD');
+  });
+
+  it('Extract CSRF', () => {
+    const html =  fs.readFileSync(path.join(__dirname, 'csrf.html'), 'utf8');
+    const csrf = MusicBrainzApi.fetchCsrf(html);
+    assert.deepStrictEqual(csrf, {
+      sessionKey: 'csrf_token:x0VIlHob5nPcWKqJIwNPwE5Y3kE+nGQ9fccgTSYbuMU=',
+      token: '6G9f/xJ6Y4fLVvfYGHrzBUM34j6hy4CJrBi3VkVwO9I='
+    }, 'CSRF data');
   });
 
   describe('Read metadata', () => {
@@ -349,8 +360,6 @@ describe('MusicBrainz-api', function() {
         assert.strictEqual(recording.id, mbid.recording.Formidable);
         assert.strictEqual(recording.title, 'Formidable');
 
-        const succeed = await mbTestApi.login();
-        assert.isTrue(succeed, 'Login successful');
         await mbTestApi.addUrlToRecording(recording, {
           linkTypeId: LinkType.stream_for_free,
           text: 'https://open.spotify.com/track/' + spotify.track.Formidable.id
@@ -358,11 +367,7 @@ describe('MusicBrainz-api', function() {
       });
 
       it('add Spotify-ID', async () => {
-
         const recording = await mbTestApi.getRecording(mbid.recording.Formidable);
-
-        const succeed = await mbTestApi.login();
-        assert.isTrue(succeed, 'Login successful');
         const editNote = `Unit-test musicbrainz-api (${appUrl}), test augment recording with Spotify URL & ISRC`;
         await mbTestApi.addSpotifyIdToRecording(recording, spotify.track.Formidable.id, editNote);
       });
