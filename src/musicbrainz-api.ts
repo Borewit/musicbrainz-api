@@ -29,7 +29,6 @@ export type Includes =
   'artists'
   | 'releases'
   | 'recordings'
-  | 'artists'
   | 'artist-credits'
   | 'isrcs'
   | 'url-rels'
@@ -48,7 +47,6 @@ export type Includes =
   | 'release-rels'
   | 'release-group-rels'
   | 'series-rels'
-  | 'url-rels'
   | 'work-rels';
 
 const debug = Debug('musicbrainz-api');
@@ -261,7 +259,7 @@ export class MusicBrainzApi {
    * @param recordingId Label MBID
    * @param inc Include: artist-credits, isrcs
    */
-  public getRecording(recordingId: string, inc: Array<'artists' | 'artist-credits' | 'releases' | 'isrcs' | 'url-rels'> = []): Promise<mb.IRecording> {
+  public getRecording(recordingId: string, inc: Includes[] = []): Promise<mb.IRecording> {
     return this.getEntity<mb.IRecording>('recording', recordingId, inc);
   }
 

@@ -138,7 +138,7 @@ export interface IReleaseGroup {
   title: string;
   'primary-type': string;
   'sort-name': string;
-  'artist-credit': Array<{ artist: IArtist }>;
+  'artist-credit': [{ artist: IArtist }];
   releases?: IRelease[]; // include 'releases'
 }
 
