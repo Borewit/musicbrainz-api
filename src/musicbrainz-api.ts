@@ -4,21 +4,23 @@ import * as HttpStatus from 'http-status-codes';
 import * as Url from 'url';
 import * as Debug from 'debug';
 
-export {XmlMetadata} from './xml/xml-metadata';
-export {XmlIsrc} from './xml/xml-isrc';
-export {XmlIsrcList} from './xml/xml-isrc-list';
-export {XmlRecording} from './xml/xml-recording';
+export { XmlMetadata } from './xml/xml-metadata';
+export { XmlIsrc } from './xml/xml-isrc';
+export { XmlIsrcList } from './xml/xml-isrc-list';
+export { XmlRecording } from './xml/xml-recording';
 
-import {XmlMetadata} from './xml/xml-metadata';
-import {DigestAuth} from './digest-auth';
+import { XmlMetadata } from './xml/xml-metadata';
+import { DigestAuth } from './digest-auth';
 
-import {RateLimiter} from './rate-limiter';
+import { RateLimiter } from './rate-limiter';
 import * as mb from './musicbrainz.types';
 
-import * as requestPromise from 'request-promise-native';
-import * as request from 'request';
+import got, { Options } from 'got';
+import * as tough from 'tough-cookie';
 
 export * from './musicbrainz.types';
+
+import { promisify } from 'util';
 
 const retries = 3;
 
@@ -81,7 +83,6 @@ export interface ISessionInformation {
     sessionKey: string;
     token: string;
   }
-  cookies: request.Cookie[];
   loggedIn?: boolean;
 }
 
@@ -122,10 +123,9 @@ export class MusicBrainzApi {
     baseUrl: 'https://musicbrainz.org'
   };
 
-  private request: request.RequestAPI<requestPromise.RequestPromise, request.CoreOptions, request.RequiredUriUrl>;
-
   private rateLimiter: RateLimiter;
-  private readonly cookieJar: request.CookieJar;
+  private options: Options;
+  private session: ISessionInformation;
 
   public static fetchCsrf(html: string) {
     return {
@@ -134,26 +134,36 @@ export class MusicBrainzApi {
     };
   }
 
+  private static fetchValue(html: string, key: string) {
+    let pos = html.indexOf(`name="${key}"`);
+    if (pos >= 0) {
+      pos = html.indexOf('value="', pos + key.length + 7);
+      if (pos >= 0) {
+        pos += 7;
+        const endValuePos = html.indexOf('"', pos);
+        const value = html.substring(pos, endValuePos);
+        return value;
+      }
+    }
+  }
+
+  private getCookies: (currentUrl: string | URL) => Promise<tough.Cookie[]>;
+
   public constructor(_config?: IMusicBrainzConfig) {
 
     Object.assign(this.config, _config);
 
-    this.cookieJar = request.jar();
+    const cookieJar = new tough.CookieJar();
+    this.getCookies = promisify(cookieJar.getCookies.bind(cookieJar));
 
-    this.request = requestPromise.defaults({
-      baseUrl: this.config.baseUrl,
+    this.options = {
+      prefixUrl: this.config.baseUrl,
       timeout: 20 * 1000,
       headers: {
-        /**
-         * https://musicbrainz.org/doc/XML_Web_Service/Rate_Limiting#Provide_meaningful_User-Agent_strings
-         */
         'User-Agent': `${this.config.appName}/${this.config.appVersion} ( ${this.config.appContactInfo} )`
       },
-      proxy: this.config.proxy,
-      strictSSL: false,
-      jar:  this.cookieJar,
-      resolveWithFullResponse: true
-    });
+      cookieJar
+    };
 
     this.rateLimiter = new RateLimiter(14, 14);
   }
@@ -162,14 +172,14 @@ export class MusicBrainzApi {
 
     query.fmt = 'json';
 
-    let response: request.Response;
-
+    let response: any;
     await this.rateLimiter.limit();
     do {
-      response = await this.request.get('/ws/2' + relUrl, {
-        qs: query,
-        json: true
-      }, null);
+      response = await got.get('ws/2' + relUrl, {
+        searchParams: query,
+        responseType: 'json',
+        ...this.options
+      });
       if (response.statusCode !== 503)
         break;
       debug('Rate limiter kicked in, slowing down...');
@@ -182,11 +192,11 @@ export class MusicBrainzApi {
 
       case HttpStatus.BAD_REQUEST:
       case HttpStatus.NOT_FOUND:
-        throw new Error(`Got response status ${response.statusCode}: ${HttpStatus.getStatusText(response.statusCode)}`);
+        throw new Error(`Got response status ${response.statusCode}: ${HttpStatus.getStatusText(response.status)}`);
 
       case HttpStatus.SERVICE_UNAVAILABLE: // 503
       default:
-        const msg = `Got response status ${response.statusCode} on attempt #${attempt} (${HttpStatus.getStatusText(response.statusCode)})`;
+        const msg = `Got response status ${response.statusCode} on attempt #${attempt} (${HttpStatus.getStatusText(response.status)})`;
         debug(msg);
         if (attempt < retries) {
           return this.restGet<T>(relUrl, query, attempt + 1);
@@ -283,7 +293,7 @@ export class MusicBrainzApi {
 
     const clientId = `${this.config.appName.replace(/-/g, '.')}-${this.config.appVersion}`;
 
-    const path = `/ws/2/${entity}/`;
+    const path = `ws/2/${entity}/`;
     // Get digest challenge
 
     let digest: string = null;
@@ -291,77 +301,86 @@ export class MusicBrainzApi {
     const postData = xmlMetadata.toXml();
 
     do {
-      try {
-        await this.rateLimiter.limit();
-        await this.request.post(path, {
-          qs: {client: clientId},
-          headers: {
-            authorization: digest,
-            'Content-Type': 'application/xml'
-          },
-          body: postData
-        });
-      } catch (err) {
-        const response = err.response;
-        assert.ok(response.complete);
-        if (response.statusCode === HttpStatus.UNAUTHORIZED) {
-          // Respond to digest challenge
-          const auth = new DigestAuth(this.config.botAccount);
-          const relPath = Url.parse(response.request.path).path; // Ensure path is relative
-          digest = auth.digest(response.request.method, relPath, response.headers['www-authenticate']);
-          continue;
-        } else if (response.statusCode === 503) {
-          continue;
-        }
+      await this.rateLimiter.limit();
+      const response: any = await got.post(path, {
+        searchParams: {client: clientId},
+        headers: {
+          authorization: digest,
+          'Content-Type': 'application/xml'
+        },
+        body: postData,
+        throwHttpErrors: false,
+        ...this.options
+      });
+      if (response.statusCode === HttpStatus.UNAUTHORIZED) {
+        // Respond to digest challenge
+        const auth = new DigestAuth(this.config.botAccount);
+        const relPath = Url.parse(response.requestUrl).path; // Ensure path is relative
+        digest = auth.digest(response.request.method, relPath, response.headers['www-authenticate']);
+        ++n;
+      } else {
         break;
       }
-      break;
     } while (n++ < 5);
   }
 
   public async login(): Promise<boolean> {
 
-    const session = await this.getSession(this.config.baseUrl);
+    assert.ok(this.config.botAccount.username, 'bot username should be set');
+    assert.ok(this.config.botAccount.password, 'bot password should be set');
 
-    if (session.loggedIn) {
-      for (const cookie of session.cookies) {
-        if (cookie.key === 'musicbrainz_server_session') {
+    if (this.session && this.session.loggedIn) {
+      for (const cookie of await this.getCookies(this.options.prefixUrl)) {
+        if (cookie.key === 'remember_login') {
           return true;
         }
       }
     }
+    this.session = await this.getSession(this.config.baseUrl);
 
     const redirectUri = '/success';
 
-    assert.ok(this.config.botAccount.username, 'bot username should be set');
-    assert.ok(this.config.botAccount.password, 'bot password should be set');
+    const formData = {
+      username: this.config.botAccount.username,
+      password: this.config.botAccount.password,
+      csrf_session_key: this.session.csrf.sessionKey,
+      csrf_token: this.session.csrf.token,
+      remember_me: 1
+    };
 
-    let response: request.Response;
-    try {
-      response = await this.request.post({
-        uri: '/login',
-        followRedirect: false, // Disable redirects,
-        qs: {
-          returnto: redirectUri
-        },
-        form: {
-          username: this.config.botAccount.username,
-          password: this.config.botAccount.password,
-          csrf_session_key: session.csrf.sessionKey,
-          csrf_token: session.csrf.token
-        }
-      });
-    } catch (err) {
-      if (err.response) {
-        assert.ok(err.response.complete);
-        response = err.response;
-        session.loggedIn = true;
-      } else {
-        throw err;
-      }
+    const response: any = await got.post('login', {
+      followRedirect: false,
+      searchParams: {
+        returnto: redirectUri
+      },
+      form: formData,
+      ...this.options
+    });
+    const success = response.statusCode === HttpStatus.MOVED_TEMPORARILY && response.headers.location === redirectUri;
+    if (success) {
+      this.session.loggedIn = true;
     }
-    assert.strictEqual(response.statusCode, HttpStatus.MOVED_TEMPORARILY, 'Expect redirect to /success');
-    return response.headers.location === redirectUri;
+    return success;
+  }
+
+  /**
+   * Logout
+   */
+  public async logout(): Promise<boolean> {
+    const redirectUri = '/success';
+
+    const response: any = await got.get('logout', {
+      followRedirect: false,
+      searchParams: {
+        returnto: redirectUri
+      },
+      ...this.options
+    });
+    const success = response.statusCode === HttpStatus.MOVED_TEMPORARILY && response.headers.location === redirectUri;
+    if (success) {
+      this.session.loggedIn = true;
+    }
+    return success;
   }
 
   /**
@@ -370,24 +389,28 @@ export class MusicBrainzApi {
    * @param mbid
    * @param formData
    */
-  public async editEntity(entity: mb.EntityType, mbid: string, formData: IFormData): Promise<void> {
-
-    assert.ok(await this.login(), `should be logged in to ${this.config.botAccount.username} with username ${this.config.baseUrl}`);
+  public async editEntity(entity: mb.EntityType, mbid: string, formData: Record<string, any>): Promise<void> {
 
     await this.rateLimiter.limit();
 
-    let response: request.Response;
-    try {
-      response = await this.request.post({
-        uri: `/${entity}/${mbid}/edit`,
-        form: formData,
-        followRedirect: false
-      });
-    } catch (err) {
-      assert.ok(err.response.complete);
-      response = err.response;
-    }
-    assert.strictEqual(response.statusCode, HttpStatus.MOVED_TEMPORARILY);
+    this.session = await this.getSession(this.config.baseUrl);
+
+    formData.csrf_session_key = this.session.csrf.sessionKey;
+    formData.csrf_token = this.session.csrf.token;
+    formData.username = this.config.botAccount.username;
+    formData.password = this.config.botAccount.password;
+    formData.remember_me = 1;
+
+    const response: any = await got.post(`${entity}/${mbid}/edit`, {
+      form: formData,
+      followRedirect: false,
+      ...this.options
+    });
+    if (response.statusCode === HttpStatus.OK)
+      throw new Error(`Failed to submit form data`);
+    if (response.statusCode === HttpStatus.MOVED_TEMPORARILY)
+      return;
+    throw new Error(`Unexpected status code: ${response.statusCode}`);
   }
 
   /**
@@ -400,12 +423,12 @@ export class MusicBrainzApi {
 
     const formData = {};
 
-    formData[`edit-recording.name`] = recording.title; // Required
-    formData[`edit-recording.comment`] = recording.disambiguation;
-    formData[`edit-recording.make_votable`] = true;
+    formData['edit-recording.name'] = recording.title; // Required
+    formData['edit-recording.comment'] = recording.disambiguation;
+    formData['edit-recording.make_votable'] = true;
 
-    formData[`edit-recording.url.0.link_type_id`] = url2add.linkTypeId;
-    formData[`edit-recording.url.0.text`] = url2add.text;
+    formData['edit-recording.url.0.link_type_id'] = url2add.linkTypeId;
+    formData['edit-recording.url.0.text'] = url2add.text;
 
     for (const i in recording.isrcs) {
       formData[`edit-recording.isrcs.${i}`] = recording.isrcs[i];
@@ -501,29 +524,32 @@ export class MusicBrainzApi {
     return this.search<mb.IUrlList>('url', query, offset, limit);
   }
 
-  private static fetchValue(html: string, key: string) {
+  private fetchValue(html: string, key: string): string {
     let pos = html.indexOf(`name="${key}"`);
     if (pos >= 0) {
       pos = html.indexOf('value="', pos + key.length + 7);
       if (pos >= 0) {
         pos += 7;
-        const endValuePos = html.indexOf('"', pos);
-        const value = html.substring(pos, endValuePos);
-        return value;
+        const startValuePos = pos + key.length + 15;
+        if (startValuePos >= 0) {
+          const endValuePos = html.indexOf('"', startValuePos);
+          const value = html.substring(startValuePos, endValuePos);
+          return value;
+        }
       }
     }
   }
 
   private async getSession(url: string): Promise<ISessionInformation> {
 
-    const response = await this.request.get({
-      uri: '/login',
-      followRedirect: false // Disable redirects,
+    const response: any = await got.get('login', {
+      followRedirect: false, // Disable redirects
+      responseType: 'text',
+      ...this.options
     });
 
     return {
-      csrf: MusicBrainzApi.fetchCsrf(response.body),
-      cookies: this.cookieJar.getCookies(url)
+      csrf: MusicBrainzApi.fetchCsrf(response.body)
     };
   }
 }

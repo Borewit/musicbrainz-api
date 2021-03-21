@@ -55,12 +55,12 @@
     "@types/uuid": "^3.4.6",
     "caseless": "^0.12.0",
     "debug": "^4.1.1",
+    "got": "^11.8.2",
     "http-status-codes": "^1.4.0",
     "json-stringify-safe": "^5.0.1",
     "jsontoxml": "^1.0.1",
-    "request": "^2.88.0",
-    "request-promise-native": "^1.0.8",
     "source-map-support": "^0.5.16",
+    "tough-cookie": "^4.0.0",
     "uuid": "^3.3.2"
   },
   "scripts": {
