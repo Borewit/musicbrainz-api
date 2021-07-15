@@ -1,0 +1,32 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: "@types/node"
+    versions:
+    - "> 12.11.6, < 12.12"
+  - dependency-name: "@types/node"
+    versions:
+    - "> 12.12.5, < 12.13"
+  - dependency-name: y18n
+    versions:
+    - 4.0.1
+    - 4.0.2
+  - dependency-name: "@types/node"
+    versions:
+    - 14.14.22
+    - 14.14.24
+    - 14.14.25
+    - 14.14.26
+    - 14.14.28
+    - 14.14.30
+    - 14.14.31
+  - dependency-name: "@types/mocha"
+    versions:
+    - 8.2.0
+    - 8.2.1
