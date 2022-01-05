@@ -52,6 +52,7 @@ export interface IArtist {
    * Only defined if 'releases' are includes
    */
   releases?: IRelease[];
+  'release-groups'?: IReleaseGroup[];
 }
 
 export interface IArtistCredit {
