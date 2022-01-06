@@ -524,22 +524,6 @@ export class MusicBrainzApi {
     return this.search<mb.IUrlList>('url', query, offset, limit);
   }
 
-  private fetchValue(html: string, key: string): string {
-    let pos = html.indexOf(`name="${key}"`);
-    if (pos >= 0) {
-      pos = html.indexOf('value="', pos + key.length + 7);
-      if (pos >= 0) {
-        pos += 7;
-        const startValuePos = pos + key.length + 15;
-        if (startValuePos >= 0) {
-          const endValuePos = html.indexOf('"', startValuePos);
-          const value = html.substring(startValuePos, endValuePos);
-          return value;
-        }
-      }
-    }
-  }
-
   private async getSession(url: string): Promise<ISessionInformation> {
 
     const response: any = await got.get('login', {
