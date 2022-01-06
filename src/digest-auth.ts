@@ -1,4 +1,4 @@
-import * as uuid from 'uuid/v4';
+import { v4 as uuidv4 } from 'uuid';
 import * as crypto from 'crypto';
 
 interface IChallenge {
@@ -69,7 +69,7 @@ export class DigestAuth {
 
     const qop = /(^|,)\s*auth\s*($|,)/.test(challenge.qop) && 'auth';
     const nc = qop && '00000001';
-    const cnonce = qop && uuid().replace(/-/g, '');
+    const cnonce = qop && uuidv4().replace(/-/g, '');
     const ha1 = DigestAuth.ha1Compute(challenge.algorithm, this.credentials.username, challenge.realm, this.credentials.password, challenge.nonce, cnonce);
     const ha2 = md5(method + ':' + path); // lgtm [js/insufficient-password-hash]
     const digestResponse = qop
