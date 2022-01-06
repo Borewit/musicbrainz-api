@@ -473,14 +473,14 @@ export class MusicBrainzApi {
    * Search an entity using a search query
    * @param query e.g.: '" artist: Madonna, track: Like a virgin"' or object with search terms: {artist: Madonna}
    * @param entity e.g. 'recording'
-   * @param offset
-   * @param limit
+   * @param query Arguments
    */
-  public search<T extends mb.ISearchResult>(entity: mb.EntityType, query: string | IFormData, offset?: number, limit?: number): Promise<T> {
-    if (typeof query === 'object') {
-      query = makeAndQueryString(query);
+  public search<T extends mb.ISearchResult>(entity: mb.EntityType, query: mb.ISearchQuery): Promise<T> {
+    const urlQuery = {...query};
+    if (typeof query.query === 'object') {
+      urlQuery.query = makeAndQueryString(query.query);
     }
-    return this.restGet<T>('/' + entity + '/', {query, offset, limit});
+    return this.restGet<T>('/' + entity + '/', urlQuery);
   }
 
   // -----------------------------------------------------------------------------------------------------------------
@@ -504,24 +504,24 @@ export class MusicBrainzApi {
     }, editNote);
   }
 
-  public searchArtist(query: string | IFormData, offset?: number, limit?: number): Promise<mb.IArtistList> {
-    return this.search<mb.IArtistList>('artist', query, offset, limit);
+  public searchArea(query: mb.ISearchQuery & mb.ILinkedEntitiesArea): Promise<mb.IAreaList> {
+    return this.search<mb.IAreaList>('area', query);
   }
 
-  public searchRelease(query: string | IFormData, offset?: number, limit?: number): Promise<mb.IReleaseList> {
-    return this.search<mb.IReleaseList>('release', query, offset, limit);
+  public searchArtist(query: mb.ISearchQuery & mb.ILinkedEntitiesArtist): Promise<mb.IArtistList> {
+    return this.search<mb.IArtistList>('artist', query);
   }
 
-  public searchReleaseGroup(query: string | IFormData, offset?: number, limit?: number): Promise<mb.IReleaseGroupList> {
-    return this.search<mb.IReleaseGroupList>('release-group', query, offset, limit);
+  public searchRelease(query: mb.ISearchQuery & mb.ILinkedEntitiesRelease): Promise<mb.IReleaseList> {
+    return this.search<mb.IReleaseList>('release', query);
   }
 
-  public searchArea(query: string | IFormData, offset?: number, limit?: number): Promise<mb.IAreaList> {
-    return this.search<mb.IAreaList>('area', query, offset, limit);
+  public searchReleaseGroup(query: mb.ISearchQuery & mb.ILinkedEntitiesReleaseGroup): Promise<mb.IReleaseGroupList> {
+    return this.search<mb.IReleaseGroupList>('release-group', query);
   }
 
-  public searchUrl(query: string | IFormData, offset?: number, limit?: number): Promise<mb.IUrlList> {
-    return this.search<mb.IUrlList>('url', query, offset, limit);
+  public searchUrl(query: mb.ISearchQuery & mb.ILinkedEntitiesUrl): Promise<mb.IUrlList> {
+    return this.search<mb.IUrlList>('url', query);
   }
 
   private async getSession(url: string): Promise<ISessionInformation> {
