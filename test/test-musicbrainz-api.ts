@@ -249,7 +249,7 @@ describe('MusicBrainz-api', function() {
       describe('generic search', () => {
 
         it('find artist: Stromae', async () => {
-          const result = await mbApi.search('artist', 'Stromae');
+          const result = await mbApi.search('artist', {query: 'Stromae'});
           assert.isAtLeast(result.count, 1);
         });
 
@@ -258,7 +258,7 @@ describe('MusicBrainz-api', function() {
       describe('searchArtist', () => {
 
         it('find artist: Stromae', async () => {
-          const result = await mbApi.searchArtist('Stromae');
+          const result = await mbApi.searchArtist({query: 'Stromae'});
           assert.isAtLeast(result.count, 1);
           assert.isAtLeast(result.artists.length, 1);
           assert.strictEqual(result.artists[0].id, mbid.artist.Stromae);
@@ -269,14 +269,14 @@ describe('MusicBrainz-api', function() {
       describe('searchReleaseGroup', () => {
 
         it('find release-group: Racine carrée', async () => {
-          const result = await mbApi.searchReleaseGroup('Racine carrée');
+          const result = await mbApi.searchReleaseGroup({query: 'Racine carrée'});
           assert.isAtLeast(result.count, 1);
           assert.isAtLeast(result['release-groups'].length, 1);
           assert.strictEqual(result['release-groups'][0].id, mbid.releaseGroup.RacineCarree);
         });
 
         it('find release-group: Racine carrée, by artist and group name', async () => {
-          const result = await mbApi.searchReleaseGroup({release: 'Racine carrée', artist: 'Stromae'});
+          const result = await mbApi.searchReleaseGroup({query: {release: 'Racine carrée', artist: 'Stromae'}});
           assert.isAtLeast(result.count, 1);
           assert.isAtLeast(result['release-groups'].length, 1);
           assert.strictEqual(result['release-groups'][0].id, mbid.releaseGroup.RacineCarree);
@@ -286,17 +286,38 @@ describe('MusicBrainz-api', function() {
       describe('searchRelease', () => {
 
         it('find release-group: Racine carrée', async () => {
-          const result = await mbApi.searchRelease({release: 'Racine carrée'});
+          const result = await mbApi.searchRelease({query: {release: 'Racine carrée'}});
           assert.isAtLeast(result.count, 2);
           assert.isAtLeast(result.releases.length, 2);
           assert.includeMembers(result.releases.map(release => release.id), mbid.release.RacineCarree);
         });
 
         it('find release by barcode', async () => {
-          const result = await mbApi.searchRelease({barcode: 602537479870});
+          const result = await mbApi.searchRelease({query: {barcode: 602537479870}});
           assert.isAtLeast(result.count, 1);
           assert.isAtLeast(result.releases.length, 1);
           assert.equal(result.releases[0].id, mbid.release.RacineCarree[2]);
+        });
+
+        it('find release by barcode', async () => {
+          const result = await mbApi.searchRelease({query: {barcode: 602537479870}});
+          assert.isAtLeast(result.count, 1);
+          assert.isAtLeast(result.releases.length, 1);
+          assert.equal(result.releases[0].id, mbid.release.RacineCarree[2]);
+        });
+
+        it('find releases by artist use query API', async () => {
+          const artist_mbid = 'eeb41a1e-4326-4d04-8c47-0f564ceecd68';
+          const result = await mbApi.searchRelease({query: {arid: artist_mbid} });
+          assert.isAtLeast(result.count, 1);
+          assert.isAtLeast(result.releases.length, 1);
+        });
+
+        it('find releases by artist use browse API', async () => {
+          const artist_mbid = 'eeb41a1e-4326-4d04-8c47-0f564ceecd68';
+          const result = await mbApi.searchRelease({artist:  artist_mbid});
+          assert.isAtLeast(result['release-count'], 1);
+          assert.isAtLeast(result.releases.length, 1);
         });
 
       });
@@ -304,7 +325,7 @@ describe('MusicBrainz-api', function() {
       describe('searchArea', () => {
 
         it('find area by name', async () => {
-          const result = await mbApi.searchArea('Île-de-France');
+          const result = await mbApi.searchArea({query: 'Île-de-France'});
           assert.isAtLeast(result.count, 1);
           assert.isAtLeast(result.areas.length, 1);
           assert.strictEqual(result.areas[0].id, mbid.area.IleDeFrance);
@@ -316,7 +337,7 @@ describe('MusicBrainz-api', function() {
         const spotifyUrl = 'https://open.spotify.com/album/' + spotify.album.RacineCarree.id;
 
         it('find url by url', async () => {
-          const result = await mbApi.searchUrl({url: spotifyUrl});
+          const result = await mbApi.searchUrl({query: {url: spotifyUrl}});
           assert.isAtLeast(result.count, 1);
           assert.isAtLeast(result.urls.length, 1);
           assert.strictEqual(result.urls[0].resource, spotifyUrl);
