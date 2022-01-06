@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 
-import * as HttpStatus from 'http-status-codes';
+import {StatusCodes as HttpStatus, getReasonPhrase} from 'http-status-codes';
 import * as Url from 'url';
 import * as Debug from 'debug';
 
@@ -192,11 +192,11 @@ export class MusicBrainzApi {
 
       case HttpStatus.BAD_REQUEST:
       case HttpStatus.NOT_FOUND:
-        throw new Error(`Got response status ${response.statusCode}: ${HttpStatus.getStatusText(response.status)}`);
+        throw new Error(`Got response status ${response.statusCode}: ${getReasonPhrase(response.status)}`);
 
       case HttpStatus.SERVICE_UNAVAILABLE: // 503
       default:
-        const msg = `Got response status ${response.statusCode} on attempt #${attempt} (${HttpStatus.getStatusText(response.status)})`;
+        const msg = `Got response status ${response.statusCode} on attempt #${attempt} (${getReasonPhrase(response.status)})`;
         debug(msg);
         if (attempt < retries) {
           return this.restGet<T>(relUrl, query, attempt + 1);
