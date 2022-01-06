@@ -1,4 +1,5 @@
 import DateTimeFormat = Intl.DateTimeFormat;
+import { IFormData, Includes } from './musicbrainz-api';
 
 export interface IPeriod {
   'begin': string,
@@ -308,5 +309,145 @@ export interface ISearchQuery extends IPagination {
   /**
    * Lucene search query, this is mandatory
    */
-  query: string;
+  query?: string | IFormData,
+  inc?: Includes[]
 }
+
+/**
+ * https://musicbrainz.org/doc/MusicBrainz_API#Browse
+ * /ws/2/area              collection
+ */
+export interface ILinkedEntitiesArea {
+  collection?: string;
+}
+
+/**
+ * https://musicbrainz.org/doc/MusicBrainz_API#Browse
+ * /ws/2/artist            area, collection, recording, release, release-group, work
+ */
+export interface ILinkedEntitiesArtist {
+  area?: string;
+  collection?: string;
+  recording?: string;
+  release?: string;
+  'release-group'?: string;
+  work?: string;
+}
+
+/**
+ * https://musicbrainz.org/doc/MusicBrainz_API#Browse
+ * /ws/2/collection        area, artist, editor, event, label, place, recording, release, release-group, work
+ */
+export interface ILinkedEntitiesCollection {
+  area?: string;
+  artist?: string;
+  editor?: string;
+  event?: string;
+  label?: string;
+  place?: string;
+  recording?: string;
+  release?: string;
+  'release-group'?: string;
+  work?: string;
+}
+
+/**
+ * https://musicbrainz.org/doc/MusicBrainz_API#Subqueries
+ * /ws/2/event             area, artist, collection, place
+ */
+export interface ILinkedEntitiesEvent {
+  area?: string;
+  artist?: string;
+  collection?: string;
+  place?: string;
+}
+
+/**
+ * https://musicbrainz.org/doc/MusicBrainz_API#Subqueries
+ * /ws/2/instrument        collection
+ */
+export interface ILinkedEntitiesInstrument {
+  collection?: string;
+}
+
+/**
+ * https://musicbrainz.org/doc/MusicBrainz_API#Subqueries
+ * /ws/2/label             area, collection, release
+ */
+export interface ILinkedEntitiesLabel {
+  area?: string;
+  collection?: string;
+  release?: string;
+}
+
+/**
+ * https://musicbrainz.org/doc/MusicBrainz_API#Subqueries
+ * /ws/2/place             area, collection
+ */
+export interface IBrowseArgumentPlace {
+  area?: string;
+  collection?: string;
+}
+
+/**
+ * https://musicbrainz.org/doc/MusicBrainz_API#Subqueries
+ * /ws/2/recording         artist, collection, release, work
+ */
+export interface ILinkedEntitiesRecording {
+  area?: string;
+  collection?: string;
+  release?: string;
+  work?: string;
+}
+
+/**
+ * https://musicbrainz.org/doc/MusicBrainz_API#Subqueries
+ * /ws/2/release           area, artist, collection, label, track, track_artist, recording, release-group
+ */
+export interface ILinkedEntitiesRelease {
+  area?: string;
+  artist?: string;
+  collection?: string;
+  label?: string;
+  track?: string;
+  track_artist?: string;
+  recording?: string;
+  'release-group'?: string;
+}
+
+/**
+ * https://musicbrainz.org/doc/MusicBrainz_API#Subqueries
+ * /ws/2/release-group     artist, collection, release
+ */
+export interface ILinkedEntitiesReleaseGroup {
+  artist?: string;
+  collection?: string;
+  release?: string;
+}
+
+/**
+ * https://musicbrainz.org/doc/MusicBrainz_API#Subqueries
+ * /ws/2/series            collection
+ */
+export interface ILinkedEntitiesSeries {
+  collection?: string;
+}
+
+/**
+ * https://musicbrainz.org/doc/MusicBrainz_API#Browse
+ * /ws/2/work              artist, collection
+ */
+export interface ILinkedEntitiesWork {
+  artist?: string;
+  collection?: string;
+}
+
+/**
+ * https://musicbrainz.org/doc/MusicBrainz_API#Browse
+ * /ws/2/url               resource
+ */
+export interface ILinkedEntitiesUrl {
+  resource?: string;
+}
+
+

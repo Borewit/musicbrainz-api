@@ -32,7 +32,7 @@ If you plan to use this module for submitting metadata, please ensure you comply
 
 Import the module
 JavaScript example, how to import 'musicbrainz-api:
-```javascript
+```js
 const MusicBrainzApi = require('musicbrainz-api').MusicBrainzApi;
 
 const mbApi = new MusicBrainzApi({
@@ -43,7 +43,7 @@ const mbApi = new MusicBrainzApi({
 ```
 
 In TypeScript you it would look like this:
-```javascript
+```js
 import {MusicBrainzApi} from 'musicbrainz-api';
 
 const mbApi = new MusicBrainzApi({
@@ -54,7 +54,7 @@ const mbApi = new MusicBrainzApi({
 ```
 
 The following configuration settings can be passed 
-```javascript
+```js
 import {MusicBrainzApi} from '../src/musicbrainz-api';
 
 const config = {
@@ -93,49 +93,55 @@ Arguments:
 *   entity: `'artist'` | `'label'` | `'recording'` | `'release'` | `'release-group'` | `'work'` | `'area'` | `'url'`
 *   MBID [(MusicBrainz identifier)](https://wiki.musicbrainz.org/MusicBrainz_Identifier)
 
-```javascript
-const artist = await mbApi.getEntity('artist', 'ab2528d9-719f-4261-8098-21849222a0f2');
+```js
+const artist = await mbApi.getEntity('artist', {query: 'ab2528d9-719f-4261-8098-21849222a0f2'});
 ```
 
 ### Lookup area
 
-```javascript
-const area = await mbApi.getArea('ab2528d9-719f-4261-8098-21849222a0f2');
+```js
+const area = await mbApi.getArea({query: 'ab2528d9-719f-4261-8098-21849222a0f2'});
 ```
 
 ### Lookup artist
 
 Lookup an `artist` and include their `releases`, `release-groups` and `aliases`
 
-```javascript
-const artist = await mbApi.getArtist('ab2528d9-719f-4261-8098-21849222a0f2');
+```js
+const artist = await mbApi.getArtist({query: 'ab2528d9-719f-4261-8098-21849222a0f2'});
+```
+
+or use the browse API:
+
+```js
+const artist = await mbApi.getArtist({artist: 'ab2528d9-719f-4261-8098-21849222a0f2'});
 ```
 
 The second argument can be used to pass [subqueries](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2#Subqueries), which will return more (nested) information:
-```javascript
+```js
 const artist = await mbApi.getArtist('ab2528d9-719f-4261-8098-21849222a0f2', ['releases', 'recordings', 'url-rels']);
 ```
 
 ### Lookup recording
 
 The second argument can be used to pass [subqueries](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2#Subqueries):
-```javascript
-const artist = await mbApi.getRecording('16afa384-174e-435e-bfa3-5591accda31c', ['artists', 'url-rels']);
+```js
+const artist = await mbApi.getRecording({query: '16afa384-174e-435e-bfa3-5591accda31c'}, ['artists', 'url-rels']);
 ```
 
 ### Lookup release
-```javascript
-const release = await mbApi.getRelease('976e0677-a480-4a5e-a177-6a86c1900bbf', ['artists', 'url-rels']);
+```js
+const release = await mbApi.getRelease({query: '976e0677-a480-4a5e-a177-6a86c1900bbf'}, ['artists', 'url-rels']);
 ```
 
 ### Lookup release-group
-```javascript
-const releaseGroup = await mbApi.getReleaseGroup('19099ea5-3600-4154-b482-2ec68815883e');
+```js
+const releaseGroup = await mbApi.getReleaseGroup({query: '19099ea5-3600-4154-b482-2ec68815883e'});
 ```
 
 ### Lookup work
-```javascript
-const work = await mbApi.getWork('b2aa02f4-6c95-43be-a426-aedb9f9a3805');
+```js
+const work = await mbApi.getWork({query: 'b2aa02f4-6c95-43be-a426-aedb9f9a3805'});
 ```
 
 ## Search (query)
@@ -164,28 +170,28 @@ Arguments:
     *   `limit.query`: optional, an integer value defining how many entries should be returned. Only values between 1 and 100 (both inclusive) are allowed. If not given, this defaults to 25.
 
 For example, to find any recordings of _'We Will Rock You'_ by Queen:
-```javascript
+```js
 const query = 'query="We Will Rock You" AND arid:0383dadf-2a4e-4d10-a46a-e9e041da8eb3';
 const result = await mbApi.query<mb.IReleaseGroupList>('release-group', {query});
 ```
 
 ##### Example: search Île-de-France
 
-```javascript
+```js
  mbApi.search('area', 'Île-de-France');
 ````
 
 ##### Example: search release by barcode
 
 Search a release with the barcode 602537479870:
-```javascript
- mbApi.search('release', {barcode: 602537479870});
+```js
+ mbApi.search('release', {query: {barcode: 602537479870}});
 ````
 
 ##### Example: search by object
 
 Same as previous example, but automatically serialize parameters to search query
-```javascript
+```js
  mbApi.search('release', 'barcode: 602537479870');
 ````
 
@@ -198,17 +204,17 @@ searchReleaseGroup(query: string | IFormData, offset?: number, limit?: number): 
 ```
 
 Search artist:
-```javascript
-const result = await mbApi.searchArtist('Stromae');
+```js
+const result = await mbApi.searchArtist({query: 'Stromae'});
 ```
 
 Search release-group:
-```javascript
-const result = await mbApi.searchReleaseGroup('Racine carrée');
+```js
+const result = await mbApi.searchReleaseGroup({query: 'Racine carrée'});
 ```
 
 Search a combination of a release-group and an artist.
-```javascript
+```js
 const result = await mbApi.searchReleaseGroup({artist: 'Racine carrée', releasegroup: 'Stromae'});
 ```
 
@@ -220,7 +226,7 @@ const result = await mbApi.searchReleaseGroup({artist: 'Racine carrée', release
 
 Using the [XML ISRC submission](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2#ISRC_submission) API.
 
-```javascript
+```js
 const mbid_Formidable = '16afa384-174e-435e-bfa3-5591accda31c';
 const isrc_Formidable = 'BET671300161';
 
@@ -239,7 +245,7 @@ For all of the following function you need to use a dedicated bot account.
 <img width="150" src="http://www.clker.com/cliparts/i/w/L/q/u/1/work-in-progress.svg"/>
 Use with caution, and only on a test server, it may clear existing metadata as side effect.
       
-```javascript
+```js
 
 const mbid_Formidable = '16afa384-174e-435e-bfa3-5591accda31c';
 const isrc_Formidable = 'BET671300161';
@@ -257,7 +263,7 @@ await mbApi.addIsrc(recording, isrc_Formidable);
 
 ### Submit recording URL
 
-```javascript
+```js
 const recording = await mbApi.getRecording('16afa384-174e-435e-bfa3-5591accda31c');
 
 const succeed = await mbApi.login();
@@ -270,7 +276,7 @@ await mbApi.addUrlToRecording(recording, {
 ```
 
 Actually a Spotify-track-ID can be submitted easier: 
-```javascript
+```js
 const recording = await mbApi.getRecording('16afa384-174e-435e-bfa3-5591accda31c');
 
 const succeed = await mbApi.login();
