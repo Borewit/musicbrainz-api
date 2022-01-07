@@ -476,9 +476,12 @@ export class MusicBrainzApi {
    * @param query Arguments
    */
   public search<T extends mb.ISearchResult>(entity: mb.EntityType, query: mb.ISearchQuery): Promise<T> {
-    const urlQuery = {...query};
+    const urlQuery: any = {...query};
     if (typeof query.query === 'object') {
       urlQuery.query = makeAndQueryString(query.query);
+    }
+    if (Array.isArray(query.inc)) {
+      urlQuery.inc = urlQuery.inc.join(' ');
     }
     return this.restGet<T>('/' + entity + '/', urlQuery);
   }

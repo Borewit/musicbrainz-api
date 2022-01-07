@@ -320,6 +320,17 @@ describe('MusicBrainz-api', function() {
           assert.isAtLeast(result.releases.length, 1);
         });
 
+        it('find releases with inc', async () => {
+          const artist_mbid = '024a7074-dcef-4851-8f9c-090a9746a75a';
+          const result = await mbApi.searchRelease({
+            query: `arid:${artist_mbid}`,
+            inc: ['release-groups', 'media', 'label-rels'],
+            offset: 0,
+            limit: 25
+          });
+          assert.isAtLeast(result.count, 1);
+        });
+
       });
 
       describe('searchArea', () => {
