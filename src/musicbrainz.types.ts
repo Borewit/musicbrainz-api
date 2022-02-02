@@ -100,7 +100,7 @@ export interface IRecording {
   title: string;
   disambiguation: string;
   isrcs?: string[];
-  releases?: IRelease;
+  releases?: IRelease[];
   relations?: IRelation[];
   'artist-credit'?: IArtistCredit[];
   aliases?: IAlias[];
