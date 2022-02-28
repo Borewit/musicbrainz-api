@@ -1,4 +1,19 @@
-import { IMusicBrainzConfig, LinkType, MusicBrainzApi } from '../src/musicbrainz-api';
+import {
+  IBrowseArtistsResult,
+  IBrowseCollectionsResult,
+  IBrowseEventsResult,
+  IBrowseInstrumentsResult,
+  IBrowseLabelsResult,
+  IBrowsePlacesResult,
+  IBrowseRecordingsResult,
+  IBrowseReleaseGroupsResult,
+  IBrowseReleasesResult,
+  IBrowseSeriesResult,
+  IBrowseWorksResult,
+  IMusicBrainzConfig,
+  LinkType,
+  MusicBrainzApi
+} from '../src/musicbrainz-api';
 import { assert } from 'chai';
 import { XmlMetadata } from '../src/xml/xml-metadata';
 import * as mb from '../src/musicbrainz.types';
@@ -48,9 +63,9 @@ const mbApi = new MusicBrainzApi(searchApiConfig);
 // Hack shared rate-limiter
 (mbApi as any).rateLimiter = (mbTestApi as any).rateLimiter;
 
-describe('MusicBrainz-api', function() {
+describe('MusicBrainz-api', function () {
 
-  this.timeout(20000); // MusicBrainz has a rate limiter
+  this.timeout(40000); // MusicBrainz has a rate limiter
 
   const mbid = {
     area: {
@@ -145,19 +160,6 @@ describe('MusicBrainz-api', function() {
         assert.strictEqual(artist.name, 'Stromae');
       });
 
-      [
-        {inc: 'works', key: 'works'},
-        {inc: 'genres', key: 'genres'},
-        {inc: 'ratings', key: 'rating'}
-      ].forEach(inc => {
-        it(`artist-include: '${inc.inc}'`, async () => {
-          const artist = await mbApi.lookupArtist(mbid.artist.Stromae, [inc.inc as any]);
-          assert.strictEqual(artist.id, mbid.artist.Stromae);
-          assert.strictEqual(artist.name, 'Stromae');
-          assert.isDefined(artist[inc.key], `Should include '${inc.key}'`);
-        });
-      });
-
       it('instrument', async () => {
         const instrument = await mbApi.lookupInstrument(mbid.instrument.spanishAcousticGuitar);
         assert.strictEqual(instrument.id, mbid.instrument.spanishAcousticGuitar);
@@ -170,7 +172,13 @@ describe('MusicBrainz-api', function() {
         assert.strictEqual(label.name, 'Mosaert');
       });
 
-      describe('release', () => {
+      describe('Release', () => {
+
+        it('instrument', async () => {
+          const instrument = await mbApi.lookupInstrument(mbid.instrument.spanishAcousticGuitar);
+          assert.strictEqual(instrument.id, mbid.instrument.spanishAcousticGuitar);
+          assert.strictEqual(instrument.type, 'String instrument');
+        });
 
         it('release Formidable', async () => {
           const release = await mbApi.lookupRelease(mbid.release.Formidable);
@@ -204,7 +212,35 @@ describe('MusicBrainz-api', function() {
 
       });
 
-      describe('recording', () => {
+      describe('Release-group', () => {
+
+        it('release-group', async () => {
+          const releaseGroup = await mbApi.lookupReleaseGroup(mbid.releaseGroup.Formidable);
+          assert.strictEqual(releaseGroup.id, mbid.releaseGroup.Formidable);
+          assert.strictEqual(releaseGroup.title, 'Formidable');
+        });
+
+        [
+          {inc: 'artist-credits', key: 'artist-credit'}
+        ].forEach(inc => {
+
+          it(`get release-group, include: '${inc.inc}'`, async () => {
+            const group = await mbApi.lookupReleaseGroup(mbid.releaseGroup.Formidable, [inc.inc as any]);
+            assert.strictEqual(group.id, mbid.releaseGroup.Formidable);
+            assert.strictEqual(group.title, 'Formidable');
+            assert.isDefined(group[inc.key], `Should include '${inc.key}'`);
+          });
+        });
+
+      });
+
+      it('work', async () => {
+        const work = await mbApi.lookupWork(mbid.work.Formidable);
+        assert.strictEqual(work.id, mbid.work.Formidable);
+        assert.strictEqual(work.title, 'Formidable');
+      });
+
+      describe('Recording', () => {
 
         it('recording', async () => {
           const recording = await mbApi.lookupRecording(mbid.recording.Formidable);
@@ -301,6 +337,304 @@ describe('MusicBrainz-api', function() {
 
     });
 
+    describe('Browse', () => {
+
+      function areBunchOf(entity: string, bunch) {
+        assert.isObject(bunch);
+        assert.isNumber(bunch[entity + '-count']);
+        assert.isNumber(bunch[entity + '-offset']);
+        assert.isArray(bunch[entity.endsWith('s') ? entity : (entity + 's')]);
+      }
+
+      describe('area', async () => {
+        function areBunchOfAreas(artists) {
+          areBunchOf('area', artists);
+        }
+
+        it('by collection', async () => {
+          const areas = await mbApi.browseAreas({collection: 'de4fdfc4-53aa-458a-b463-8761cc7f5af8', limit: 3});
+          areBunchOfAreas(areas);
+        });
+
+      });
+
+      describe('artist', async () => {
+
+        function areBunchOfArtists(artists: IBrowseArtistsResult) {
+          areBunchOf('artist', artists);
+        }
+
+        it('by area', async () => {
+          const artists = await mbApi.browseArtists({area: mbid.area.Lisbon, limit: 3});
+          areBunchOfArtists(artists);
+        });
+
+        it('by collection', async () => {
+          const artists = await mbApi.browseArtists({collection: 'de4fdfc4-53aa-458a-b463-8761cc7f5af8', limit: 3});
+          areBunchOfArtists(artists);
+        });
+
+        it('by recording', async () => {
+          const artists = await mbApi.browseArtists({recording: 'a6c9e941-58ab-4f2e-9684-3b1b230f915f', limit: 3});
+          areBunchOfArtists(artists);
+          assert.strictEqual(artists.artists[0].name, 'Dead Combo');
+        });
+
+        it('by release', async () => {
+          const artists = await mbApi.browseArtists({release: 'd9e00093-7a4b-44f1-830d-611e88ec694a', limit: 3});
+          areBunchOfArtists(artists);
+          assert.strictEqual(artists.artists[0].name, 'Dead Combo');
+        });
+
+        it('by release-group', async () => {
+          const artists = await mbApi.browseArtists({
+            'release-group': 'f9726e3b-833a-4997-b16a-b1baf22ff87e',
+            limit: 3
+          });
+          areBunchOfArtists(artists);
+          assert.strictEqual(artists.artists[0].name, 'Dead Combo');
+        });
+
+        it('by work', async () => {
+          const artists = await mbApi.browseArtists({work: '6d7fbf07-3795-4ee1-8c69-4cc5c08e8f09', limit: 3});
+          areBunchOfArtists(artists);
+          assert.strictEqual(artists.artists[0].name, 'Dead Combo');
+        });
+
+      });
+
+      describe('collection', () => {
+
+        function areBunchOfCollections(collections: IBrowseCollectionsResult) {
+          areBunchOf('collection', collections);
+        }
+
+        it('by area', async () => {
+          const collections = await mbApi.browseCollections({area: mbid.area.Lisbon, limit: 3});
+          areBunchOfCollections(collections);
+        });
+
+        it('by artist', async () => {
+          const collections = await mbApi.browseCollections({artist: mbid.artist.Stromae, limit: 3});
+          areBunchOfCollections(collections);
+        });
+
+        it('by editor', async () => {
+          const collections = await mbApi.browseCollections({editor: 'Borewit', limit: 3});
+          areBunchOfCollections(collections);
+        });
+
+        it('by event', async () => {
+          const collections = await mbApi.browseCollections({
+            event: mbid.event.DireStraitsAlchemyLoveOverGold,
+            limit: 3
+          });
+          areBunchOfCollections(collections);
+        });
+
+      });
+
+      describe('event', () => {
+
+        function areBunchOfEvents(events: IBrowseEventsResult) {
+          areBunchOf('event', events);
+        }
+
+        it('by area', async () => {
+          const events = await mbApi.browseEvents({area: mbid.area.Lisbon, limit: 3});
+          areBunchOfEvents(events);
+        });
+
+        it('by artist', async () => {
+          const events = await mbApi.browseEvents({artist: mbid.artist.DeadCombo, limit: 3});
+          areBunchOfEvents(events);
+        });
+
+        it('by collection', async () => {
+          const events = await mbApi.browseEvents({collection: mbid.collection.Ringtone, limit: 3});
+          areBunchOfEvents(events);
+        });
+
+        it('by place', async () => {
+          const events = await mbApi.browseEvents({place: mbid.place.Paradiso, limit: 3});
+          areBunchOfEvents(events);
+        });
+
+      });
+
+      describe('instrument', () => {
+
+        function areBunchOfInstruments(instruments: IBrowseInstrumentsResult) {
+          areBunchOf('instrument', instruments);
+        }
+
+        it('by collection', async () => {
+          const instruments = await mbApi.browseInstruments({collection: mbid.collection.Ringtone, limit: 3});
+          areBunchOfInstruments(instruments);
+        });
+
+      });
+
+      describe('label', () => {
+
+        function areBunchOfLabels(labels: IBrowseLabelsResult) {
+          areBunchOf('label', labels);
+        }
+
+        it('by area', async () => {
+          const labels = await mbApi.browseLabels({area: mbid.area.Lisbon, limit: 3});
+          areBunchOfLabels(labels);
+        });
+
+        it('by collection', async () => {
+          const labels = await mbApi.browseLabels({collection: mbid.collection.Ringtone, limit: 3});
+          areBunchOfLabels(labels);
+        });
+
+        it('by release', async () => {
+          const labels = await mbApi.browseLabels({release: mbid.release.Formidable, limit: 3});
+          areBunchOfLabels(labels);
+        });
+      });
+
+      describe('place', () => {
+
+        function areBunchOfPlaces(places: IBrowsePlacesResult) {
+          areBunchOf('place', places);
+        }
+
+        it('by area', async () => {
+          const places = await mbApi.browsePlaces({area: mbid.area.Lisbon, limit: 3});
+          areBunchOfPlaces(places);
+        });
+
+        it('by collection', async () => {
+          const places = await mbApi.browsePlaces({collection: mbid.collection.Ringtone, limit: 3});
+          areBunchOfPlaces(places);
+        });
+
+      });
+
+      describe('recording', () => {
+
+        function areBunchOfRecordings(recordings: IBrowseRecordingsResult) {
+          areBunchOf('recording', recordings);
+        }
+
+        it('by artist', async () => {
+          const recordings = await mbApi.browseRecordings({artist: mbid.artist.DeadCombo, limit: 3});
+          areBunchOfRecordings(recordings);
+        });
+
+        it('by collection', async () => {
+          const recordings = await mbApi.browseRecordings({collection: mbid.collection.Ringtone, limit: 3});
+          areBunchOfRecordings(recordings);
+        });
+
+        it('by release', async () => {
+          const recordings = await mbApi.browseRecordings({release: mbid.release.Formidable, limit: 3});
+          areBunchOfRecordings(recordings);
+        });
+
+        it('by work', async () => {
+          const recordings = await mbApi.browseRecordings({work: mbid.work.Formidable, limit: 3});
+          areBunchOfRecordings(recordings);
+        });
+
+      });
+
+      describe('release', () => {
+
+        function areBunchOfReleases(releases: IBrowseReleasesResult) {
+          areBunchOf('release', releases);
+        }
+
+        it('by area', async () => {
+          const releases = await mbApi.browseReleases({area: mbid.area.Lisbon, limit: 3});
+          areBunchOfReleases(releases);
+        });
+
+        it('by artist', async () => {
+          const releases = await mbApi.browseReleases({artist: mbid.artist.DeadCombo, limit: 3});
+          areBunchOfReleases(releases);
+        });
+
+        it('by labels', async () => {
+          const releases = await mbApi.browseReleases({label: mbid.label.Mosaert, limit: 3});
+          areBunchOfReleases(releases);
+        });
+
+        it('by recording', async () => {
+          const releases = await mbApi.browseReleases({recording: mbid.recording.Montilla, limit: 3});
+          areBunchOfReleases(releases);
+        });
+
+        it('by release-group', async () => {
+          const releases = await mbApi.browseReleases({'release-group': mbid.releaseGroup.Formidable, limit: 3});
+          areBunchOfReleases(releases);
+        });
+      });
+
+      describe('release-group', () => {
+
+        function areBunchOfReleaseGroups(releaseGroups: IBrowseReleaseGroupsResult) {
+          areBunchOf('release-group', releaseGroups);
+        }
+
+        it('by artist', async () => {
+          const releaseGroups = await mbApi.browseReleaseGroups({artist: mbid.artist.DeadCombo, limit: 3});
+          areBunchOfReleaseGroups(releaseGroups);
+        });
+
+        it('by collection', async () => {
+          const releaseGroups = await mbApi.browseReleaseGroups({collection: mbid.collection.Ringtone, limit: 3});
+          areBunchOfReleaseGroups(releaseGroups);
+        });
+
+        it('by release', async () => {
+          const releaseGroups = await mbApi.browseReleaseGroups({release: mbid.release.Formidable, limit: 3});
+          areBunchOfReleaseGroups(releaseGroups);
+        });
+
+      });
+
+      describe('series', () => {
+
+        function areBunchOfSeries(series: IBrowseSeriesResult) {
+          areBunchOf('series', series);
+        }
+
+        it('by collection', async () => {
+          const series = await mbApi.browseSeries({collection: mbid.collection.Ringtone, limit: 3});
+          areBunchOfSeries(series);
+        });
+      });
+
+      describe('work', async () => {
+
+        function areBunchOfWorks(works: IBrowseWorksResult) {
+          areBunchOf('work', works);
+        }
+
+        it('by collection', async () => {
+          const works = await mbApi.browseWorks({collection: mbid.collection.Ringtone, limit: 3});
+          areBunchOfWorks(works);
+        });
+      });
+
+      describe('url', async () => {
+
+        it('by resources', async () => {
+          const url = await mbApi.browseUrls({
+            resource: 'https://open.spotify.com/album/5PCfptvsmuFcxsMt86L6wn',
+            limit: 3
+          });
+          assert.isString(url.id);
+        });
+      });
+
+    });
+
     describe('Query', () => {
 
       it('query: Queen - We Will Rock You', async () => {
@@ -375,14 +709,14 @@ describe('MusicBrainz-api', function() {
 
         it('find releases by artist use query API', async () => {
           const artist_mbid = 'eeb41a1e-4326-4d04-8c47-0f564ceecd68';
-          const result = await mbApi.searchRelease({query: {arid: artist_mbid} });
+          const result = await mbApi.searchRelease({query: {arid: artist_mbid}});
           assert.isAtLeast(result.count, 1);
           assert.isAtLeast(result.releases.length, 1);
         });
 
         it('find releases by artist use browse API', async () => {
           const artist_mbid = 'eeb41a1e-4326-4d04-8c47-0f564ceecd68';
-          const result = await mbApi.searchRelease({artist:  artist_mbid});
+          const result = await mbApi.searchRelease({artist: artist_mbid});
           assert.isAtLeast(result['release-count'], 1);
           assert.isAtLeast(result.releases.length, 1);
         });
