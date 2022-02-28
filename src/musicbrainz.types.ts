@@ -465,4 +465,219 @@ export interface ILinkedEntitiesUrl {
   resource?: string;
 }
 
+/**
+ * Browse artist query <entity>: <MBID>
+ * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
+ */
+export interface IBrowseAreasQuery extends IPagination {
+  collection?: string;
+}
 
+/**
+ * Browse artist query <entity>: <MBID>
+ * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
+ */
+export interface IBrowseArtistsQuery extends IPagination {
+  area?: string;
+  collection?: string;
+  recording?: string;
+  release?: string;
+  'release-group'?: string;
+  work?: string;
+}
+
+/**
+ * Browse collection query <entity>: <MBID>
+ * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
+ */
+export interface IBrowseCollectionsQuery extends IPagination {
+  area?: string;
+  artist?: string;
+  editor?: string;
+  event?: string;
+  label?: string;
+  place?: string;
+  recording?: string;
+  release?: string;
+  'release-group'?: string;
+  work?: string;
+}
+
+/**
+ * Browse events query <entity>: <MBID>
+ * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
+ */
+export interface IBrowseEventsQuery extends IPagination {
+  area?: string;
+  artist?: string;
+  collection?: string;
+  place?: string;
+}
+
+/**
+ * Browse instruments query <entity>: <MBID>
+ * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
+ */
+export interface IBrowseInstrumentsQuery extends IPagination {
+  collection?: string;
+}
+
+/**
+ * Browse labels query <entity>: <MBID>
+ * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
+ */
+export interface IBrowseLabelsQuery extends IPagination {
+  area?: string;
+  collection?: string;
+  release?: string;
+}
+
+/**
+ * Browse places query <entity>: <MBID>
+ * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
+ */
+export interface IBrowsePlacesQuery extends IPagination {
+  area?: string;
+  collection?: string;
+}
+/**
+ * Browse recordings query <entity>: <MBID>
+ * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
+ */
+export interface IBrowseRecordingsQuery extends IPagination {
+  artist?: string;
+  collection?: string;
+  release?: string;
+  work?: string;
+}
+
+/**
+ * Browse releases query <entity>: <MBID>
+ * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
+ */
+export interface IBrowseReleasesQuery extends IPagination {
+  area?: string;
+  artist?: string;
+  editor?: string;
+  event?: string;
+  label?: string;
+  place?: string;
+  recording?: string;
+  release?: string;
+  'release-group'?: string;
+  work?: string;
+}
+
+/**
+ * Browse release-groups query <entity>: <MBID>
+ */
+export interface IReleaseGroupsQuery extends IPagination {
+  artist?: string;
+  collection?: string;
+  release?: string;
+}
+
+/**
+ * Browse series query <entity>: <MBID>
+ * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
+ */
+export interface IBrowseSeriesQuery extends IPagination {
+  recording?: string;
+}
+
+/**
+ * Browse release query <entity>: <MBID>
+ * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
+ */
+export interface IBrowseSeriesQuery extends IPagination {
+  collection?: string;
+}
+
+/**
+ * Browse urls query <entity>: <MBID>
+ * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
+ */
+export interface IBrowseUrlsQuery extends IPagination {
+  resource?: string;
+}
+
+/**
+ * Browse works query <entity>: <MBID>
+ * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
+ */
+export interface IBrowseWorksQuery extends IPagination {
+  artist?: string;
+  collection?: string;
+}
+
+export interface IBrowseAreasResult {
+  area: IArea;
+  'area-count': number;
+  'area-offset': number;
+}
+
+export interface IBrowseArtistsResult {
+  artists: IArtist[];
+  'artist-count': number;
+  'artist-offset': number;
+}
+
+export interface IBrowseCollectionsResult {
+  collections: IArtist[];
+  'collection-count': number;
+  'collection-offset': number;
+}
+
+export interface IBrowseEventsResult {
+  events: IArtist[];
+  'event-count': number;
+  'event-offset': number;
+}
+
+export interface IBrowseInstrumentsResult {
+  instruments: IArtist[];
+  'instrument-count': number;
+  'instrument-offset': number;
+}
+
+export interface IBrowseLabelsResult {
+  label: IArtist[];
+  'label-count': number;
+  'label-offset': number;
+}
+
+export interface IBrowsePlacesResult {
+  place: IArtist[];
+  'place-count': number;
+  'place-offset': number;
+}
+
+export interface IBrowseRecordingsResult {
+  recording: IRecording[];
+  'recording-count': number;
+  'recording-offset': number;
+}
+
+export interface IBrowseReleasesResult {
+  releases: IRelease[];
+  'release-count': number;
+  'release-offset': number;
+}
+
+export interface IBrowseReleaseGroupsResult {
+  'release-groups': IReleaseGroupsQuery[];
+  'release-group-count': number;
+  'release-group-offset': number;
+}
+
+export interface IBrowseSeriesResult {
+  series: IReleaseGroupsQuery[];
+  'series-count': number;
+  'series-offset': number;
+}
+
+export interface IBrowseWorksResult {
+  works: IReleaseGroupsQuery[];
+  'work-count': number;
+  'work-offset': number;
+}

@@ -165,6 +165,179 @@ const work = await mbApi.lookupWork({query: 'b2aa02f4-6c95-43be-a426-aedb9f9a380
 const url = await mbApi.lookupUrl({query: 'c69556a6-7ded-4c54-809c-afb45a1abe7d'});
 ```
 
+### Lookup URL
+```js
+const url = await mbApi.lookupUrl({query: 'c69556a6-7ded-4c54-809c-afb45a1abe7d'});
+```
+
+## Browse entities
+
+### Browse area
+
+```js
+const area = await browseAreas(query);
+````
+
+| Query argument        | Query value     | 
+|-----------------------|-----------------|  
+| `query.collection`    | Collection MBID |
+
+### Browse artist
+
+```js
+const artist = await browseArtist(query);
+````
+
+| Query argument        | Query value        | 
+|-----------------------|--------------------|  
+| `query.area`          | Area MBID          |
+| `query.collection`    | Collection MBID    |
+| `query.recording`     | Recording MBID     |
+| `query.release`       | Release MBID       |
+| `query.release-group` | Release-group MBID |
+| `query.work`          | Work MBID          |
+
+### Browse collection
+```js
+const artist = await browseCollection(query);
+````
+
+| Query argument        | Query value        | 
+|-----------------------|--------------------|  
+| `query.area`          | Area MBID          |
+| `query.artist`        | Artist MBID        |
+| `query.editor`        | Editor MBID        |
+| `query.event`         | Event MBID         |
+| `query.label`         | Label MBID         |
+| `query.place`         | Place MBID         |
+| `query.recording`     | Recording MBID     |
+| `query.release`       | Release MBID       |
+| `query.release-group` | Release-group MBID |
+| `query.work`          | Work MBID          |
+
+### Browse events
+```js
+const events = await browseEvents(query);
+````
+
+| Query argument        | Query value     | 
+|-----------------------|-----------------|  
+| `query.area`          | Area MBID       |
+| `query.artist`        | Artist MBID     |
+| `query.collection`    | Collection MBID |
+| `query.place`         | Place MBID      |
+
+### Browse instruments
+```js
+const instruments = await browseEvents(query);
+````
+
+| Query argument        | Query value        | 
+|-----------------------|--------------------|  
+| `query.collection`    | Collection MBID    |
+
+### Browse labels
+```js
+const labels = await browseLabels(query);
+````
+
+| Query argument     | Query value     | 
+|--------------------|-----------------|  
+| `query.area`       | Area MBID       |
+| `query.collection` | Collection MBID |
+| `query.release`    | Release MBID    |
+
+### Browse places
+```js
+const places = await browsePlaces(query);
+````
+
+| Query argument     | Query value     | 
+|--------------------|-----------------|  
+| `query.area`       | Area MBID       |
+| `query.collection` | Collection MBID |
+
+### Browse recordings
+```js
+const recordings = await browseRecordings(query);
+````
+
+| Query argument     | Query value     | 
+|--------------------|-----------------|  
+| `query.artist`     | Area MBID       |
+| `query.collection` | Collection MBID |
+| `query.release`    | Release MBID    |
+| `query.work`       | Work MBID       |
+
+### Browse releases
+```js
+const places = await browseReleases(query);
+````
+
+| Query argument        | Query value        | 
+|-----------------------|--------------------|  
+| `query.area`          | Area MBID          |
+| `query.artist`        | Artist MBID        |
+| `query.editor`        | Editor MBID        |
+| `query.event`         | Event MBID         |
+| `query.label`         | Label MBID         |
+| `query.place`         | Place MBID         |
+| `query.recording`     | Recording MBID     |
+| `query.release`       | Release MBID       |
+| `query.release-group` | Release-group MBID |
+| `query.work`          | Work MBID          |
+
+### Browse release-groups
+```js
+const places = await browseReleaseGroups(query);
+```
+
+| Query argument     | Query value     | 
+|--------------------|-----------------|  
+| `query.artist`     | Artist MBID     |
+| `query.collection` | Collection MBID |
+| `query.release`    | Release MBID    |
+
+### Browse series
+```js
+const places = await browseSeries();
+````
+
+| Query argument        | Query value        | 
+|-----------------------|--------------------|  
+| `query.area`          | Area MBID          |
+| `query.artist`        | Artist MBID        |
+| `query.editor`        | Editor MBID        |
+| `query.event`         | Event MBID         |
+| `query.label`         | Label MBID         |
+| `query.place`         | Place MBID         |
+| `query.recording`     | Recording MBID     |
+| `query.release`       | Release MBID       |
+| `query.release-group` | Release-group MBID |
+| `query.work`          | Work MBID          |
+
+
+### Browse works
+```js
+const places = await browseWorks();
+````
+
+| Query argument     | Query value     | 
+|--------------------|-----------------|  
+| `query.artist`     | Artist MBID     |
+| `query.xollection` | Collection MBID |
+
+
+### Browse urls
+```js
+const urls = await browseUrls();
+````
+
+| Query argument     | Query value     | 
+|--------------------|-----------------|  
+| `query.artist`     | Artist MBID     |
+| `query.xollection` | Collection MBID |
+
 ## Search (query)
 
 Implements [XML Web Service/Version 2/Search](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2/Search).
