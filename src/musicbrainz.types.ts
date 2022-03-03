@@ -28,7 +28,7 @@ export interface IAlias {
 }
 
 export interface IMatch {
-  score: number // ToDo: provide feedback: should be a number
+  score: number; // ToDo: provide feedback: should be a number
 }
 
 export interface IArtist {
@@ -110,7 +110,7 @@ export interface ITrack {
   id: string;
   position: number;
   recording: IRecording;
-  number: string; // in JSON, this is a string field
+  'number': string; // in JSON, this is a string field
   length: number;
   title: string;
   'artist-credit'?: IArtistCredit[];
@@ -120,10 +120,10 @@ export interface IMedium {
   title: string;
   format?: string; // optional, type dosent work
   'format-id': string;
-  'tracks': ITrack[];
+  tracks: ITrack[];
   'track-count': number;
   'track-offset': number;
-  'position': number;
+  position: number;
 }
 
 export interface ICoverArtArchive {
@@ -163,28 +163,29 @@ export interface ISearchResult {
 }
 
 export interface IArtistList extends ISearchResult {
-  artists: IArtistMatch[]
+  artists: IArtistMatch[];
 }
 
 export interface IAreaList extends ISearchResult {
-  areas: IAreaMatch[]
+  areas: IAreaMatch[];
 }
 
 export interface IReleaseList extends ISearchResult {
-  releases: IReleaseMatch[]
+  releases: IReleaseMatch[];
 }
 
 export interface IReleaseGroupList extends ISearchResult {
-  'release-groups': IReleaseGroupMatch[]
+  'release-groups': IReleaseGroupMatch[];
 }
 
 export interface IUrlList extends ISearchResult {
-  urls: IUrlMatch[]
+  urls: IUrlMatch[];
 }
+
 export type RelationDirection = 'backward' | 'forward';
 
 export interface IRelation {
-  'attribute-ids': {};
+  'attribute-ids':any;
   direction: RelationDirection;
   'target-credit': string;
   end: null | object;
@@ -249,31 +250,31 @@ export interface IReleaseSearchResult extends ISearchResult {
  * https://musicbrainz.org/doc/Development/XML_Web_Service/Version_2#Subqueries
  */
 export type EntityType = 'area' |
-  'artist' |
-  'collection' |
-  'event' |
-  'instrument' |
-  'label' |
-  'place' |
-  'recording' |
-  'release' |
-  'release-group' |
-  'series' |
-  'work' |
-  'url';
+'artist' |
+'collection' |
+'event' |
+'instrument' |
+'label' |
+'place' |
+'recording' |
+'release' |
+'release-group' |
+'series' |
+'work' |
+'url';
 
 export type Relationships = 'area-rels' |
-  'artist-rels' |
-  'event-rels' |
-  'instrument-rels' |
-  'label-rels' |
-  'place-rels' |
-  'recording-rels' |
-  'release-rels' |
-  'release-group-rels' |
-  'series-rels' |
-  'url-rels' |
-  'work-rels';
+'artist-rels' |
+'event-rels' |
+'instrument-rels' |
+'label-rels' |
+'place-rels' |
+'recording-rels' |
+'release-rels' |
+'release-group-rels' |
+'series-rels' |
+'url-rels' |
+'work-rels';
 
 export enum LinkType {
   license = 302,
