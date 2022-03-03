@@ -232,7 +232,7 @@ export interface IUrlSearchResult extends ISearchResult {
   urls?: IUrlMatch[];
 }
 
-export interface IIsrcSearchResult {
+export interface IIsrcSearchResult extends ISearchResult {
   'isrc': string;
   'recordings': IRecording[];
 }
