@@ -1,0 +1,15 @@
+/*
+ESLint configuration
+*/
+
+{
+  "rules": {
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        "devDependencies": true
+      }
+    ],
+    "@typescript-eslint/no-var-requires": "off"
+  }
+}
