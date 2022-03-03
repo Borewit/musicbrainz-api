@@ -2,37 +2,39 @@ import DateTimeFormat = Intl.DateTimeFormat;
 import { IFormData, Includes } from './musicbrainz-api';
 
 export interface IPeriod {
-  'begin': string,
-  'ended': boolean,
-  'end': string
+  'begin': string;
+  'ended': boolean;
+  'end': string;
 }
 
-export interface IArea {
-  id: string,
-  'iso-3166-1-codes': string[],
-  name: string,
-  'sort-name': string,
-  disambiguation: string
+export interface IEntity {
+  id: string;
 }
 
-export interface IAlias {
-  name: string,
-  'sort-name': string,
-  ended: boolean,
-  'type-id': string,
-  type: string,
-  locale: string,
-  primary: string,
-  begin: string,
-  end: string
+export interface IArea extends IEntity {
+  'iso-3166-1-codes': string[];
+  name: string;
+  'sort-name': string;
+  disambiguation: string;
+}
+
+export interface IAlias extends IEntity {
+  name: string;
+  'sort-name': string;
+  ended: boolean;
+  'type-id': string;
+  type: string;
+  locale: string;
+  primary: string;
+  begin: string;
+  end: string;
 }
 
 export interface IMatch {
   score: number; // ToDo: provide feedback: should be a number
 }
 
-export interface IArtist {
-  id: string;
+export interface IArtist extends IEntity {
   name: string;
   disambiguation: string;
   'sort-name': string;
@@ -62,10 +64,28 @@ export interface IArtistCredit {
   name: string;
 }
 
+export interface IEvent extends IEntity {
+  cancelled: boolean;
+  type: string;
+  'life-span': IPeriod;
+  disambiguation: string;
+  'type-id': string;
+  time: string;
+  setlist: string;
+  name: string;
+}
+
+export interface IInstrument extends IEntity {
+  disambiguation: string;
+  name: string;
+  'type-id': string;
+  type: string;
+  description: string;
+}
+
 export type ReleaseQuality = 'normal';  // ToDo
 
-export interface IRelease {
-  id: string;
+export interface IRelease extends IEntity {
   title: string;
   'text-representation': { 'language': string, 'script': string },
   disambiguation: string;
@@ -93,8 +113,7 @@ export interface IReleaseEvent {
 
 export type MediaFormatType = 'Digital Media'; // ToDo
 
-export interface IRecording {
-  id: string;
+export interface IRecording  extends IEntity {
   video: boolean;
   length: number;
   title: string;
@@ -106,8 +125,7 @@ export interface IRecording {
   aliases?: IAlias[];
 }
 
-export interface ITrack {
-  id: string;
+export interface ITrack extends IEntity{
   position: number;
   recording: IRecording;
   'number': string; // in JSON, this is a string field
@@ -134,8 +152,7 @@ export interface ICoverArtArchive {
   back: boolean;
 }
 
-export interface IReleaseGroup {
-  id: string;
+export interface IReleaseGroup extends IEntity {
   count: number;
   title: string;
   'primary-type': string;
@@ -197,33 +214,30 @@ export interface IRelation {
   begin?: null | object;
   'target-type'?: 'url';
   'type-id': string;
-  url?: IURL;
+  url?: IUrl;
   release?: IRelease;
-}
-
-export interface IURL {
-  id: string;
-  resource: string;
 }
 
 export interface IRelationList {
   relations: IRelation[];
 }
 
-export interface IWork {
-  id: string;
+export interface IWork extends IEntity {
   title: string;
 }
 
-export interface ILabel {
-  id: string;
+export interface ILabel extends IEntity {
   name: string;
 }
 
-export interface IUrl {
+export interface IPlace extends IEntity {
+  name: string;
+}
+
+export interface IUrl extends IEntity {
   id: string,
   resource: string,
-  'relation-list': IRelationList[];
+  'relation-list'?: IRelationList[];
 }
 
 export interface IUrlMatch extends IMatch, IUrl {
