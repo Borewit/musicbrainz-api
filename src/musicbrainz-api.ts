@@ -215,7 +215,7 @@ export class MusicBrainzApi {
    * @param mbid
    * @param inc
    */
-  public getEntity<T>(entity: mb.EntityType, mbid: string, inc: Includes[] = []): Promise<T> {
+  public lookupEntity<T>(entity: mb.EntityType, mbid: string, inc: Includes[] = []): Promise<T> {
     return this.restGet<T>(`/${entity}/${mbid}`, {inc: inc.join(' ')});
   }
 
@@ -224,8 +224,8 @@ export class MusicBrainzApi {
    * @param areaId Area MBID
    * @param inc Sub-queries
    */
-  public getArea(areaId: string, inc: Includes[] = []): Promise<mb.IArea> {
-    return this.getEntity<mb.IArea>('area', areaId, inc);
+  public lookupArea(areaId: string, inc: Includes[] = []): Promise<mb.IArea> {
+    return this.lookupEntity<mb.IArea>('area', areaId, inc);
   }
 
   /**
@@ -233,8 +233,35 @@ export class MusicBrainzApi {
    * @param artistId Artist MBID
    * @param inc Sub-queries
    */
-  public getArtist(artistId: string, inc: Includes[] = []): Promise<mb.IArtist> {
-    return this.getEntity<mb.IArtist>('artist', artistId, inc);
+  public lookupArtist(artistId: string, inc: Includes[] = []): Promise<mb.IArtist> {
+    return this.lookupEntity<mb.IArtist>('artist', artistId, inc);
+  }
+
+  /**
+   * Lookup instrument
+   * @param artistId Instrument MBID
+   * @param inc Sub-queries
+   */
+  public lookupInstrument(instrumentId: string, inc: Includes[] = []): Promise<mb.IInstrument> {
+    return this.lookupEntity<mb.IInstrument>('instrument', instrumentId, inc);
+  }
+
+  /**
+   * Lookup label
+   * @param labelId Area MBID
+   * @param inc Sub-queries
+   */
+  public lookupLabel(labelId: string, inc: Includes[] = []): Promise<mb.ILabel> {
+    return this.lookupEntity<mb.ILabel>('label', labelId, inc);
+  }
+
+  /**
+   * Lookup place
+   * @param placeId Area MBID
+   * @param inc Sub-queries
+   */
+  public lookupPlace(placeId: string, inc: Includes[] = []): Promise<mb.IPlace> {
+    return this.lookupEntity<mb.IPlace>('place', placeId, inc);
   }
 
   /**
@@ -243,8 +270,8 @@ export class MusicBrainzApi {
    * @param inc Include: artist-credits, labels, recordings, release-groups, media, discids, isrcs (with recordings)
    * ToDo: ['recordings', 'artists', 'artist-credits', 'isrcs', 'url-rels', 'release-groups']
    */
-  public getRelease(releaseId: string, inc: Includes[] = []): Promise<mb.IRelease> {
-    return this.getEntity<mb.IRelease>('release', releaseId, inc);
+  public lookupRelease(releaseId: string, inc: Includes[] = []): Promise<mb.IRelease> {
+    return this.lookupEntity<mb.IRelease>('release', releaseId, inc);
   }
 
   /**
@@ -252,24 +279,8 @@ export class MusicBrainzApi {
    * @param releaseGroupId Release-group MBID
    * @param inc Include: ToDo
    */
-  public getReleaseGroup(releaseGroupId: string, inc: Includes[] = []): Promise<mb.IReleaseGroup> {
-    return this.getEntity<mb.IReleaseGroup>('release-group', releaseGroupId, inc);
-  }
-
-  /**
-   * Lookup work
-   * @param workId Work MBID
-   */
-  public getWork(workId: string): Promise<mb.IWork> {
-    return this.getEntity<mb.IWork>('work', workId);
-  }
-
-  /**
-   * Lookup label
-   * @param labelId Label MBID
-   */
-  public getLabel(labelId: string): Promise<mb.ILabel> {
-    return this.getEntity<mb.ILabel>('label', labelId);
+  public lookupReleaseGroup(releaseGroupId: string, inc: Includes[] = []): Promise<mb.IReleaseGroup> {
+    return this.lookupEntity<mb.IReleaseGroup>('release-group', releaseGroupId, inc);
   }
 
   /**
@@ -277,8 +288,24 @@ export class MusicBrainzApi {
    * @param recordingId Label MBID
    * @param inc Include: artist-credits, isrcs
    */
-  public getRecording(recordingId: string, inc: Includes[] = []): Promise<mb.IRecording> {
-    return this.getEntity<mb.IRecording>('recording', recordingId, inc);
+  public lookupRecording(recordingId: string, inc: Includes[] = []): Promise<mb.IRecording> {
+    return this.lookupEntity<mb.IRecording>('recording', recordingId, inc);
+  }
+
+  /**
+   * Lookup work
+   * @param workId Work MBID
+   */
+  public lookupWork(workId: string): Promise<mb.IWork> {
+    return this.lookupEntity<mb.IWork>('work', workId);
+  }
+
+  /**
+   * Lookup URL
+   * @param urlId URL MBID
+   */
+  public lookupUrl(urlId: string): Promise<mb.IUrl> {
+    return this.lookupEntity<mb.IUrl>('url', urlId);
   }
 
   public async postRecording(xmlMetadata: XmlMetadata): Promise<void> {

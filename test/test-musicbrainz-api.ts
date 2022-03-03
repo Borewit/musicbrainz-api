@@ -53,8 +53,29 @@ describe('MusicBrainz-api', function() {
   this.timeout(20000); // MusicBrainz has a rate limiter
 
   const mbid = {
+    area: {
+      Belgium: '5b8a5ee5-0bb3-34cf-9a75-c27c44e341fc',
+      IleDeFrance: 'd79e4501-8cba-431b-96e7-bb9976f0ae76',
+      Lisbon: '9aee8c1a-c7d5-4713-af71-c022bccf50b4'
+    },
     artist: {
-      Stromae: 'ab2528d9-719f-4261-8098-21849222a0f2'
+      Stromae: 'ab2528d9-719f-4261-8098-21849222a0f2',
+      DeadCombo: '092ae9e2-60bf-4b66-aa33-9e31754d1924'
+    },
+    collection: {
+      Ringtone: 'de4fdfc4-53aa-458a-b463-8761cc7f5af8'
+    },
+    event: {
+      DireStraitsAlchemyLoveOverGold: '6d32c658-151e-45ec-88c4-fb8787524d61'
+    },
+    instrument: {
+      spanishAcousticGuitar: '117dacfc-0ad0-4e90-81a4-a28b4c03929b'
+    },
+    label: {
+      Mosaert: '0550200c-22c1-4c62-b761-ef0b3665262b'
+    },
+    place: {
+      Paradiso: '4efe54e1-41f6-490a-85f5-e1c19b04649c'
     },
     recording: {
       Formidable: '16afa384-174e-435e-bfa3-5591accda31c',
@@ -76,12 +97,8 @@ describe('MusicBrainz-api', function() {
     work: {
       Formidable: 'b2aa02f4-6c95-43be-a426-aedb9f9a3805'
     },
-    area: {
-      Belgium: '5b8a5ee5-0bb3-34cf-9a75-c27c44e341fc',
-      IleDeFrance: 'd79e4501-8cba-431b-96e7-bb9976f0ae76'
-    },
-    label: {
-      Mosaert: '0550200c-22c1-4c62-b761-ef0b3665262b'
+    url: {
+      SpotifyLisboaMulata: 'c69556a6-7ded-4c54-809c-afb45a1abe7d'
     }
   };
 
@@ -116,28 +133,40 @@ describe('MusicBrainz-api', function() {
 
     describe('Lookup', () => {
 
-      it('get area', async () => {
-        const area = await mbApi.getArea(mbid.area.Belgium);
+      it('area', async () => {
+        const area = await mbApi.lookupArea(mbid.area.Belgium);
         assert.strictEqual(area.id, mbid.area.Belgium);
         assert.strictEqual(area.name, 'Belgium');
       });
 
-      it('get artist', async () => {
-        const artist = await mbApi.getArtist(mbid.artist.Stromae);
+      it('artist', async () => {
+        const artist = await mbApi.lookupArtist(mbid.artist.Stromae);
         assert.strictEqual(artist.id, mbid.artist.Stromae);
         assert.strictEqual(artist.name, 'Stromae');
       });
 
-      describe('Release', () => {
+      it('instrument', async () => {
+        const instrument = await mbApi.lookupInstrument(mbid.instrument.spanishAcousticGuitar);
+        assert.strictEqual(instrument.id, mbid.instrument.spanishAcousticGuitar);
+        assert.strictEqual(instrument.type, 'String instrument');
+      });
 
-        it('get release Formidable', async () => {
-          const release = await mbApi.getRelease(mbid.release.Formidable);
+      it('label', async () => {
+        const label = await mbApi.lookupLabel(mbid.label.Mosaert);
+        assert.strictEqual(label.id, mbid.label.Mosaert);
+        assert.strictEqual(label.name, 'Mosaert');
+      });
+
+      describe('release', () => {
+
+        it('release Formidable', async () => {
+          const release = await mbApi.lookupRelease(mbid.release.Formidable);
           assert.strictEqual(release.id, mbid.release.Formidable);
           assert.strictEqual(release.title, 'Formidable');
         });
 
         it('check release Anomalie', async () => {
-          const release = await mbApi.getRelease(mbid.release.Anomalie);
+          const release = await mbApi.lookupRelease(mbid.release.Anomalie);
           assert.strictEqual(release.id, mbid.release.Anomalie);
           assert.strictEqual(release.title, 'Anomalie');
         });
@@ -153,7 +182,7 @@ describe('MusicBrainz-api', function() {
         ].forEach(inc => {
 
           it(`get release, include: '${inc.inc}'`, async () => {
-            const release = await mbApi.getRelease(mbid.release.Formidable, [inc.inc as any]);
+            const release = await mbApi.lookupRelease(mbid.release.Formidable, [inc.inc as any]);
             assert.strictEqual(release.id, mbid.release.Formidable);
             assert.strictEqual(release.title, 'Formidable');
             assert.isDefined(release[inc.key], `Should include '${inc.key}'`);
@@ -162,44 +191,10 @@ describe('MusicBrainz-api', function() {
 
       });
 
-      describe('Release-group', () => {
+      describe('recording', () => {
 
-        it('get release-group', async () => {
-          const releaseGroup = await mbApi.getReleaseGroup(mbid.releaseGroup.Formidable);
-          assert.strictEqual(releaseGroup.id, mbid.releaseGroup.Formidable);
-          assert.strictEqual(releaseGroup.title, 'Formidable');
-        });
-
-        [
-          {inc: 'artist-credits', key: 'artist-credit'}
-        ].forEach(inc => {
-
-          it(`get release-group, include: '${inc.inc}'`, async () => {
-            const group = await mbApi.getReleaseGroup(mbid.releaseGroup.Formidable, [inc.inc as any]);
-            assert.strictEqual(group.id, mbid.releaseGroup.Formidable);
-            assert.strictEqual(group.title, 'Formidable');
-            assert.isDefined(group[inc.key], `Should include '${inc.key}'`);
-          });
-        });
-
-      });
-
-      it('get work', async () => {
-        const work = await mbApi.getWork(mbid.work.Formidable);
-        assert.strictEqual(work.id, mbid.work.Formidable);
-        assert.strictEqual(work.title, 'Formidable');
-      });
-
-      it('get label', async () => {
-        const label = await mbApi.getLabel(mbid.label.Mosaert);
-        assert.strictEqual(label.id, mbid.label.Mosaert);
-        assert.strictEqual(label.name, 'Mosaert');
-      });
-
-      describe('Recording', () => {
-
-        it('get recording', async () => {
-          const recording = await mbApi.getRecording(mbid.recording.Formidable);
+        it('recording', async () => {
+          const recording = await mbApi.lookupRecording(mbid.recording.Formidable);
           assert.strictEqual(recording.id, mbid.recording.Formidable);
           assert.strictEqual(recording.title, 'Formidable');
           assert.isUndefined(recording.isrcs);
@@ -214,22 +209,56 @@ describe('MusicBrainz-api', function() {
           {inc: 'releases', key: 'releases'}
         ].forEach(inc => {
 
-          it(`get recording, include: '${inc.inc}'`, async () => {
-            const recording = await mbApi.getRecording(mbid.recording.Formidable, [inc.inc as any]);
+          it(`recording, include: '${inc.inc}'`, async () => {
+            const recording = await mbApi.lookupRecording(mbid.recording.Formidable, [inc.inc as any]);
             assert.strictEqual(recording.id, mbid.recording.Formidable);
             assert.strictEqual(recording.title, 'Formidable');
             assert.isDefined(recording[inc.key], `Should include '${inc.key}'`);
           });
         });
 
-        it('get extended recording', async () => {
-          const recording = await mbApi.getRecording(mbid.recording.Formidable, ['isrcs', 'artists', 'releases', 'url-rels']);
+        it('extended recording', async () => {
+          const recording = await mbApi.lookupRecording(mbid.recording.Formidable, ['isrcs', 'artists', 'releases', 'url-rels']);
           assert.strictEqual(recording.id, mbid.recording.Formidable);
           assert.strictEqual(recording.title, 'Formidable');
           assert.isDefined(recording.isrcs);
           assert.isDefined(recording['artist-credit']);
           // assert.isDefined(recording.releases);
         });
+      });
+
+      describe('release-group', () => {
+
+        it('release-group', async () => {
+          const releaseGroup = await mbApi.lookupReleaseGroup(mbid.releaseGroup.Formidable);
+          assert.strictEqual(releaseGroup.id, mbid.releaseGroup.Formidable);
+          assert.strictEqual(releaseGroup.title, 'Formidable');
+        });
+
+        [
+          {inc: 'artist-credits', key: 'artist-credit'}
+        ].forEach(inc => {
+
+          it(`get release-group, include: '${inc.inc}'`, async () => {
+            const group = await mbApi.lookupReleaseGroup(mbid.releaseGroup.Formidable, [inc.inc as any]);
+            assert.strictEqual(group.id, mbid.releaseGroup.Formidable);
+            assert.strictEqual(group.title, 'Formidable');
+            assert.isDefined(group[inc.key], `Should include '${inc.key}'`);
+          });
+        });
+
+      });
+
+      it('work', async () => {
+        const work = await mbApi.lookupWork(mbid.work.Formidable);
+        assert.strictEqual(work.id, mbid.work.Formidable);
+        assert.strictEqual(work.title, 'Formidable');
+      });
+
+      it('url', async () => {
+        const url = await mbApi.lookupUrl(mbid.url.SpotifyLisboaMulata);
+        assert.strictEqual(url.id,mbid.url.SpotifyLisboaMulata);
+        assert.strictEqual(url.resource, 'https://open.spotify.com/album/5PCfptvsmuFcxsMt86L6wn');
       });
 
     });
@@ -386,7 +415,7 @@ describe('MusicBrainz-api', function() {
     describe('Recording', () => {
 
       it('add link', async () => {
-        const recording = await mbTestApi.getRecording(mbid.recording.Formidable);
+        const recording = await mbTestApi.lookupRecording(mbid.recording.Formidable);
         assert.strictEqual(recording.id, mbid.recording.Formidable);
         assert.strictEqual(recording.title, 'Formidable');
 
@@ -397,7 +426,7 @@ describe('MusicBrainz-api', function() {
       });
 
       it('add Spotify-ID', async () => {
-        const recording = await mbTestApi.getRecording(mbid.recording.Formidable);
+        const recording = await mbTestApi.lookupRecording(mbid.recording.Formidable);
 
         const editNote = `Unit-test musicbrainz-api (${appUrl}), test augment recording with Spotify URL & ISRC`;
         await mbTestApi.addSpotifyIdToRecording(recording, spotify.track.Formidable.id, editNote);
@@ -407,7 +436,7 @@ describe('MusicBrainz-api', function() {
         // https://test.musicbrainz.org/recording/a75b85bf-63dd-4fe1-8008-d15541b93bac
         const recording_id = 'a75b85bf-63dd-4fe1-8008-d15541b93bac';
 
-        const recording = await mbTestApi.getRecording(recording_id);
+        const recording = await mbTestApi.lookupRecording(recording_id);
         const editNote = `Unit-test musicbrainz-api (${appUrl}), test augment recording with Spotify URL & ISRC`;
         await mbTestApi.addSpotifyIdToRecording(recording, '3ZDO5YINwfoifRQ3ElshPM', editNote);
       });
@@ -417,7 +446,7 @@ describe('MusicBrainz-api', function() {
     describe('ISRC', () => {
 
       it('add ISRC', async () => {
-        const recording = await mbTestApi.getRecording(mbid.recording.Formidable, ['isrcs']);
+        const recording = await mbTestApi.lookupRecording(mbid.recording.Formidable, ['isrcs']);
         assert.strictEqual(recording.id, mbid.recording.Formidable);
         assert.strictEqual(recording.title, 'Formidable');
 
