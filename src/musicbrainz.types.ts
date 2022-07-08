@@ -1,5 +1,5 @@
 import DateTimeFormat = Intl.DateTimeFormat;
-import { IFormData, Includes } from './musicbrainz-api';
+import { IFormData } from './musicbrainz-api';
 
 export interface IPeriod {
   'begin': string;
@@ -320,12 +320,12 @@ export interface IPagination {
 /**
  * https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2/Search#Artist
  */
-export interface ISearchQuery extends IPagination {
+export interface ISearchQuery<I extends string> extends IPagination {
   /**
    * Lucene search query, this is mandatory
    */
   query?: string | IFormData,
-  inc?: Includes[]
+  inc?: I[]
 }
 
 /**
