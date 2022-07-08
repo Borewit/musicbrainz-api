@@ -145,6 +145,19 @@ describe('MusicBrainz-api', function() {
         assert.strictEqual(artist.name, 'Stromae');
       });
 
+      [
+        {inc: 'works', key: 'works'},
+        {inc: 'genres', key: 'genres'},
+        {inc: 'ratings', key: 'rating'}
+      ].forEach(inc => {
+        it(`artist-include: '${inc.inc}'`, async () => {
+          const artist = await mbApi.lookupArtist(mbid.artist.Stromae, [inc.inc as any]);
+          assert.strictEqual(artist.id, mbid.artist.Stromae);
+          assert.strictEqual(artist.name, 'Stromae');
+          assert.isDefined(artist[inc.key], `Should include '${inc.key}'`);
+        });
+      });
+
       it('instrument', async () => {
         const instrument = await mbApi.lookupInstrument(mbid.instrument.spanishAcousticGuitar);
         assert.strictEqual(instrument.id, mbid.instrument.spanishAcousticGuitar);

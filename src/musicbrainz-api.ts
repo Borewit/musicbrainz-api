@@ -24,22 +24,12 @@ import { promisify } from 'util';
 
 const retries = 3;
 
-/**
+/*
  * https://musicbrainz.org/doc/Development/XML_Web_Service/Version_2#Subqueries
  */
-export type Includes =
-  'artists'
-  | 'releases'
-  | 'recordings'
-  | 'artist-credits'
-  | 'isrcs'
-  | 'url-rels'
-  | 'release-groups'
-  | 'aliases'
-  | 'discids'
-  | 'annotation'
-  | 'media' // release-groups
-  | 'area-rels'
+
+export type RelationsIncludes =
+  'area-rels'
   | 'artist-rels'
   | 'event-rels'
   | 'instrument-rels'
@@ -49,7 +39,72 @@ export type Includes =
   | 'release-rels'
   | 'release-group-rels'
   | 'series-rels'
+  | 'url-rels'
   | 'work-rels';
+
+export type MiscIncludes =
+  'aliases'
+  | 'annotation'
+  | 'tags'
+  | 'genres'
+  | 'ratings'
+  | 'media';
+
+export type AreaIncludes = MiscIncludes | RelationsIncludes;
+
+export type ArtistIncludes  =
+  MiscIncludes
+  | RelationsIncludes
+  | 'recordings'
+  | 'releases'
+  | 'release-groups'
+  | 'works';
+
+export type CollectionIncludes =
+  MiscIncludes
+  | RelationsIncludes
+  | 'user-collections';
+
+export type EventIncludes = MiscIncludes | RelationsIncludes;
+
+export type GenreIncludes = MiscIncludes;
+
+export type InstrumentIncludes = MiscIncludes | RelationsIncludes;
+
+export type LabelIncludes =
+MiscIncludes
+| RelationsIncludes
+| 'releases';
+
+export type PlaceIncludes = MiscIncludes | RelationsIncludes;
+
+export type RecordingIncludes =
+MiscIncludes
+| RelationsIncludes
+| 'artists'
+| 'releases'
+| 'isrcs';
+
+export type ReleasesIncludes =
+MiscIncludes
+| RelationsIncludes
+| 'artists'
+| 'collections'
+| 'labels'
+| 'recordings'
+| 'release-groups';
+
+export type ReleaseGroupIncludes =
+MiscIncludes
+| RelationsIncludes
+| 'artists'
+| 'releases';
+
+export type SeriesIncludes = MiscIncludes | RelationsIncludes;
+
+export type WorkIncludes = MiscIncludes | RelationsIncludes;
+
+export type UrlIncludes = RelationsIncludes;
 
 const debug = Debug('musicbrainz-api');
 
@@ -215,7 +270,7 @@ export class MusicBrainzApi {
    * @param mbid
    * @param inc
    */
-  public lookupEntity<T>(entity: mb.EntityType, mbid: string, inc: Includes[] = []): Promise<T> {
+  public lookupEntity<T, I extends string = never>(entity: mb.EntityType, mbid: string, inc: I[] = []): Promise<T> {
     return this.restGet<T>(`/${entity}/${mbid}`, {inc: inc.join(' ')});
   }
 
@@ -224,8 +279,8 @@ export class MusicBrainzApi {
    * @param areaId Area MBID
    * @param inc Sub-queries
    */
-  public lookupArea(areaId: string, inc: Includes[] = []): Promise<mb.IArea> {
-    return this.lookupEntity<mb.IArea>('area', areaId, inc);
+  public lookupArea(areaId: string, inc: AreaIncludes[] = []): Promise<mb.IArea> {
+    return this.lookupEntity<mb.IArea, AreaIncludes>('area', areaId, inc);
   }
 
   /**
@@ -233,8 +288,8 @@ export class MusicBrainzApi {
    * @param artistId Artist MBID
    * @param inc Sub-queries
    */
-  public lookupArtist(artistId: string, inc: Includes[] = []): Promise<mb.IArtist> {
-    return this.lookupEntity<mb.IArtist>('artist', artistId, inc);
+  public lookupArtist(artistId: string, inc: ArtistIncludes[] = []): Promise<mb.IArtist> {
+    return this.lookupEntity<mb.IArtist, ArtistIncludes>('artist', artistId, inc);
   }
 
   /**
@@ -242,8 +297,8 @@ export class MusicBrainzApi {
    * @param artistId Instrument MBID
    * @param inc Sub-queries
    */
-  public lookupInstrument(instrumentId: string, inc: Includes[] = []): Promise<mb.IInstrument> {
-    return this.lookupEntity<mb.IInstrument>('instrument', instrumentId, inc);
+  public lookupInstrument(instrumentId: string, inc: InstrumentIncludes[] = []): Promise<mb.IInstrument> {
+    return this.lookupEntity<mb.IInstrument, InstrumentIncludes>('instrument', instrumentId, inc);
   }
 
   /**
@@ -251,8 +306,8 @@ export class MusicBrainzApi {
    * @param labelId Area MBID
    * @param inc Sub-queries
    */
-  public lookupLabel(labelId: string, inc: Includes[] = []): Promise<mb.ILabel> {
-    return this.lookupEntity<mb.ILabel>('label', labelId, inc);
+  public lookupLabel(labelId: string, inc: LabelIncludes[] = []): Promise<mb.ILabel> {
+    return this.lookupEntity<mb.ILabel, LabelIncludes>('label', labelId, inc);
   }
 
   /**
@@ -260,8 +315,8 @@ export class MusicBrainzApi {
    * @param placeId Area MBID
    * @param inc Sub-queries
    */
-  public lookupPlace(placeId: string, inc: Includes[] = []): Promise<mb.IPlace> {
-    return this.lookupEntity<mb.IPlace>('place', placeId, inc);
+  public lookupPlace(placeId: string, inc: PlaceIncludes[] = []): Promise<mb.IPlace> {
+    return this.lookupEntity<mb.IPlace, PlaceIncludes>('place', placeId, inc);
   }
 
   /**
@@ -270,8 +325,8 @@ export class MusicBrainzApi {
    * @param inc Include: artist-credits, labels, recordings, release-groups, media, discids, isrcs (with recordings)
    * ToDo: ['recordings', 'artists', 'artist-credits', 'isrcs', 'url-rels', 'release-groups']
    */
-  public lookupRelease(releaseId: string, inc: Includes[] = []): Promise<mb.IRelease> {
-    return this.lookupEntity<mb.IRelease>('release', releaseId, inc);
+  public lookupRelease(releaseId: string, inc: ReleasesIncludes[] = []): Promise<mb.IRelease> {
+    return this.lookupEntity<mb.IRelease, ReleasesIncludes>('release', releaseId, inc);
   }
 
   /**
@@ -279,8 +334,8 @@ export class MusicBrainzApi {
    * @param releaseGroupId Release-group MBID
    * @param inc Include: ToDo
    */
-  public lookupReleaseGroup(releaseGroupId: string, inc: Includes[] = []): Promise<mb.IReleaseGroup> {
-    return this.lookupEntity<mb.IReleaseGroup>('release-group', releaseGroupId, inc);
+  public lookupReleaseGroup(releaseGroupId: string, inc: ReleaseGroupIncludes[] = []): Promise<mb.IReleaseGroup> {
+    return this.lookupEntity<mb.IReleaseGroup, ReleaseGroupIncludes>('release-group', releaseGroupId, inc);
   }
 
   /**
@@ -288,24 +343,24 @@ export class MusicBrainzApi {
    * @param recordingId Label MBID
    * @param inc Include: artist-credits, isrcs
    */
-  public lookupRecording(recordingId: string, inc: Includes[] = []): Promise<mb.IRecording> {
-    return this.lookupEntity<mb.IRecording>('recording', recordingId, inc);
+  public lookupRecording(recordingId: string, inc: RecordingIncludes[] = []): Promise<mb.IRecording> {
+    return this.lookupEntity<mb.IRecording, RecordingIncludes>('recording', recordingId, inc);
   }
 
   /**
    * Lookup work
    * @param workId Work MBID
    */
-  public lookupWork(workId: string): Promise<mb.IWork> {
-    return this.lookupEntity<mb.IWork>('work', workId);
+  public lookupWork(workId: string, inc: WorkIncludes[] = []): Promise<mb.IWork> {
+    return this.lookupEntity<mb.IWork, WorkIncludes>('work', workId, inc);
   }
 
   /**
    * Lookup URL
    * @param urlId URL MBID
    */
-  public lookupUrl(urlId: string): Promise<mb.IUrl> {
-    return this.lookupEntity<mb.IUrl>('url', urlId);
+  public lookupUrl(urlId: string, inc: UrlIncludes[] = []): Promise<mb.IUrl> {
+    return this.lookupEntity<mb.IUrl, UrlIncludes>('url', urlId, inc);
   }
 
   public async postRecording(xmlMetadata: XmlMetadata): Promise<void> {
@@ -502,7 +557,7 @@ export class MusicBrainzApi {
    * @param entity e.g. 'recording'
    * @param query Arguments
    */
-  public search<T extends mb.ISearchResult>(entity: mb.EntityType, query: mb.ISearchQuery): Promise<T> {
+  public search<T extends mb.ISearchResult, I extends string = never>(entity: mb.EntityType, query: mb.ISearchQuery<I>): Promise<T> {
     const urlQuery: any = {...query};
     if (typeof query.query === 'object') {
       urlQuery.query = makeAndQueryString(query.query);
@@ -534,24 +589,24 @@ export class MusicBrainzApi {
     }, editNote);
   }
 
-  public searchArea(query: mb.ISearchQuery & mb.ILinkedEntitiesArea): Promise<mb.IAreaList> {
-    return this.search<mb.IAreaList>('area', query);
+  public searchArea(query: mb.ISearchQuery<AreaIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IAreaList> {
+    return this.search<mb.IAreaList, AreaIncludes>('area', query);
   }
 
-  public searchArtist(query: mb.ISearchQuery & mb.ILinkedEntitiesArtist): Promise<mb.IArtistList> {
-    return this.search<mb.IArtistList>('artist', query);
+  public searchArtist(query: mb.ISearchQuery<ArtistIncludes> & mb.ILinkedEntitiesArtist): Promise<mb.IArtistList> {
+    return this.search<mb.IArtistList, ArtistIncludes>('artist', query);
   }
 
-  public searchRelease(query: mb.ISearchQuery & mb.ILinkedEntitiesRelease): Promise<mb.IReleaseList> {
-    return this.search<mb.IReleaseList>('release', query);
+  public searchRelease(query: mb.ISearchQuery<ReleasesIncludes> & mb.ILinkedEntitiesRelease): Promise<mb.IReleaseList> {
+    return this.search<mb.IReleaseList, ReleasesIncludes>('release', query);
   }
 
-  public searchReleaseGroup(query: mb.ISearchQuery & mb.ILinkedEntitiesReleaseGroup): Promise<mb.IReleaseGroupList> {
-    return this.search<mb.IReleaseGroupList>('release-group', query);
+  public searchReleaseGroup(query: mb.ISearchQuery<ReleaseGroupIncludes> & mb.ILinkedEntitiesReleaseGroup): Promise<mb.IReleaseGroupList> {
+    return this.search<mb.IReleaseGroupList, ReleaseGroupIncludes>('release-group', query);
   }
 
-  public searchUrl(query: mb.ISearchQuery & mb.ILinkedEntitiesUrl): Promise<mb.IUrlList> {
-    return this.search<mb.IUrlList>('url', query);
+  public searchUrl(query: mb.ISearchQuery<UrlIncludes> & mb.ILinkedEntitiesUrl): Promise<mb.IUrlList> {
+    return this.search<mb.IUrlList, UrlIncludes>('url', query);
   }
 
   private async getSession(url: string): Promise<ISessionInformation> {
