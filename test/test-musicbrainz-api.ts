@@ -270,8 +270,32 @@ describe('MusicBrainz-api', function() {
 
       it('url', async () => {
         const url = await mbApi.lookupUrl(mbid.url.SpotifyLisboaMulata);
-        assert.strictEqual(url.id,mbid.url.SpotifyLisboaMulata);
+        assert.strictEqual(url.id, mbid.url.SpotifyLisboaMulata);
         assert.strictEqual(url.resource, 'https://open.spotify.com/album/5PCfptvsmuFcxsMt86L6wn');
+      });
+
+
+      describe('event', () => {
+        it('event', async () => {
+          const event = await mbApi.lookupEvent(mbid.event.DireStraitsAlchemyLoveOverGold);
+          assert.strictEqual(event.id, mbid.event.DireStraitsAlchemyLoveOverGold);
+          assert.strictEqual(event.name, "Dire Straits - Love Over Gold");
+        });
+
+        [
+          {inc: 'tags', key: 'tags'},
+          {inc: 'artist-rels', key: 'relations'},
+          {inc: 'ratings', key: 'rating'}
+        ].forEach(inc => {
+
+          it(`event, include: '${inc.inc}'`, async () => {
+            const event = await mbApi.lookupEvent(mbid.event.DireStraitsAlchemyLoveOverGold, [inc.inc as any]);
+            assert.strictEqual(event.id, mbid.event.DireStraitsAlchemyLoveOverGold);
+            assert.strictEqual(event.name, "Dire Straits - Love Over Gold");
+            assert.isDefined(event[inc.key], `Should include '${inc.key}'`);
+          });
+        });
+
       });
 
     });
