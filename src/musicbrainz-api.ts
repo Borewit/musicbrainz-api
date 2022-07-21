@@ -363,6 +363,15 @@ export class MusicBrainzApi {
     return this.lookupEntity<mb.IUrl, UrlIncludes>('url', urlId, inc);
   }
 
+  /**
+   * Lookup Event
+   * @param eventId Event MBID
+   * @param inc EventIncludes
+   */
+  public lookupEvent(eventId: string, inc: EventIncludes[] = []): Promise<mb.IEvent> {
+    return this.lookupEntity<mb.IEvent, EventIncludes>('event', eventId, inc);
+  }
+
   public async postRecording(xmlMetadata: XmlMetadata): Promise<void> {
     return this.post('recording', xmlMetadata);
   }
