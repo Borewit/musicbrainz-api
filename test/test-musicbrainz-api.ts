@@ -280,6 +280,7 @@ describe('MusicBrainz-api', function() {
           const event = await mbApi.lookupEvent(mbid.event.DireStraitsAlchemyLoveOverGold);
           assert.strictEqual(event.id, mbid.event.DireStraitsAlchemyLoveOverGold);
           assert.strictEqual(event.name, "Dire Straits - Love Over Gold");
+          assert.strictEqual(event.type, "Concert");
         });
 
         [
