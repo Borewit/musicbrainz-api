@@ -55,7 +55,6 @@
     "@typescript-eslint/eslint-plugin": "^5.13.0",
     "@typescript-eslint/parser": "^5.13.0",
     "chai": "^4.2.0",
-    "coveralls": "^3.0.9",
     "del-cli": "^4.0.1",
     "eslint": "^8.10.0",
     "eslint-config-prettier": "^8.4.0",
@@ -84,7 +83,6 @@
     "build": "npm run clean && npm run compile",
     "start": "npm-run-all compile lint cover-test",
     "test-coverage": "nyc npm run test",
-    "send-coveralls": "nyc report --reporter=text-lcov | coveralls",
     "send-codacy": "nyc report --reporter=text-lcov | codacy-coverage"
   },
   "nyc": {
