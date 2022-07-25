@@ -369,7 +369,7 @@ export class MusicBrainzApi {
    * @param eventIncludes List of sub-queries to enable
    */
   public lookupEvent(eventId: string, eventIncludes: EventIncludes[] = []): Promise<mb.IEvent> {
-    return this.lookupEntity<mb.IEvent, EventIncludes>('event', eventId, inc);
+    return this.lookupEntity<mb.IEvent, EventIncludes>('event', eventId, eventIncludes);
   }
 
   public async postRecording(xmlMetadata: XmlMetadata): Promise<void> {
