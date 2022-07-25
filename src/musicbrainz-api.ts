@@ -366,7 +366,7 @@ export class MusicBrainzApi {
   /**
    * Lookup Event
    * @param eventId Event MBID
-   * @param inc EventIncludes
+   * @param eventIncludes EventIncludes
    */
   public lookupEvent(eventId: string, inc: EventIncludes[] = []): Promise<mb.IEvent> {
     return this.lookupEntity<mb.IEvent, EventIncludes>('event', eventId, inc);
