@@ -65,7 +65,7 @@
     "eslint-plugin-unicorn": "^43.0.2",
     "mocha": "^9.0.1",
     "nyc": "^15.0.0",
-    "remark-cli": "^10.0.1",
+    "remark-cli": "^11.0.0",
     "remark-preset-lint-recommended": "^6.1.2",
     "ts-node": "^10.0.0",
     "tslint": "^6.1.1",
