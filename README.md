@@ -316,7 +316,6 @@ const places = await browseSeries();
 | `query.release-group` | Release-group MBID |
 | `query.work`          | Work MBID          |
 
-
 ### Browse works
 ```js
 const places = await browseWorks();
@@ -326,7 +325,6 @@ const places = await browseWorks();
 |--------------------|-----------------|  
 | `query.artist`     | Artist MBID     |
 | `query.xollection` | Collection MBID |
-
 
 ### Browse urls
 ```js
