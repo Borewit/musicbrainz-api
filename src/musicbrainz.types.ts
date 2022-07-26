@@ -205,13 +205,13 @@ export interface IRelation {
   'attribute-ids':any;
   direction: RelationDirection;
   'target-credit': string;
-  end: null | object;
+  end: null | unknown;
   'source-credit': string;
   ended: boolean;
-  'attribute-values': object;
+  'attribute-values': unknown;
   attributes?: any[];
   type: string;
-  begin?: null | object;
+  begin?: null | unknown;
   'target-type'?: 'url';
   'type-id': string;
   url?: IUrl;
@@ -575,14 +575,6 @@ export interface IReleaseGroupsQuery extends IPagination {
   artist?: string;
   collection?: string;
   release?: string;
-}
-
-/**
- * Browse series query <entity>: <MBID>
- * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
- */
-export interface IBrowseSeriesQuery extends IPagination {
-  recording?: string;
 }
 
 /**
