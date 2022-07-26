@@ -25,7 +25,7 @@
   "license": "MIT",
   "private": false,
   "engines": {
-    "node": "*"
+    "node": ">=14.16"
   },
   "repository": {
     "type": "git",
