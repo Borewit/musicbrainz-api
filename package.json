@@ -63,7 +63,7 @@
     "eslint-plugin-jsdoc": "^39.3.3",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-unicorn": "^43.0.2",
-    "mocha": "^9.0.1",
+    "mocha": "^10.0.0",
     "nyc": "^15.0.0",
     "remark-cli": "^11.0.0",
     "remark-preset-lint-recommended": "^6.1.2",
