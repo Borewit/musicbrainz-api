@@ -160,6 +160,12 @@ describe('MusicBrainz-api', function () {
         assert.strictEqual(artist.name, 'Stromae');
       });
 
+      it('collection', async () => {
+        const collection = await mbApi.lookupCollection(mbid.collection.Ringtone);
+        assert.strictEqual(collection.id, mbid.collection.Ringtone);
+        assert.strictEqual(collection.name, 'Ringtone');
+      });
+
       it('instrument', async () => {
         const instrument = await mbApi.lookupInstrument(mbid.instrument.spanishAcousticGuitar);
         assert.strictEqual(instrument.id, mbid.instrument.spanishAcousticGuitar);
