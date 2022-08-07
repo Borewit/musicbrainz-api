@@ -84,7 +84,7 @@ describe('MusicBrainz-api', function () {
       DireStraitsAlchemyLoveOverGold: '6d32c658-151e-45ec-88c4-fb8787524d61'
     },
     instrument: {
-      spanishAcousticGuitar: '117dacfc-0ad0-4e90-81a4-a28b4c03929b'
+      spanishAcousticGuitar: '43f378cf-b099-46da-8ec3-a39b6f5e5258'
     },
     label: {
       Mosaert: '0550200c-22c1-4c62-b761-ef0b3665262b'
@@ -172,13 +172,7 @@ describe('MusicBrainz-api', function () {
         assert.strictEqual(label.name, 'Mosaert');
       });
 
-      describe('Release', () => {
-
-        it('instrument', async () => {
-          const instrument = await mbApi.lookupInstrument(mbid.instrument.spanishAcousticGuitar);
-          assert.strictEqual(instrument.id, mbid.instrument.spanishAcousticGuitar);
-          assert.strictEqual(instrument.type, 'String instrument');
-        });
+      describe('release', () => {
 
         it('release Formidable', async () => {
           const release = await mbApi.lookupRelease(mbid.release.Formidable);
