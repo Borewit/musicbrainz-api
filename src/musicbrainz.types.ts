@@ -64,6 +64,15 @@ export interface IArtistCredit {
   name: string;
 }
 
+export interface ICollection extends IEntity {
+  type: string;
+  name: string;
+  'type-id': string;
+  'recording-count': number;
+  editor: string;
+  'entity-type': string;
+}
+
 export interface IEvent extends IEntity {
   cancelled: boolean;
   type: string;
@@ -113,7 +122,7 @@ export interface IReleaseEvent {
 
 export type MediaFormatType = 'Digital Media'; // ToDo
 
-export interface IRecording  extends IEntity {
+export interface IRecording extends IEntity {
   video: boolean;
   length: number;
   title: string;
@@ -615,31 +624,31 @@ export interface IBrowseArtistsResult {
 }
 
 export interface IBrowseCollectionsResult {
-  collections: IArtist[];
+  collections: ICollection[];
   'collection-count': number;
   'collection-offset': number;
 }
 
 export interface IBrowseEventsResult {
-  events: IArtist[];
+  events: IEvent[];
   'event-count': number;
   'event-offset': number;
 }
 
 export interface IBrowseInstrumentsResult {
-  instruments: IArtist[];
+  instruments: IInstrument[];
   'instrument-count': number;
   'instrument-offset': number;
 }
 
 export interface IBrowseLabelsResult {
-  label: IArtist[];
+  label: ILabel[];
   'label-count': number;
   'label-offset': number;
 }
 
 export interface IBrowsePlacesResult {
-  place: IArtist[];
+  place: IPlace[];
   'place-count': number;
   'place-offset': number;
 }
