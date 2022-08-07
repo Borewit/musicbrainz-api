@@ -5,6 +5,10 @@ updates:
     schedule:
       interval: daily
       time: "04:00"
+    labels:
+      - dependencies
+      - CJS
+    target-branch: master
     open-pull-requests-limit: 10
     ignore:
       - dependency-name: "@types/node"
