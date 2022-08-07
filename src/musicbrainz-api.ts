@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 
-import {StatusCodes as HttpStatus, getReasonPhrase} from 'http-status-codes';
+import { StatusCodes as HttpStatus, getReasonPhrase } from 'http-status-codes';
 import * as Url from 'url';
 import * as Debug from 'debug';
 
@@ -42,6 +42,28 @@ export type RelationsIncludes =
   | 'url-rels'
   | 'work-rels';
 
+export type SubQueryIncludes =
+  /**
+   * include discids for all media in the releases
+   */
+  'discids'
+  /**
+   * include media for all releases, this includes the # of tracks on each medium and its format.
+   */
+  | 'media'
+  /**
+   * include isrcs for all recordings
+   */
+  | 'isrcs'
+  /**
+   * include artists credits for all releases and recordings
+   */
+  | 'artist-credits'
+  /**
+   * include only those releases where the artist appears on one of the tracks, only valid on artists in combination with `releases`
+   */
+  | 'various-artists';
+
 export type MiscIncludes =
   'aliases'
   | 'annotation'
@@ -52,7 +74,7 @@ export type MiscIncludes =
 
 export type AreaIncludes = MiscIncludes | RelationsIncludes;
 
-export type ArtistIncludes  =
+export type ArtistIncludes =
   MiscIncludes
   | RelationsIncludes
   | 'recordings'
@@ -72,33 +94,36 @@ export type GenreIncludes = MiscIncludes;
 export type InstrumentIncludes = MiscIncludes | RelationsIncludes;
 
 export type LabelIncludes =
-MiscIncludes
-| RelationsIncludes
-| 'releases';
+  MiscIncludes
+  | RelationsIncludes
+  | 'releases';
 
 export type PlaceIncludes = MiscIncludes | RelationsIncludes;
 
 export type RecordingIncludes =
-MiscIncludes
-| RelationsIncludes
-| 'artists'
-| 'releases'
-| 'isrcs';
+  MiscIncludes
+  | RelationsIncludes
+  | SubQueryIncludes
+  | 'artists'
+  | 'releases'
+  | 'isrcs';
 
 export type ReleasesIncludes =
-MiscIncludes
-| RelationsIncludes
-| 'artists'
-| 'collections'
-| 'labels'
-| 'recordings'
-| 'release-groups';
+  MiscIncludes
+  | SubQueryIncludes
+  | RelationsIncludes
+  | 'artists'
+  | 'collections'
+  | 'labels'
+  | 'recordings'
+  | 'release-groups';
 
 export type ReleaseGroupIncludes =
-MiscIncludes
-| RelationsIncludes
-| 'artists'
-| 'releases';
+  MiscIncludes
+  | SubQueryIncludes
+  | RelationsIncludes
+  | 'artists'
+  | 'releases';
 
 export type SeriesIncludes = MiscIncludes | RelationsIncludes;
 
