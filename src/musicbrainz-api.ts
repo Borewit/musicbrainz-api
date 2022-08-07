@@ -293,6 +293,15 @@ export class MusicBrainzApi {
   }
 
   /**
+   * Lookup collection
+   * @param collectionId Collection MBID
+   * @param inc List of additional information to be included about the entity. Any of the entities directly linked to the entity can be included.
+   */
+  public lookupCollection(collectionId: string, inc: ArtistIncludes[] = []): Promise<mb.ICollection> {
+    return this.lookupEntity<mb.ICollection, ArtistIncludes>('collection', collectionId, inc);
+  }
+
+  /**
    * Lookup instrument
    * @param artistId Instrument MBID
    * @param inc Sub-queries
