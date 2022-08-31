@@ -94,13 +94,13 @@ Arguments:
 *   MBID [(MusicBrainz identifier)](https://wiki.musicbrainz.org/MusicBrainz_Identifier)
 
 ```js
-const artist = await mbApi.lookupEntity('artist', {query: 'ab2528d9-719f-4261-8098-21849222a0f2'});
+const artist = await mbApi.lookupEntity('artist', 'ab2528d9-719f-4261-8098-21849222a0f2');
 ```
 
 ### Lookup area
 
 ```js
-const area = await mbApi.lookupArea({query: 'ab2528d9-719f-4261-8098-21849222a0f2'});
+const area = await mbApi.lookupArea('ab2528d9-719f-4261-8098-21849222a0f2');
 ```
 
 ### Lookup artist
@@ -108,7 +108,7 @@ const area = await mbApi.lookupArea({query: 'ab2528d9-719f-4261-8098-21849222a0f
 Lookup an `artist` and include their `releases`, `release-groups` and `aliases`
 
 ```js
-const artist = await mbApi.lookupArtist({query: 'ab2528d9-719f-4261-8098-21849222a0f2'});
+const artist = await mbApi.lookupArtist('ab2528d9-719f-4261-8098-21849222a0f2');
 ```
 
 ### Lookup instrument
@@ -116,7 +116,7 @@ const artist = await mbApi.lookupArtist({query: 'ab2528d9-719f-4261-8098-2184922
 Lookup an instrument
 
 ```js
-const artist = await mbApi.lookupInstrument({query: 'b3eac5f9-7859-4416-ac39-7154e2e8d348'});
+const artist = await mbApi.lookupInstrument('b3eac5f9-7859-4416-ac39-7154e2e8d348');
 ```
 
 ### Lookup label
@@ -124,13 +124,13 @@ const artist = await mbApi.lookupInstrument({query: 'b3eac5f9-7859-4416-ac39-715
 Lookup a label
 
 ```js
-const artist = await mbApi.lookupInstrument({query: '25dda9f9-f069-4898-82f0-59330a106c7f'});
+const artist = await mbApi.lookupInstrument('25dda9f9-f069-4898-82f0-59330a106c7f');
 ```
 
 ### Lookup place
 
 ```js
-const artist = await mbApi.lookupPlace({query: 'e6cfb74d-d69b-44c3-b890-1b3f509816e4'});
+const artist = await mbApi.lookupPlace('e6cfb74d-d69b-44c3-b890-1b3f509816e4');
 ```
 
 The second argument can be used to pass [subqueries](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2#Subqueries), which will return more (nested) information:
@@ -142,32 +142,32 @@ const artist = await mbApi.lookupArtist('ab2528d9-719f-4261-8098-21849222a0f2', 
 
 The second argument can be used to pass [subqueries](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2#Subqueries):
 ```js
-const artist = await mbApi.lookupRecording({query: '16afa384-174e-435e-bfa3-5591accda31c'}, ['artists', 'url-rels']);
+const artist = await mbApi.lookupRecording('16afa384-174e-435e-bfa3-5591accda31c', ['artists', 'url-rels']);
 ```
 
 ### Lookup release
 ```js
-const release = await mbApi.lookupRelease({query: '976e0677-a480-4a5e-a177-6a86c1900bbf'}, ['artists', 'url-rels']);
+const release = await mbApi.lookupRelease('976e0677-a480-4a5e-a177-6a86c1900bbf', ['artists', 'url-rels']);
 ```
 
 ### Lookup release-group
 ```js
-const releaseGroup = await mbApi.lookupReleaseGroup({query: '19099ea5-3600-4154-b482-2ec68815883e'});
+const releaseGroup = await mbApi.lookupReleaseGroup('19099ea5-3600-4154-b482-2ec68815883e');
 ```
 
 ### Lookup work
 ```js
-const work = await mbApi.lookupWork({query: 'b2aa02f4-6c95-43be-a426-aedb9f9a3805'});
+const work = await mbApi.lookupWork('b2aa02f4-6c95-43be-a426-aedb9f9a3805');
 ```
 
 ### Lookup URL
 ```js
-const url = await mbApi.lookupUrl({query: 'c69556a6-7ded-4c54-809c-afb45a1abe7d'});
+const url = await mbApi.lookupUrl('c69556a6-7ded-4c54-809c-afb45a1abe7d');
 ```
 
 ### Lookup URL
 ```js
-const url = await mbApi.lookupUrl({query: 'c69556a6-7ded-4c54-809c-afb45a1abe7d'});
+const url = await mbApi.lookupUrl('c69556a6-7ded-4c54-809c-afb45a1abe7d');
 ```
 
 ## Browse entities
