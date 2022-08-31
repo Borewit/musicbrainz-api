@@ -116,7 +116,7 @@ const artist = await mbApi.lookupArtist('ab2528d9-719f-4261-8098-21849222a0f2');
 Lookup an instrument
 
 ```js
-const artist = await mbApi.lookupInstrument('b3eac5f9-7859-4416-ac39-7154e2e8d348');
+const instrument = await mbApi.lookupInstrument('b3eac5f9-7859-4416-ac39-7154e2e8d348');
 ```
 
 ### Lookup label
@@ -124,13 +124,13 @@ const artist = await mbApi.lookupInstrument('b3eac5f9-7859-4416-ac39-7154e2e8d34
 Lookup a label
 
 ```js
-const artist = await mbApi.lookupInstrument('25dda9f9-f069-4898-82f0-59330a106c7f');
+const label = await mbApi.lookupLabel('25dda9f9-f069-4898-82f0-59330a106c7f');
 ```
 
 ### Lookup place
 
 ```js
-const artist = await mbApi.lookupPlace('e6cfb74d-d69b-44c3-b890-1b3f509816e4');
+const place = await mbApi.lookupPlace('e6cfb74d-d69b-44c3-b890-1b3f509816e4');
 ```
 
 The second argument can be used to pass [subqueries](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2#Subqueries), which will return more (nested) information:
@@ -142,7 +142,7 @@ const artist = await mbApi.lookupArtist('ab2528d9-719f-4261-8098-21849222a0f2', 
 
 The second argument can be used to pass [subqueries](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2#Subqueries):
 ```js
-const artist = await mbApi.lookupRecording('16afa384-174e-435e-bfa3-5591accda31c', ['artists', 'url-rels']);
+const recording = await mbApi.lookupRecording('16afa384-174e-435e-bfa3-5591accda31c', ['artists', 'url-rels']);
 ```
 
 ### Lookup release
@@ -158,11 +158,6 @@ const releaseGroup = await mbApi.lookupReleaseGroup('19099ea5-3600-4154-b482-2ec
 ### Lookup work
 ```js
 const work = await mbApi.lookupWork('b2aa02f4-6c95-43be-a426-aedb9f9a3805');
-```
-
-### Lookup URL
-```js
-const url = await mbApi.lookupUrl('c69556a6-7ded-4c54-809c-afb45a1abe7d');
 ```
 
 ### Lookup URL
