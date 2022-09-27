@@ -16,3 +16,7 @@ updates:
       - dependency-name: mocha
         versions:
           - "10.x"
+      # Ignore ESM version
+      - dependency-name: got
+        versions:
+          - ">=12.x"
