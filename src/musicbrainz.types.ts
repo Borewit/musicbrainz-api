@@ -666,7 +666,7 @@ export interface IBrowseReleasesResult {
 }
 
 export interface IBrowseReleaseGroupsResult {
-  'release-groups': IReleaseGroupsQuery[];
+  'release-groups': IReleaseGroup[];
   'release-group-count': number;
   'release-group-offset': number;
 }
