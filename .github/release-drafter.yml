@@ -1,0 +1,36 @@
+# Release Drafter template
+# Ref: https://github.com/marketplace/actions/release-drafter
+
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+categories:
+  - title: ':rocket: Enhancements'
+    labels:
+      - 'enhancement'
+  - title: ':bug: Bug Fixes'
+    labels:
+      - 'bug'
+  - title: ':arrow_up: Dependencies'
+    labels:
+      - 'dependencies'
+exclude-labels:
+  - 'DevOps'
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add ` to disable code blocks.
+version-resolver:
+  major:
+    labels:
+      - 'major'
+  minor:
+    labels:
+      - 'minor'
+  patch:
+    labels:
+      - 'patch'
+  default: patch
+template: |
+  ## Changes
+
+  $CHANGES
+
+  NPM release: [$RESOLVED_VERSION](https://www.npmjs.com/package/musicbrainz-api/v/$RESOLVED_VERSION)
