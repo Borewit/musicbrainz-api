@@ -33,4 +33,5 @@ template: |
 
   $CHANGES
 
+  ## NPM release
   NPM release: [$RESOLVED_VERSION](https://www.npmjs.com/package/musicbrainz-api/v/$RESOLVED_VERSION)
