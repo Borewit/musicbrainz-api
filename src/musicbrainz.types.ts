@@ -45,7 +45,7 @@ export interface IArtist extends IEntity {
   ipis?: any[]; // ToDo
   isnis?: string[];
   aliases?: IAlias[];
-  gender?: null;
+  gender?: string;
   type?: string;
   area?: IArea;
   begin_area?: IArea;
