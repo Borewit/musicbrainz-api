@@ -30,7 +30,7 @@ version-resolver:
       - 'patch'
   default: patch
 exclude-contributors:
-  - dependabot[bot]
+  - dependabot
 template: |
   ## Changes
 
