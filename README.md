@@ -1,6 +1,6 @@
 [![Node.js CI](https://github.com/Borewit/musicbrainz-api/actions/workflows/nodejs-ci.yml/badge.svg)](https://github.com/Borewit/musicbrainz-api/actions/workflows/nodejs-ci.yml)
 [![NPM version](https://img.shields.io/npm/v/musicbrainz-api.svg)](https://npmjs.org/package/musicbrainz-api)
-[![npm downloads](http://img.shields.io/npm/dm/musicbrainz-api.svg)](https://npmcharts.com/compare/musicbrainz-api)
+[![npm downloads](http://img.shields.io/npm/dm/musicbrainz-api.svg)](https://npmcharts.com/compare/musicbrainz-api?interval=30&start=365)
 [![Coverage Status](https://coveralls.io/repos/github/Borewit/musicbrainz-api/badge.svg?branch=master)](https://coveralls.io/github/Borewit/musicbrainz-api?branch=master)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/2bc47b2006454bae8c737991f152e518)](https://www.codacy.com/gh/Borewit/musicbrainz-api/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Borewit/musicbrainz-api&amp;utm_campaign=Badge_Grade)
 [![CodeQL](https://github.com/Borewit/musicbrainz-api/actions/workflows/codeql.yml/badge.svg)](https://github.com/Borewit/musicbrainz-api/actions/workflows/codeql.yml)
