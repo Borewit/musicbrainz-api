@@ -41,7 +41,7 @@ const mbApi = new MusicBrainzApi({
 });
 ```
 
-In TypeScript you it would look like this:
+In TypeScript it would look like this:
 ```js
 import {MusicBrainzApi} from 'musicbrainz-api';
 
