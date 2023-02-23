@@ -14,13 +14,10 @@ import { DigestAuth } from './digest-auth.js';
 import { RateLimitThreshold } from 'rate-limit-threshold';
 import * as mb from './musicbrainz.types.js';
 
-import got, {type Options, type ToughCookieJar} from 'got';
-
+import ky, {Options} from 'ky';
 import {type Cookie, CookieJar} from 'tough-cookie';
 
 export * from './musicbrainz.types.js';
-
-import { promisify } from 'node:util';
 
 /*
  * https://musicbrainz.org/doc/Development/XML_Web_Service/Version_2#Subqueries
@@ -202,18 +199,16 @@ export class MusicBrainzApi {
     Object.assign(this.config, _config);
 
     const cookieJar: CookieJar = new CookieJar();
-    this.getCookies = promisify(cookieJar.getCookies.bind(cookieJar));
+    this.getCookies = cookieJar.getCookies;
 
     // @ts-ignore
     this.options = {
       prefixUrl: this.config.baseUrl as string,
-      timeout: {
-        read: 20 * 1000
-      },
+      timeout: 20 * 1000,
       headers: {
         'User-Agent': `${this.config.appName}/${this.config.appVersion} ( ${this.config.appContactInfo} )`
-      },
-      cookieJar: cookieJar as ToughCookieJar
+      }
+      // cookieJar: cookieJar as ToughCookieJar
     };
 
     this.rateLimiter = new RateLimitThreshold(15, 18);
@@ -224,15 +219,14 @@ export class MusicBrainzApi {
     query.fmt = 'json';
 
     await this.applyRateLimiter();
-    const response: any = await got.get(`ws/2${relUrl}`, {
+    const response: any = await ky.get(`ws/2${relUrl}`, {
       ...this.options,
       searchParams: query,
-      responseType: 'json',
       retry: {
         limit: 10
       }
     });
-    return response.body;
+    return response.json();
   }
 
   /**
@@ -334,7 +328,7 @@ export class MusicBrainzApi {
 
     do {
       await this.applyRateLimiter();
-      const response: any = await got.post(path, {
+      const response: any = await ky.post(path, {
         ...this.options,
         searchParams: {client: clientId},
         headers: {
@@ -380,15 +374,18 @@ export class MusicBrainzApi {
       remember_me: 1
     };
 
-    const response = await got.post('login', {
+    const response = await ky.post('login', {
       ...this.options,
-      followRedirect: false,
       searchParams: {
         returnto: redirectUri
       },
-      form: formData
+      json: formData
     });
-    const success = response.statusCode === HttpStatus.MOVED_TEMPORARILY && response.headers.location === redirectUri;
+
+    // ToDo: followRedirect: false,
+      //
+
+    const success = response.status === HttpStatus.MOVED_TEMPORARILY && response.headers.get('location') === redirectUri;
     if (success) {
       this.session.loggedIn = true;
     }
@@ -401,14 +398,14 @@ export class MusicBrainzApi {
   public async logout(): Promise<boolean> {
     const redirectUri = '/success';
 
-    const response = await got.get('logout', {
+    const response = await ky.get('logout', {
       ...this.options,
-      followRedirect: false,
       searchParams: {
         returnto: redirectUri
       }
     });
-    const success = response.statusCode === HttpStatus.MOVED_TEMPORARILY && response.headers.location === redirectUri;
+    // ToDo: followRedirect: false,
+    const success = response.status === HttpStatus.MOVED_TEMPORARILY && response.headers.get('location') === redirectUri;
     if (success && this.session) {
       this.session.loggedIn = true;
     }
@@ -433,16 +430,16 @@ export class MusicBrainzApi {
     formData.password = this.config.botAccount?.password;
     formData.remember_me = 1;
 
-    const response = await got.post(`${entity}/${mbid}/edit`, {
+    const response = await ky.post(`${entity}/${mbid}/edit`, {
       ...this.options,
-      form: formData,
-      followRedirect: false
+      json: formData,redirect: 'error',
+      // followRedirect: false
     });
-    if (response.statusCode === HttpStatus.OK)
+    if (response.status === HttpStatus.OK)
       throw new Error("Failed to submit form data");
-    if (response.statusCode === HttpStatus.MOVED_TEMPORARILY)
+    if (response.status === HttpStatus.MOVED_TEMPORARILY)
       return;
-    throw new Error(`Unexpected status code: ${response.statusCode}`);
+    throw new Error(`Unexpected status code: ${response.status}`);
   }
 
   /**
@@ -520,14 +517,12 @@ export class MusicBrainzApi {
 
   private async getSession(): Promise<ISessionInformation> {
 
-    const response = await got.get('login', {
+    const response = await ky.get('login', {
       ...this.options,
-      followRedirect: false, // Disable redirects
-      responseType: 'text'
     });
-
+    // Too followRedirect: false, // Disable redirects
     return {
-      csrf: MusicBrainzApi.fetchCsrf(response.body)
+      csrf: MusicBrainzApi.fetchCsrf(await response.text())
     };
   }
 

@@ -27,7 +27,7 @@ import type * as mb from '../lib/musicbrainz.types.js';
 import { readFile } from 'node:fs/promises';
 import sinon from 'sinon';
 import { RateLimitThreshold } from 'rate-limit-threshold';
-import got from 'got';
+import got from 'ky';
 
 const appUrl = 'https://github.com/Borewit/musicbrainz-api';
 
@@ -926,7 +926,7 @@ describe('MusicBrainz-api', function () {
 
       beforeEach(() => {
         // Stub to avoid unecessary HTTP requests in the context of these tests
-        sinon.stub(got, "get").resolves({});
+        sinon.stub(got, "get").resolves();
       });
 
       it("rate limits by default", async () => {
@@ -959,7 +959,7 @@ describe('MusicBrainz-api', function () {
 
       beforeEach(() => {
         // Stub to avoid unecessary HTTP requests in the context of these tests
-        sinon.stub(got, "post").resolves({});
+        sinon.stub(got, "post").resolves();
       });
 
       it("rate limits by default", async () => {
@@ -985,8 +985,8 @@ describe('MusicBrainz-api', function () {
     describe.skip('editEntity', () => {
 
       beforeEach(() => {
-        // Stub to avoid unecessary HTTP requests in the context of these tests
-        sinon.stub(got, "post").resolves({});
+        // Stub to avoid unnecessary HTTP requests in the context of these tests
+        sinon.stub(got, "post").resolves();
       });
 
       it("rate limits by default", async () => {
