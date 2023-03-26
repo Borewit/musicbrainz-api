@@ -13,10 +13,10 @@ import {
   IMusicBrainzConfig,
   LinkType,
   MusicBrainzApi
-} from '../src/musicbrainz-api';
+} from '../lib/musicbrainz-api';
 import { assert } from 'chai';
-import { XmlMetadata } from '../src/xml/xml-metadata';
-import * as mb from '../src/musicbrainz.types';
+import { XmlMetadata } from '../lib/xml/xml-metadata';
+import * as mb from '../lib/musicbrainz.types';
 import * as fs from 'fs';
 import * as path from 'path';
 

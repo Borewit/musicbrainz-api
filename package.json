@@ -72,11 +72,11 @@
     "typescript": "^4.0.2"
   },
   "scripts": {
-    "clean": "del-cli src/**/*.js src/**/*.js.map src/**/*.d.ts test/**/*.js test/**/*.js.map",
-    "compile-src": "tsc -p src",
+    "clean": "del-cli lib/**/*.js lib/**/*.js.map lib/**/*.d.ts test/**/*.js test/**/*.js.map",
+    "compile-lib": "tsc -p lib",
     "compile-test": "tsc -p test",
-    "compile": "npm run compile-src && npm run compile-test",
-    "eslint": "eslint src/**/*.ts --ignore-pattern src/**/*.d.ts test/**/*.ts",
+    "compile": "npm run compile-lib && npm run compile-test",
+    "eslint": "eslint lib/**/*.ts --ignore-pattern lib/**/*.d.ts test/**/*.ts",
     "lint-md": "remark -u preset-lint-recommended .",
     "lint": "npm run lint-md && npm run eslint",
     "test": "mocha --require ts-node/register --require source-map-support/register --full-trace test/test-*.ts",
@@ -87,8 +87,7 @@
   },
   "nyc": {
     "exclude": [
-      "test/**/*.ts",
-      "src/**/*.js"
+      "test/**/*.ts"
     ],
     "extension": [
       ".ts"
