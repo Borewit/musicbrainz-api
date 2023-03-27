@@ -18,6 +18,11 @@ A MusicBrainz-API-client for reading and submitting metadata
 *   Smart and adjustable throttling, like MusicBrainz, it allows a bursts of requests
 *   Build in TypeScript definitions
 
+### Hint
+
+This package is currently only developed for the use in a [node.js environment](http://nodejs.org/).
+We are looking into making this package usable in the browser as well.
+
 ## Before using this library
 
 MusicBrainz asks that you [identifying your application](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2#User%20Data) by filling in the ['User-Agent' Header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent).
