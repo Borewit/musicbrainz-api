@@ -15,7 +15,8 @@ import { DigestAuth } from './digest-auth';
 import { RateLimiter } from './rate-limiter';
 import * as mb from './musicbrainz.types';
 
-import ky, {Options, ResponsePromise} from 'ky-universal';
+import * as ky from 'ky-universal';
+import type { Options, ResponsePromise } from 'ky';
 import * as tough from 'tough-cookie';
 
 export * from './musicbrainz.types';
