@@ -15,12 +15,11 @@ import { DigestAuth } from './digest-auth';
 import { RateLimiter } from './rate-limiter';
 import * as mb from './musicbrainz.types';
 
-import got, { Options } from 'got';
+import * as ky from 'ky-universal';
+import type { Options, ResponsePromise } from 'ky';
 import * as tough from 'tough-cookie';
 
 export * from './musicbrainz.types';
-
-import { promisify } from 'util';
 
 const retries = 3;
 
@@ -234,15 +233,15 @@ export class MusicBrainzApi {
     Object.assign(this.config, _config);
 
     const cookieJar = new tough.CookieJar();
-    this.getCookies = promisify(cookieJar.getCookies.bind(cookieJar));
+    this.getCookies = cookieJar.getCookies;
 
     this.options = {
       prefixUrl: this.config.baseUrl,
       timeout: 20 * 1000,
       headers: {
         'User-Agent': `${this.config.appName}/${this.config.appVersion} ( ${this.config.appContactInfo} )`
-      },
-      cookieJar
+      }
+      // cookieJar
     };
 
     this.rateLimiter = new RateLimiter(60, 50);
@@ -252,31 +251,31 @@ export class MusicBrainzApi {
 
     query.fmt = 'json';
 
-    let response: any;
+    let response: Awaited<ResponsePromise>;
     await this.rateLimiter.limit();
     do {
-      response = await got.get('ws/2' + relUrl, {
+      response = await ky.get('ws/2' + relUrl, {
         searchParams: query,
-        responseType: 'json',
+        // responseType: 'json',
         ...this.options
       });
-      if (response.statusCode !== 503)
+      if (response.status !== 503)
         break;
       debug('Rate limiter kicked in, slowing down...');
       await RateLimiter.sleep(500);
     } while (true);
 
-    switch (response.statusCode) {
+    switch (response.status) {
       case HttpStatus.OK:
-        return response.body;
+        return response.json();
 
       case HttpStatus.BAD_REQUEST:
       case HttpStatus.NOT_FOUND:
-        throw new Error(`Got response status ${response.statusCode}: ${getReasonPhrase(response.status)}`);
+        throw new Error(`Got response status ${response.status}: ${getReasonPhrase(response.status)}`);
 
       case HttpStatus.SERVICE_UNAVAILABLE: // 503
       default:
-        const msg = `Got response status ${response.statusCode} on attempt #${attempt} (${getReasonPhrase(response.status)})`;
+        const msg = `Got response status ${response.status} on attempt #${attempt} (${getReasonPhrase(response.status)})`;
         debug(msg);
         if (attempt < retries) {
           return this.restGet<T>(relUrl, query, attempt + 1);
@@ -550,7 +549,7 @@ export class MusicBrainzApi {
 
     do {
       await this.rateLimiter.limit();
-      const response: any = await got.post(path, {
+      const response: any = await ky.post(path, {
         searchParams: {client: clientId},
         headers: {
           authorization: digest,
@@ -596,15 +595,16 @@ export class MusicBrainzApi {
       remember_me: 1
     };
 
-    const response: any = await got.post('login', {
-      followRedirect: false,
+    const response = await ky.post('login', {
+      redirect: undefined,
+      // followRedirect: false,
       searchParams: {
         returnto: redirectUri
       },
-      form: formData,
+      json: formData,
       ...this.options
     });
-    const success = response.statusCode === HttpStatus.MOVED_TEMPORARILY && response.headers.location === redirectUri;
+    const success = response.status === HttpStatus.MOVED_TEMPORARILY && response.headers.get('location') === redirectUri;
     if (success) {
       this.session.loggedIn = true;
     }
@@ -617,14 +617,15 @@ export class MusicBrainzApi {
   public async logout(): Promise<boolean> {
     const redirectUri = '/success';
 
-    const response: any = await got.get('logout', {
-      followRedirect: false,
+    const response = await ky.get('logout', {
+      redirect: undefined,
+      // followRedirect: false,
       searchParams: {
         returnto: redirectUri
       },
       ...this.options
     });
-    const success = response.statusCode === HttpStatus.MOVED_TEMPORARILY && response.headers.location === redirectUri;
+    const success = response.status === HttpStatus.MOVED_TEMPORARILY && response.headers.get('location') === redirectUri;
     if (success) {
       this.session.loggedIn = true;
     }
@@ -649,9 +650,9 @@ export class MusicBrainzApi {
     formData.password = this.config.botAccount.password;
     formData.remember_me = 1;
 
-    const response: any = await got.post(`${entity}/${mbid}/edit`, {
-      form: formData,
-      followRedirect: false,
+    const response: any = await ky.post(`${entity}/${mbid}/edit`, {
+      json: formData,redirect: 'error',
+      // followRedirect: false,
       ...this.options
     });
     if (response.statusCode === HttpStatus.OK)
@@ -777,14 +778,15 @@ export class MusicBrainzApi {
 
   private async getSession(url: string): Promise<ISessionInformation> {
 
-    const response: any = await got.get('login', {
-      followRedirect: false, // Disable redirects
-      responseType: 'text',
+    const response = await ky.get('login', {
+      redirect: undefined,
+      // followRedirect: false, // Disable redirects
+      // responseType: 'text',
       ...this.options
     });
 
     return {
-      csrf: MusicBrainzApi.fetchCsrf(response.body)
+      csrf: MusicBrainzApi.fetchCsrf(await response.text())
     };
   }
 }
