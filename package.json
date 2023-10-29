@@ -2,8 +2,8 @@
   "name": "musicbrainz-api",
   "version": "0.10.3",
   "description": "MusicBrainz API client for reading and submitting metadata",
-  "main": "lib/musicbrainz-api",
-  "types": "lib/musicbrainz-api",
+  "main": "dist/musicbrainz-api.js",
+  "types": "dist/musicbrainz-api.d.ts",
   "author": {
     "name": "Borewit",
     "url": "https://github.com/Borewit"
