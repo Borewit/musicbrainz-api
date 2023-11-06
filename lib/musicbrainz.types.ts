@@ -39,7 +39,7 @@ export interface IArtist extends IEntity {
   disambiguation: string;
   'sort-name': string;
   'type-id'?: string;
-  'gender-id'?;
+  'gender-id'?: string;
   'life-span'?: IPeriod;
   country?: string;
   ipis?: any[]; // ToDo
@@ -203,6 +203,7 @@ export interface IAreaList extends ISearchResult {
 
 export interface IReleaseList extends ISearchResult {
   releases: IReleaseMatch[];
+  'release-count': number;
 }
 
 export interface IReleaseGroupList extends ISearchResult {

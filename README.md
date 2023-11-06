@@ -25,7 +25,7 @@ We are looking into making this package usable in the browser as well.
 
 ## Before using this library
 
-MusicBrainz asks that you [identifying your application](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2#User%20Data) by filling in the ['User-Agent' Header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent).
+MusicBrainz asks that you to [identify your application](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2#User%20Data) by filling in the ['User-Agent' Header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent).
 By passing `appName`, `appVersion`, `appMail` musicbrainz-api takes care of that.
 
 ## Submitting metadata

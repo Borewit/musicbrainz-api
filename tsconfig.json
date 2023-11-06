@@ -3,7 +3,8 @@
     "inlineSources": false,
     "module": "commonjs",
     "moduleResolution": "node",
-    "target": "ES2017"
+    "target": "ES2017",
+    "strict": true
   }
 }
 

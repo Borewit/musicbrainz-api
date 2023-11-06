@@ -4,7 +4,7 @@ const debug = Debug('musicbrainz-api:rate-limiter');
 
 export class RateLimiter {
 
-  public static sleep(ms): Promise<void> {
+  public static sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
