@@ -46,6 +46,7 @@ const testApiConfig: IMusicBrainzConfig = {
 const searchApiConfig: IMusicBrainzConfig = {
 
   baseUrl: 'https://musicbrainz.org',
+  botAccount: {},
 
   /**
    * Enable proxy, like Fiddler
@@ -206,7 +207,7 @@ describe('MusicBrainz-api', function () {
             const release = await mbApi.lookupRelease(mbid.release.Formidable, [inc.inc as any]);
             assert.strictEqual(release.id, mbid.release.Formidable);
             assert.strictEqual(release.title, 'Formidable');
-            assert.isDefined(release[inc.key], `Should include '${inc.key}'`);
+            assert.isDefined((release as any)[inc.key], `Should include '${inc.key}'`);
           });
         });
 
@@ -228,7 +229,7 @@ describe('MusicBrainz-api', function () {
             const group = await mbApi.lookupReleaseGroup(mbid.releaseGroup.Formidable, [inc.inc as any]);
             assert.strictEqual(group.id, mbid.releaseGroup.Formidable);
             assert.strictEqual(group.title, 'Formidable');
-            assert.isDefined(group[inc.key], `Should include '${inc.key}'`);
+            assert.isDefined((group as any)[inc.key], `Should include '${inc.key}'`);
           });
         });
 
@@ -262,7 +263,7 @@ describe('MusicBrainz-api', function () {
             const recording = await mbApi.lookupRecording(mbid.recording.Formidable, [inc.inc as any]);
             assert.strictEqual(recording.id, mbid.recording.Formidable);
             assert.strictEqual(recording.title, 'Formidable');
-            assert.isDefined(recording[inc.key], `Should include '${inc.key}'`);
+            assert.isDefined((recording as any)[inc.key], `Should include '${inc.key}'`);
           });
         });
 
@@ -292,7 +293,7 @@ describe('MusicBrainz-api', function () {
             const group = await mbApi.lookupReleaseGroup(mbid.releaseGroup.Formidable, [inc.inc as any]);
             assert.strictEqual(group.id, mbid.releaseGroup.Formidable);
             assert.strictEqual(group.title, 'Formidable');
-            assert.isDefined(group[inc.key], `Should include '${inc.key}'`);
+            assert.isDefined((group as any)[inc.key], `Should include '${inc.key}'`);
           });
         });
 
@@ -329,7 +330,7 @@ describe('MusicBrainz-api', function () {
             const event = await mbApi.lookupEvent(mbid.event.DireStraitsAlchemyLoveOverGold, [inc.inc as any]);
             assert.strictEqual(event.id, mbid.event.DireStraitsAlchemyLoveOverGold);
             assert.strictEqual(event.name, "Dire Straits - Love Over Gold");
-            assert.isDefined(event[inc.key], `Should include '${inc.key}'`);
+            assert.isDefined((event as any)[inc.key], `Should include '${inc.key}'`);
           });
         });
 
@@ -339,7 +340,7 @@ describe('MusicBrainz-api', function () {
 
     describe('Browse', () => {
 
-      function areBunchOf(entity: string, bunch) {
+      function areBunchOf(entity: string, bunch: any) {
         assert.isObject(bunch);
         assert.isNumber(bunch[entity + '-count']);
         assert.isNumber(bunch[entity + '-offset']);
@@ -347,8 +348,8 @@ describe('MusicBrainz-api', function () {
       }
 
       describe('area', async () => {
-        function areBunchOfAreas(artists) {
-          areBunchOf('area', artists);
+        function areBunchOfAreas(areas : mb.IBrowseAreasResult) {
+          areBunchOf('area', areas);
         }
 
         it('by collection', async () => {

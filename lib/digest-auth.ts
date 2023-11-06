@@ -14,7 +14,7 @@ export interface ICredentials {
   password: string;
 }
 
-function md5(str) {
+function md5(str: string): string {
   return crypto.createHash('md5').update(str).digest('hex'); // lgtm [js/insufficient-password-hash]
 }
 
@@ -28,14 +28,14 @@ export class DigestAuth {
    * If the algorithm directive's value is "MD5-sess", then HA1 is
    *   HA1=MD5(MD5(username:realm:password):nonce:cnonce)
    */
-  public static ha1Compute(algorithm, user, realm, pass, nonce, cnonce) {
+  public static ha1Compute(algorithm: string, user: string, realm: string, pass: string, nonce: string, cnonce: string): string {
     const ha1 = md5(user + ':' + realm + ':' + pass); // lgtm [js/insufficient-password-hash]
     return algorithm && algorithm.toLowerCase() === 'md5-sess' ? md5(ha1 + ':' + nonce + ':' + cnonce) : ha1;
   }
 
   public hasAuth: boolean;
   public sentAuth: boolean;
-  public bearerToken: string;
+  public bearerToken: string | null;
 
   public constructor(private credentials: ICredentials) {
     this.hasAuth = false;
@@ -60,13 +60,13 @@ export class DigestAuth {
       if (!match) {
         break;
       }
-      challenge[match[1]] = match[2] || match[3];
+      (challenge as any)[match[1]] = match[2] || match[3];
     }
 
-    const qop = /(^|,)\s*auth\s*($|,)/.test(challenge.qop) && 'auth';
+    const qop = /(^|,)\s*auth\s*($|,)/.test(challenge.qop as string) && 'auth';
     const nc = qop && '00000001';
     const cnonce = qop && uuidv4().replace(/-/g, '');
-    const ha1 = DigestAuth.ha1Compute(challenge.algorithm, this.credentials.username, challenge.realm, this.credentials.password, challenge.nonce, cnonce);
+    const ha1 = DigestAuth.ha1Compute(challenge.algorithm as string, this.credentials.username, challenge.realm as string, this.credentials.password, challenge.nonce as string, cnonce as string);
     const ha2 = md5(method + ':' + path); // lgtm [js/insufficient-password-hash]
     const digestResponse = qop
       ? md5(ha1 + ':' + challenge.nonce + ':' + nc + ':' + cnonce + ':' + qop + ':' + ha2) // lgtm [js/insufficient-password-hash]
@@ -85,15 +85,16 @@ export class DigestAuth {
     };
 
     const parts: string[] = [];
-    for (const k in authValues) {
-      if (authValues[k]) {
-        if (k === 'qop' || k === 'nc' || k === 'algorithm') {
-          parts.push(k + '=' + authValues[k]);
+    Object.entries(authValues).forEach(([key, value]) => {
+      if (value) {
+        if (key === 'qop' || key === 'nc' || key === 'algorithm') {
+          parts.push(key + '=' + value);
         } else {
-          parts.push(k + '="' + authValues[k] + '"');
+          parts.push(key + '="' + value + '"');
         }
       }
-    }
+    });
+
     authHeader = 'Digest ' + parts.join(', ');
     this.sentAuth = true;
     return authHeader;

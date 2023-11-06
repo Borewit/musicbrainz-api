@@ -15,8 +15,10 @@ import { DigestAuth } from './digest-auth';
 import { RateLimiter } from './rate-limiter';
 import * as mb from './musicbrainz.types';
 
-import got, { Options } from 'got';
-import * as tough from 'tough-cookie';
+/* eslint-disable-next-line */
+import got, {type Options, type ToughCookieJar} from 'got';
+
+import {type Cookie, CookieJar} from 'tough-cookie';
 
 export * from './musicbrainz.types';
 
@@ -131,16 +133,14 @@ export type WorkIncludes = MiscIncludes | RelationsIncludes;
 
 export type UrlIncludes = RelationsIncludes;
 
+export type IFormData = {[key: string]: string | number};
+
 const debug = Debug('musicbrainz-api');
 
-export interface IFormData {
-  [key: string]: string | number;
-}
-
 export interface IMusicBrainzConfig {
-  botAccount?: {
-    username: string,
-    password: string
+  botAccount: {
+    username?: string,
+    password?: string
   },
   baseUrl?: string,
 
@@ -158,17 +158,19 @@ export interface IMusicBrainzConfig {
   appContactInfo?: string
 }
 
+export interface ICsrfSession {
+  sessionKey: string;
+  token: string;
+}
+
 export interface ISessionInformation {
-  csrf: {
-    sessionKey: string;
-    token: string;
-  }
+  csrf: ICsrfSession,
   loggedIn?: boolean;
 }
 
 export class MusicBrainzApi {
 
-  private static escapeText(text) {
+  private static escapeText(text: string): string {
     let str = '';
     for (const chr of text) {
       // Escaping Special Characters: + - && || ! ( ) { } [ ] ^ " ~ * ? : \ /
@@ -200,21 +202,22 @@ export class MusicBrainzApi {
   }
 
   public readonly config: IMusicBrainzConfig = {
-    baseUrl: 'https://musicbrainz.org'
+    baseUrl: 'https://musicbrainz.org',
+    botAccount: {}
   };
 
   private rateLimiter: RateLimiter;
   private options: Options;
-  private session: ISessionInformation;
+  private session?: ISessionInformation;
 
-  public static fetchCsrf(html: string) {
+  public static fetchCsrf(html: string): ICsrfSession {
     return {
-      sessionKey: MusicBrainzApi.fetchValue(html, 'csrf_session_key'),
-      token: MusicBrainzApi.fetchValue(html, 'csrf_token')
+      sessionKey: MusicBrainzApi.fetchValue(html, 'csrf_session_key') as string,
+      token: MusicBrainzApi.fetchValue(html, 'csrf_token') as string
     };
   }
 
-  private static fetchValue(html: string, key: string) {
+  private static fetchValue(html: string, key: string): string | undefined{
     let pos = html.indexOf(`name="${key}"`);
     if (pos >= 0) {
       pos = html.indexOf('value="', pos + key.length + 7);
@@ -227,13 +230,13 @@ export class MusicBrainzApi {
     }
   }
 
-  private getCookies: (currentUrl: string | URL) => Promise<tough.Cookie[]>;
+  private getCookies: (currentUrl: string) => Promise<Cookie[]>;
 
   public constructor(_config?: IMusicBrainzConfig) {
 
     Object.assign(this.config, _config);
 
-    const cookieJar = new tough.CookieJar();
+    const cookieJar: CookieJar = new CookieJar();
     this.getCookies = promisify(cookieJar.getCookies.bind(cookieJar));
 
     this.options = {
@@ -242,7 +245,7 @@ export class MusicBrainzApi {
       headers: {
         'User-Agent': `${this.config.appName}/${this.config.appVersion} ( ${this.config.appContactInfo} )`
       },
-      cookieJar
+      cookieJar: cookieJar as ToughCookieJar
     };
 
     this.rateLimiter = new RateLimiter(60, 50);
@@ -544,7 +547,7 @@ export class MusicBrainzApi {
     const path = `ws/2/${entity}/`;
     // Get digest challenge
 
-    let digest: string = null;
+    let digest: string | undefined;
     let n = 1;
     const postData = xmlMetadata.toXml();
 
@@ -562,9 +565,9 @@ export class MusicBrainzApi {
       });
       if (response.statusCode === HttpStatus.UNAUTHORIZED) {
         // Respond to digest challenge
-        const auth = new DigestAuth(this.config.botAccount);
+        const auth = new DigestAuth(this.config.botAccount as {username: string, password: string});
         const relPath = Url.parse(response.requestUrl).path; // Ensure path is relative
-        digest = auth.digest(response.request.method, relPath, response.headers['www-authenticate']);
+        digest = auth.digest(response.request.method, relPath as string, response.headers['www-authenticate']);
         ++n;
       } else {
         break;
@@ -578,13 +581,13 @@ export class MusicBrainzApi {
     assert.ok(this.config.botAccount.password, 'bot password should be set');
 
     if (this.session && this.session.loggedIn) {
-      for (const cookie of await this.getCookies(this.options.prefixUrl)) {
+      for (const cookie of await this.getCookies(this.options.prefixUrl as string)) {
         if (cookie.key === 'remember_login') {
           return true;
         }
       }
     }
-    this.session = await this.getSession(this.config.baseUrl);
+    this.session = await this.getSession();
 
     const redirectUri = '/success';
 
@@ -625,7 +628,7 @@ export class MusicBrainzApi {
       ...this.options
     });
     const success = response.statusCode === HttpStatus.MOVED_TEMPORARILY && response.headers.location === redirectUri;
-    if (success) {
+    if (success && this.session) {
       this.session.loggedIn = true;
     }
     return success;
@@ -641,7 +644,7 @@ export class MusicBrainzApi {
 
     await this.rateLimiter.limit();
 
-    this.session = await this.getSession(this.config.baseUrl);
+    this.session = await this.getSession();
 
     formData.csrf_session_key = this.session.csrf.sessionKey;
     formData.csrf_token = this.session.csrf.token;
@@ -669,7 +672,7 @@ export class MusicBrainzApi {
    */
   public async addUrlToRecording(recording: mb.IRecording, url2add: { linkTypeId: mb.LinkType, text: string }, editNote: string = '') {
 
-    const formData = {};
+    const formData: {[key: string]: string | boolean | number} = {};
 
     formData['edit-recording.name'] = recording.title; // Required
     formData['edit-recording.comment'] = recording.disambiguation;
@@ -678,9 +681,9 @@ export class MusicBrainzApi {
     formData['edit-recording.url.0.link_type_id'] = url2add.linkTypeId;
     formData['edit-recording.url.0.text'] = url2add.text;
 
-    for (const i in recording.isrcs) {
-      formData[`edit-recording.isrcs.${i}`] = recording.isrcs[i];
-    }
+    recording.isrcs?.forEach((isrcs, i) => {
+      formData[`edit-recording.isrcs.${i}`] = isrcs;
+    });
 
     formData['edit-recording.edit_note'] = editNote;
 
@@ -695,7 +698,7 @@ export class MusicBrainzApi {
    */
   public async addIsrc(recording: mb.IRecording, isrc: string, editNote: string = '') {
 
-    const formData = {};
+    const formData: IFormData = {};
 
     formData[`edit-recording.name`] = recording.title; // Required
 
@@ -775,7 +778,7 @@ export class MusicBrainzApi {
     return this.search<mb.IUrlList, UrlIncludes>('url', query);
   }
 
-  private async getSession(url: string): Promise<ISessionInformation> {
+  private async getSession(): Promise<ISessionInformation> {
 
     const response: any = await got.get('login', {
       followRedirect: false, // Disable redirects
