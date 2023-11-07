@@ -150,10 +150,7 @@
     "indent": "off",
     "jsdoc/check-alignment": "error",
     "jsdoc/check-indentation": "off",
-    "jsdoc/newline-after-description": [
-      "error",
-      "never"
-    ],
+    "jsdoc/newline-after-description": "off",
     "max-classes-per-file": "off",
     "max-len": [
       "error",
