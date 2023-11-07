@@ -71,6 +71,10 @@
     "tslint": "^6.1.1",
     "typescript": "^5.0.2"
   },
+  "files": [
+    "lib/**/*.js",
+    "lib/**/*.d.ts"
+  ],
   "scripts": {
     "clean": "del-cli lib/**/*.js lib/**/*.js.map lib/**/*.d.ts test/**/*.js test/**/*.js.map",
     "compile-lib": "tsc -p lib",
