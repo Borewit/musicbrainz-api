@@ -362,6 +362,14 @@ export class MusicBrainzApi {
   }
 
   /**
+   * Lookup series
+   * @param seriesId Series MBID
+   */
+  public lookupSeries(seriesId: string): Promise<mb.ISeries> {
+    return this.lookupEntity<mb.ISeries, RecordingIncludes>('series', seriesId);
+  }
+
+  /**
    * Lookup work
    * @param workId Work MBID
    */

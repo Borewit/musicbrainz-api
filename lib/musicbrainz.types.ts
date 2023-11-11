@@ -249,6 +249,13 @@ export interface IPlace extends IEntity {
   name: string;
 }
 
+export interface ISeries extends IEntity {
+  name: string;
+  type: string;
+  disambiguation: string;
+  'type-id': string;
+}
+
 export interface IUrl extends IEntity {
   id: string,
   resource: string,
