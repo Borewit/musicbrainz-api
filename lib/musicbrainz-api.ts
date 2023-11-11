@@ -259,9 +259,9 @@ export class MusicBrainzApi {
     await this.rateLimiter.limit();
     do {
       response = await got.get('ws/2' + relUrl, {
+        ...this.options,
         searchParams: query,
-        responseType: 'json',
-        ...this.options
+        responseType: 'json'
       });
       if (response.statusCode !== 503)
         break;
@@ -554,14 +554,14 @@ export class MusicBrainzApi {
     do {
       await this.rateLimiter.limit();
       const response: any = await got.post(path, {
+        ...this.options,
         searchParams: {client: clientId},
         headers: {
           authorization: digest,
           'Content-Type': 'application/xml'
         },
         body: postData,
-        throwHttpErrors: false,
-        ...this.options
+        throwHttpErrors: false
       });
       if (response.statusCode === HttpStatus.UNAUTHORIZED) {
         // Respond to digest challenge
@@ -600,12 +600,12 @@ export class MusicBrainzApi {
     };
 
     const response: any = await got.post('login', {
+      ...this.options,
       followRedirect: false,
       searchParams: {
         returnto: redirectUri
       },
-      form: formData,
-      ...this.options
+      form: formData
     });
     const success = response.statusCode === HttpStatus.MOVED_TEMPORARILY && response.headers.location === redirectUri;
     if (success) {
@@ -621,11 +621,11 @@ export class MusicBrainzApi {
     const redirectUri = '/success';
 
     const response: any = await got.get('logout', {
+      ...this.options,
       followRedirect: false,
       searchParams: {
         returnto: redirectUri
-      },
-      ...this.options
+      }
     });
     const success = response.statusCode === HttpStatus.MOVED_TEMPORARILY && response.headers.location === redirectUri;
     if (success && this.session) {
@@ -653,9 +653,9 @@ export class MusicBrainzApi {
     formData.remember_me = 1;
 
     const response: any = await got.post(`${entity}/${mbid}/edit`, {
+      ...this.options,
       form: formData,
-      followRedirect: false,
-      ...this.options
+      followRedirect: false
     });
     if (response.statusCode === HttpStatus.OK)
       throw new Error(`Failed to submit form data`);
@@ -781,9 +781,9 @@ export class MusicBrainzApi {
   private async getSession(): Promise<ISessionInformation> {
 
     const response: any = await got.get('login', {
+      ...this.options,
       followRedirect: false, // Disable redirects
-      responseType: 'text',
-      ...this.options
+      responseType: 'text'
     });
 
     return {
