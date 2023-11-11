@@ -1,2 +1,2 @@
-export * from './coverartarchive-api';
-export * from './musicbrainz-api';
+export * from './coverartarchive-api.js';
+export * from './musicbrainz-api.js';

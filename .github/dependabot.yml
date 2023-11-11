@@ -6,16 +6,8 @@ updates:
       interval: weekly
     labels:
       - dependencies
-      - CJS
     target-branch: master
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 20
     ignore:
       - dependency-name: "@types/node"
         update-types: [ "version-update:semver-patch" ]
-      - dependency-name: mocha
-        versions:
-          - "10.x"
-      # Ignore ESM version
-      - dependency-name: got
-        versions:
-          - ">=12.x"

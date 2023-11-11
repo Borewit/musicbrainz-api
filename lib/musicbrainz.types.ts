@@ -1,5 +1,5 @@
 import DateTimeFormat = Intl.DateTimeFormat;
-import { IFormData } from './musicbrainz-api';
+import type { IFormData } from './musicbrainz-api.js';
 
 export interface IPeriod {
   'begin': string;

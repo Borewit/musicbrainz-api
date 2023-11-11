@@ -1,26 +1,24 @@
 import * as assert from 'assert';
 
 import { StatusCodes as HttpStatus } from 'http-status-codes';
-import * as Url from 'url';
-import * as Debug from 'debug';
+import Debug from 'debug';
 
-export { XmlMetadata } from './xml/xml-metadata';
-export { XmlIsrc } from './xml/xml-isrc';
-export { XmlIsrcList } from './xml/xml-isrc-list';
-export { XmlRecording } from './xml/xml-recording';
+export { XmlMetadata } from './xml/xml-metadata.js';
+export { XmlIsrc } from './xml/xml-isrc.js';
+export { XmlIsrcList } from './xml/xml-isrc-list.js';
+export { XmlRecording } from './xml/xml-recording.js';
 
-import { XmlMetadata } from './xml/xml-metadata';
-import { DigestAuth } from './digest-auth';
+import { XmlMetadata } from './xml/xml-metadata.js';
+import { DigestAuth } from './digest-auth.js';
 
-import { RateLimiter } from './rate-limiter';
-import * as mb from './musicbrainz.types';
+import { RateLimiter } from './rate-limiter.js';
+import * as mb from './musicbrainz.types.js';
 
-/* eslint-disable-next-line */
 import got, {type Options, type ToughCookieJar} from 'got';
 
 import {type Cookie, CookieJar} from 'tough-cookie';
 
-export * from './musicbrainz.types';
+export * from './musicbrainz.types.js';
 
 import { promisify } from 'util';
 
@@ -237,9 +235,12 @@ export class MusicBrainzApi {
     const cookieJar: CookieJar = new CookieJar();
     this.getCookies = promisify(cookieJar.getCookies.bind(cookieJar));
 
+    // @ts-ignore
     this.options = {
-      prefixUrl: this.config.baseUrl,
-      timeout: 20 * 1000,
+      prefixUrl: this.config.baseUrl as string,
+      timeout: {
+        read: 20 * 1000
+      },
       headers: {
         'User-Agent': `${this.config.appName}/${this.config.appVersion} ( ${this.config.appContactInfo} )`
       },
@@ -551,7 +552,7 @@ export class MusicBrainzApi {
       if (response.statusCode === HttpStatus.UNAUTHORIZED) {
         // Respond to digest challenge
         const auth = new DigestAuth(this.config.botAccount as {username: string, password: string});
-        const relPath = Url.parse(response.requestUrl).path; // Ensure path is relative
+        const relPath = response.requestUrl.pathname; // Ensure path is relative
         digest = auth.digest(response.request.method, relPath as string, response.headers['www-authenticate']);
         ++n;
       } else {
@@ -584,7 +585,7 @@ export class MusicBrainzApi {
       remember_me: 1
     };
 
-    const response: any = await got.post('login', {
+    const response = await got.post('login', {
       ...this.options,
       followRedirect: false,
       searchParams: {
@@ -605,7 +606,7 @@ export class MusicBrainzApi {
   public async logout(): Promise<boolean> {
     const redirectUri = '/success';
 
-    const response: any = await got.get('logout', {
+    const response = await got.get('logout', {
       ...this.options,
       followRedirect: false,
       searchParams: {
@@ -637,7 +638,7 @@ export class MusicBrainzApi {
     formData.password = this.config.botAccount.password;
     formData.remember_me = 1;
 
-    const response: any = await got.post(`${entity}/${mbid}/edit`, {
+    const response = await got.post(`${entity}/${mbid}/edit`, {
       ...this.options,
       form: formData,
       followRedirect: false
@@ -765,7 +766,7 @@ export class MusicBrainzApi {
 
   private async getSession(): Promise<ISessionInformation> {
 
-    const response: any = await got.get('login', {
+    const response = await got.get('login', {
       ...this.options,
       followRedirect: false, // Disable redirects
       responseType: 'text'
