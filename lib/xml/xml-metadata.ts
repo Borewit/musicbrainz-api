@@ -1,7 +1,7 @@
 // https://musicbrainz.org/doc/Development/XML_Web_Service/Version_2#ISRC_submission
 
-import * as jsontoxml from 'jsontoxml';
-import { XmlRecording } from './xml-recording';
+import jsontoxml from 'jsontoxml';
+import { XmlRecording } from './xml-recording.js';
 
 const ns_metadata = 'http://musicbrainz.org/ns/mmd-2.0#';
 

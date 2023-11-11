@@ -1,4 +1,4 @@
-import { XmlIsrcList } from './xml-isrc-list';
+import { XmlIsrcList } from './xml-isrc-list.js';
 
 export class XmlRecording {
 

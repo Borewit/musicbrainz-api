@@ -34,10 +34,9 @@ If you plan to use this module for submitting metadata, please ensure you comply
 
 ## Example
 
-Import the module
-JavaScript example, how to import 'musicbrainz-api:
+Example, how to import 'musicbrainz-api:
 ```js
-const MusicBrainzApi = require('musicbrainz-api').MusicBrainzApi;
+import {MusicBrainzApi} from 'musicbrainz-api';
 
 const mbApi = new MusicBrainzApi({
   appName: 'my-app',
@@ -46,20 +45,9 @@ const mbApi = new MusicBrainzApi({
 });
 ```
 
-In TypeScript it would look like this:
-```js
-import {MusicBrainzApi} from 'musicbrainz-api';
-
-const mbApi = new MusicBrainzApi({
-  appName: 'my-app',
-  appVersion: '0.1.0',
-  appContactInfo: 'user@mail.org' // Or URL to application home page
-});
-```
-
 The following configuration settings can be passed 
 ```js
-import {MusicBrainzApi} from '../src/musicbrainz-api';
+import {MusicBrainzApi} from 'musicbrainz-api';
 
 const config = {
   // MusicBrainz bot account username & password (optional)

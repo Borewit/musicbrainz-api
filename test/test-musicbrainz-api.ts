@@ -1,27 +1,23 @@
 import {
-  IBrowseArtistsResult,
-  IBrowseCollectionsResult,
-  IBrowseEventsResult,
-  IBrowseInstrumentsResult,
-  IBrowseLabelsResult,
-  IBrowsePlacesResult,
-  IBrowseRecordingsResult,
-  IBrowseReleaseGroupsResult,
-  IBrowseReleasesResult,
-  IBrowseSeriesResult,
-  IBrowseWorksResult,
-  IMusicBrainzConfig,
+  type IBrowseArtistsResult,
+  type IBrowseCollectionsResult,
+  type IBrowseEventsResult,
+  type IBrowseInstrumentsResult,
+  type IBrowseLabelsResult,
+  type IBrowsePlacesResult,
+  type IBrowseRecordingsResult,
+  type IBrowseReleaseGroupsResult,
+  type IBrowseReleasesResult,
+  type IBrowseSeriesResult,
+  type IBrowseWorksResult,
   LinkType,
   MusicBrainzApi
-} from '../lib/musicbrainz-api';
-import {CoverArtArchiveApi} from '../lib/coverartarchive-api';
+} from '../lib/musicbrainz-api.js';
+import {CoverArtArchiveApi} from '../lib/coverartarchive-api.js';
 import { assert } from 'chai';
-import { XmlMetadata } from '../lib/xml/xml-metadata';
-import * as mb from '../lib/musicbrainz.types';
-import * as fs from 'fs';
-import * as path from 'path';
-
-const packageInfo = require('../package.json');
+import { XmlMetadata } from '../lib/xml/xml-metadata.js';
+import * as mb from '../lib/musicbrainz.types.js';
+import { readFile } from 'fs/promises';
 
 const appUrl = 'https://github.com/Borewit/musicbrainz-api';
 
@@ -30,40 +26,44 @@ const testBotAccount = {
   password: process.env.MBPWD
 };
 
-const testApiConfig: IMusicBrainzConfig = {
-  botAccount: testBotAccount,
-  baseUrl: 'https://test.musicbrainz.org',
+async function readPackageInfo() {
+  return JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf-8'));
+}
 
-  /**
-   * Enable proxy, like Fiddler
-   */
-  proxy: process.env.MBPROXY,
+async function makeTestApi(): Promise<MusicBrainzApi> {
+  const packageInfo = await readPackageInfo();
+  return new MusicBrainzApi({
+    botAccount: testBotAccount,
+    baseUrl: 'https://test.musicbrainz.org',
 
-  appName: packageInfo.name,
-  appVersion: packageInfo.version,
-  appContactInfo: appUrl
-};
+    /**
+     * Enable proxy, like Fiddler
+     */
+    proxy: process.env.MBPROXY,
 
-const searchApiConfig: IMusicBrainzConfig = {
+    appName: packageInfo.name,
+    appVersion: packageInfo.version,
+    appContactInfo: appUrl
+  });
+}
 
-  baseUrl: 'https://musicbrainz.org',
-  botAccount: {},
+async function makeSearchApi(): Promise<MusicBrainzApi> {
+  const packageInfo = await readPackageInfo();
+  return new MusicBrainzApi({
 
-  /**
-   * Enable proxy, like Fiddler
-   */
-  proxy: process.env.MBPROXY,
+    baseUrl: 'https://musicbrainz.org',
+    botAccount: {},
 
-  appName: packageInfo.name,
-  appVersion: packageInfo.version,
-  appContactInfo: appUrl
-};
+    /**
+     * Enable proxy, like Fiddler
+     */
+    proxy: process.env.MBPROXY,
 
-const mbTestApi = new MusicBrainzApi(testApiConfig);
-const mbApi = new MusicBrainzApi(searchApiConfig);
-
-// Hack shared rate-limiter
-(mbApi as any).rateLimiter = (mbTestApi as any).rateLimiter;
+    appName: packageInfo.name,
+    appVersion: packageInfo.version,
+    appContactInfo: appUrl
+  });
+}
 
 const mbid = {
   area: {
@@ -121,6 +121,16 @@ const mbid = {
 
 describe('MusicBrainz-api', function () {
 
+  let mbTestApi: MusicBrainzApi;
+  let mbApi: MusicBrainzApi;
+
+  before(async () => {
+    mbTestApi = await makeTestApi();
+    mbApi = await makeSearchApi();
+    // Hack a shared rate-limiter
+    (mbApi as any).rateLimiter = (mbTestApi as any).rateLimiter;
+  });
+
   this.timeout(40000); // MusicBrainz has a rate limiter
 
   const spotify = {
@@ -141,8 +151,8 @@ describe('MusicBrainz-api', function () {
     assert.isDefined(process.env.MBPWD, 'process.env.MBPWD');
   });
 
-  it('Extract CSRF', () => {
-    const html = fs.readFileSync(path.join(__dirname, 'csrf.html'), 'utf8');
+  it('Extract CSRF', async () => {
+    const html = await readFile(new URL('./csrf.html', import.meta.url), 'utf8');
     const csrf = MusicBrainzApi.fetchCsrf(html);
     assert.deepStrictEqual(csrf, {
       sessionKey: 'csrf_token:x0VIlHob5nPcWKqJIwNPwE5Y3kE+nGQ9fccgTSYbuMU=',

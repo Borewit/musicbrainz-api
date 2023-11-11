@@ -2,8 +2,13 @@
   "name": "musicbrainz-api",
   "version": "0.12.0",
   "description": "MusicBrainz API client for reading and submitting metadata",
-  "main": "lib/index",
-  "types": "lib/index",
+  "exports": "./lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib/**/*.js",
+    "lib/**/*.d.ts"
+  ],
+  "type": "module",
   "author": {
     "name": "Borewit",
     "url": "https://github.com/Borewit"
@@ -31,7 +36,7 @@
   "license": "MIT",
   "private": false,
   "engines": {
-    "node": "*"
+    "node": "^14.13.1 || >=16.0.0"
   },
   "repository": {
     "type": "git",
@@ -45,8 +50,8 @@
     "@types/request-promise-native": "^1.0.17",
     "@types/uuid": "^9.0.0",
     "caseless": "^0.12.0",
-    "debug": "^4.1.1",
-    "got": "^11.8.5",
+    "debug": "^4.3.4",
+    "got": "^13.0.0",
     "http-status-codes": "^2.1.4",
     "json-stringify-safe": "^5.0.1",
     "jsontoxml": "^1.0.1",
@@ -61,6 +66,7 @@
     "@types/node": "^20.8.10",
     "@typescript-eslint/eslint-plugin": "^5.13.0",
     "@typescript-eslint/parser": "^5.13.0",
+    "c8": "^8.0.1",
     "chai": "^4.2.0",
     "del-cli": "^5.0.0",
     "eslint": "^8.10.0",
@@ -70,18 +76,13 @@
     "eslint-plugin-jsdoc": "^46.8.2",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-unicorn": "^46.0.0",
-    "mocha": "^9.0.1",
-    "nyc": "^15.0.0",
+    "mocha": "^10.1.0",
     "remark-cli": "^11.0.0",
     "remark-preset-lint-recommended": "^6.1.2",
     "ts-node": "^10.0.0",
     "tslint": "^6.1.1",
     "typescript": "^5.0.2"
   },
-  "files": [
-    "lib/**/*.js",
-    "lib/**/*.d.ts"
-  ],
   "scripts": {
     "clean": "del-cli lib/**/*.js lib/**/*.js.map lib/**/*.d.ts test/**/*.js test/**/*.js.map",
     "compile-lib": "tsc -p lib",
@@ -90,10 +91,10 @@
     "eslint": "eslint lib/**/*.ts --ignore-pattern lib/**/*.d.ts test/**/*.ts",
     "lint-md": "remark -u preset-lint-recommended .",
     "lint": "npm run lint-md && npm run eslint",
-    "test": "mocha --require ts-node/register --require source-map-support/register --full-trace test/test-*.ts",
+    "test": "mocha",
     "build": "npm run clean && npm run compile",
     "start": "npm-run-all compile lint cover-test",
-    "test-coverage": "nyc npm run test",
+    "test-coverage": "c8 npm run test",
     "send-codacy": "nyc report --reporter=text-lcov | codacy-coverage"
   },
   "nyc": {

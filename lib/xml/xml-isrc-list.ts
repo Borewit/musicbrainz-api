@@ -1,4 +1,4 @@
-import { XmlIsrc } from './xml-isrc';
+import { XmlIsrc } from './xml-isrc.js';
 
 export class XmlIsrcList {
 
