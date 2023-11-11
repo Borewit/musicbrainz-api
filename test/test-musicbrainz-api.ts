@@ -110,6 +110,9 @@ describe('MusicBrainz-api', function () {
       Formidable: '19099ea5-3600-4154-b482-2ec68815883e',
       RacineCarree: 'd079dc50-fa9b-4a88-90f4-5e8723accd75'
     },
+    series: {
+      DireStraitsRemastered: '1ae6c9bc-2931-4d75-bee4-3dc53dfd246a'
+    },
     work: {
       Formidable: 'b2aa02f4-6c95-43be-a426-aedb9f9a3805'
     },
@@ -233,6 +236,14 @@ describe('MusicBrainz-api', function () {
           });
         });
 
+      });
+
+      it('series', async () => {
+        const series = await mbApi.lookupSeries(mbid.series.DireStraitsRemastered);
+        assert.strictEqual(series.id, mbid.series.DireStraitsRemastered, 'series.id');
+        assert.strictEqual(series.name, 'Dire Straits Remastered', 'series.name');
+        assert.strictEqual(series.disambiguation, '', 'series.disambiguation');
+        assert.strictEqual(series['type-id'], '52b90f1e-ff62-3bd0-b254-5d91ced5d757', 'series[\'type-id\']');
       });
 
       it('work', async () => {

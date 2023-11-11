@@ -115,6 +115,20 @@ Lookup an `artist` and include their `releases`, `release-groups` and `aliases`
 const artist = await mbApi.lookupArtist('ab2528d9-719f-4261-8098-21849222a0f2');
 ```
 
+### Lookup collection
+
+Lookup an instrument
+
+```js
+const collection = await mbApi.lookupCollection('de4fdfc4-53aa-458a-b463-8761cc7f5af8');
+```
+
+Lookup an event
+
+```js
+const event = await mbApi.lookupEvent('6d32c658-151e-45ec-88c4-fb8787524d61');
+```
+
 ### Lookup instrument
 
 Lookup an instrument
@@ -135,6 +149,10 @@ const label = await mbApi.lookupLabel('25dda9f9-f069-4898-82f0-59330a106c7f');
 
 ```js
 const place = await mbApi.lookupPlace('e6cfb74d-d69b-44c3-b890-1b3f509816e4');
+```
+
+```js
+const place = await mbApi.lookupSeries('1ae6c9bc-2931-4d75-bee4-3dc53dfd246a');
 ```
 
 The second argument can be used to pass [subqueries](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2#Subqueries), which will return more (nested) information:
