@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 
-import { StatusCodes as HttpStatus, getReasonPhrase } from 'http-status-codes';
+import { StatusCodes as HttpStatus } from 'http-status-codes';
 import * as Url from 'url';
 import * as Debug from 'debug';
 
@@ -23,8 +23,6 @@ import {type Cookie, CookieJar} from 'tough-cookie';
 export * from './musicbrainz.types';
 
 import { promisify } from 'util';
-
-const retries = 3;
 
 /*
  * https://musicbrainz.org/doc/Development/XML_Web_Service/Version_2#Subqueries
@@ -248,44 +246,23 @@ export class MusicBrainzApi {
       cookieJar: cookieJar as ToughCookieJar
     };
 
-    this.rateLimiter = new RateLimiter(60, 50);
+    this.rateLimiter = new RateLimiter(15, 18);
   }
 
   public async restGet<T>(relUrl: string, query: { [key: string]: any; } = {}, attempt: number = 1): Promise<T> {
 
     query.fmt = 'json';
 
-    let response: any;
     await this.rateLimiter.limit();
-    do {
-      response = await got.get('ws/2' + relUrl, {
-        ...this.options,
-        searchParams: query,
-        responseType: 'json'
-      });
-      if (response.statusCode !== 503)
-        break;
-      debug('Rate limiter kicked in, slowing down...');
-      await RateLimiter.sleep(500);
-    } while (true);
-
-    switch (response.statusCode) {
-      case HttpStatus.OK:
-        return response.body;
-
-      case HttpStatus.BAD_REQUEST:
-      case HttpStatus.NOT_FOUND:
-        throw new Error(`Got response status ${response.statusCode}: ${getReasonPhrase(response.status)}`);
-
-      case HttpStatus.SERVICE_UNAVAILABLE: // 503
-      default:
-        const msg = `Got response status ${response.statusCode} on attempt #${attempt} (${getReasonPhrase(response.status)})`;
-        debug(msg);
-        if (attempt < retries) {
-          return this.restGet<T>(relUrl, query, attempt + 1);
-        } else
-          throw new Error(msg);
-    }
+    const response: any = await got.get('ws/2' + relUrl, {
+      ...this.options,
+      searchParams: query,
+      responseType: 'json',
+      retry: {
+        limit: 10
+      }
+    });
+    return response.body;
   }
 
   // -----------------------------------------------------------------------------------------------------------------
