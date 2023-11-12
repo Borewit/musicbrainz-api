@@ -493,6 +493,27 @@ assert.isTrue(succeed, 'Login successful');
 await mbApi.addSpotifyIdToRecording(recording, '2AMysGXOe0zzZJMtH3Nizb');
 ```
 
+## Cover Art Archive API
+
+Implementation of the [Cover Art Archive API](https://musicbrainz.org/doc/Cover_Art_Archive/API).
+
+```js
+import {CoverArtArchiveApi} from 'musicbrainz-api';
+
+coverArtArchiveApiClient.getReleaseCovers(releaseMbid).then(releaseCoverInfo => {
+    console.log('Release cover info', releaseCoverInfo);
+});
+
+coverArtArchiveApiClient.getReleaseCovers(releaseMbid, 'front').then(releaseCoverInfo => {
+    console.log('Get best front cover', releaseCoverInfo);
+});
+
+coverArtArchiveApiClient.getReleaseCovers(releaseMbid, 'back').then(releaseCoverInfo => {
+    console.log('Get best back cover', releaseCoverInfo);
+});
+
+```
+
 ## Compatibility
 
 The JavaScript in runtime is compliant with [ECMAScript 2017 (ES8)](https://en.wikipedia.org/wiki/ECMAScript#8th_Edition_-_ECMAScript_2017).

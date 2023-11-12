@@ -146,7 +146,7 @@
     ],
     "import/no-internal-modules": "off",
     "import/order": "off",
-    "import/no-unresolved": ["error", {"caseSensitiveStrict": true }],
+    "import/no-unresolved": ["error", {"caseSensitiveStrict": true}],
     "indent": "off",
     "jsdoc/check-alignment": "error",
     "jsdoc/check-indentation": "off",

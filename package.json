@@ -2,8 +2,8 @@
   "name": "musicbrainz-api",
   "version": "0.11.0",
   "description": "MusicBrainz API client for reading and submitting metadata",
-  "main": "lib/musicbrainz-api",
-  "types": "lib/musicbrainz-api",
+  "main": "lib/index",
+  "types": "lib/index",
   "author": {
     "name": "Borewit",
     "url": "https://github.com/Borewit"
@@ -20,7 +20,13 @@
     "web",
     "service",
     "submit",
-    "metabrainz"
+    "metabrainz",
+    "Cover Art Archive",
+    "coverartarchive",
+    "coverartarchive.org",
+    "album art",
+    "covers",
+    "download covers"
   ],
   "license": "MIT",
   "private": false,

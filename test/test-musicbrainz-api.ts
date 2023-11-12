@@ -14,6 +14,7 @@ import {
   LinkType,
   MusicBrainzApi
 } from '../lib/musicbrainz-api';
+import {CoverArtArchiveApi} from '../lib/coverartarchive-api';
 import { assert } from 'chai';
 import { XmlMetadata } from '../lib/xml/xml-metadata';
 import * as mb from '../lib/musicbrainz.types';
@@ -64,62 +65,63 @@ const mbApi = new MusicBrainzApi(searchApiConfig);
 // Hack shared rate-limiter
 (mbApi as any).rateLimiter = (mbTestApi as any).rateLimiter;
 
+const mbid = {
+  area: {
+    Belgium: '5b8a5ee5-0bb3-34cf-9a75-c27c44e341fc',
+    IleDeFrance: 'd79e4501-8cba-431b-96e7-bb9976f0ae76',
+    Lisbon: '9aee8c1a-c7d5-4713-af71-c022bccf50b4'
+  },
+  artist: {
+    Stromae: 'ab2528d9-719f-4261-8098-21849222a0f2',
+    DeadCombo: '092ae9e2-60bf-4b66-aa33-9e31754d1924'
+  },
+  collection: {
+    Ringtone: 'de4fdfc4-53aa-458a-b463-8761cc7f5af8'
+  },
+  event: {
+    DireStraitsAlchemyLoveOverGold: '6d32c658-151e-45ec-88c4-fb8787524d61'
+  },
+  instrument: {
+    spanishAcousticGuitar: '43f378cf-b099-46da-8ec3-a39b6f5e5258'
+  },
+  label: {
+    Mosaert: '0550200c-22c1-4c62-b761-ef0b3665262b'
+  },
+  place: {
+    Paradiso: '4efe54e1-41f6-490a-85f5-e1c19b04649c'
+  },
+  recording: {
+    Formidable: '16afa384-174e-435e-bfa3-5591accda31c',
+    Montilla: '2faab3ff-1b3a-4378-bfa2-0513446644ed'
+  },
+  release: {
+    Formidable: '976e0677-a480-4a5e-a177-6a86c1900bbf',
+    Anomalie: '478aaba4-9425-4a67-8951-a77739462df4',
+    RacineCarree: [
+      '348662a8-54ce-4d14-adf5-3ce2cefd57bb',
+      'c22bdb3a-69c0-449a-9ef5-99796bb0f2d7',
+      'de57c1d9-5e65-420f-a896-1332e87d4c09'
+    ],
+    DireStraits: 'f7b24036-ac2e-4df5-a210-6f8e92883564'
+  },
+  releaseGroup: {
+    Formidable: '19099ea5-3600-4154-b482-2ec68815883e',
+    RacineCarree: 'd079dc50-fa9b-4a88-90f4-5e8723accd75'
+  },
+  work: {
+    Formidable: 'b2aa02f4-6c95-43be-a426-aedb9f9a3805'
+  },
+  series: {
+    DireStraitsRemastered: '1ae6c9bc-2931-4d75-bee4-3dc53dfd246a'
+  },
+  url: {
+    SpotifyLisboaMulata: 'c69556a6-7ded-4c54-809c-afb45a1abe7d'
+  }
+};
+
 describe('MusicBrainz-api', function () {
 
   this.timeout(40000); // MusicBrainz has a rate limiter
-
-  const mbid = {
-    area: {
-      Belgium: '5b8a5ee5-0bb3-34cf-9a75-c27c44e341fc',
-      IleDeFrance: 'd79e4501-8cba-431b-96e7-bb9976f0ae76',
-      Lisbon: '9aee8c1a-c7d5-4713-af71-c022bccf50b4'
-    },
-    artist: {
-      Stromae: 'ab2528d9-719f-4261-8098-21849222a0f2',
-      DeadCombo: '092ae9e2-60bf-4b66-aa33-9e31754d1924'
-    },
-    collection: {
-      Ringtone: 'de4fdfc4-53aa-458a-b463-8761cc7f5af8'
-    },
-    event: {
-      DireStraitsAlchemyLoveOverGold: '6d32c658-151e-45ec-88c4-fb8787524d61'
-    },
-    instrument: {
-      spanishAcousticGuitar: '43f378cf-b099-46da-8ec3-a39b6f5e5258'
-    },
-    label: {
-      Mosaert: '0550200c-22c1-4c62-b761-ef0b3665262b'
-    },
-    place: {
-      Paradiso: '4efe54e1-41f6-490a-85f5-e1c19b04649c'
-    },
-    recording: {
-      Formidable: '16afa384-174e-435e-bfa3-5591accda31c',
-      Montilla: '2faab3ff-1b3a-4378-bfa2-0513446644ed'
-    },
-    release: {
-      Formidable: '976e0677-a480-4a5e-a177-6a86c1900bbf',
-      Anomalie: '478aaba4-9425-4a67-8951-a77739462df4',
-      RacineCarree: [
-        '348662a8-54ce-4d14-adf5-3ce2cefd57bb',
-        'c22bdb3a-69c0-449a-9ef5-99796bb0f2d7',
-        'de57c1d9-5e65-420f-a896-1332e87d4c09'
-      ]
-    },
-    releaseGroup: {
-      Formidable: '19099ea5-3600-4154-b482-2ec68815883e',
-      RacineCarree: 'd079dc50-fa9b-4a88-90f4-5e8723accd75'
-    },
-    series: {
-      DireStraitsRemastered: '1ae6c9bc-2931-4d75-bee4-3dc53dfd246a'
-    },
-    work: {
-      Formidable: 'b2aa02f4-6c95-43be-a426-aedb9f9a3805'
-    },
-    url: {
-      SpotifyLisboaMulata: 'c69556a6-7ded-4c54-809c-afb45a1abe7d'
-    }
-  };
 
   const spotify = {
     album: {
@@ -853,6 +855,34 @@ describe('MusicBrainz-api', function () {
 
     });
 
+  });
+
+});
+
+describe('Cover Art Archive API', function() {
+
+  // Base URL used by cover-art-archive to refer back to MusicBrainz release
+  // The addresses are normalized to https by `CoverArtArchiveApi`
+  const releaseMusicBrainzBaseUrl = 'https://musicbrainz.org/release/';
+
+  this.timeout(10000);
+
+  it('Get all cover-art for release Formidable', async () => {
+    const coverArtArchiveApiClient = new CoverArtArchiveApi();
+    const releaseCoverInfo = await coverArtArchiveApiClient.getReleaseCovers(mbid.release.Formidable);
+    assert.isDefined(releaseCoverInfo);
+    assert.strictEqual(releaseCoverInfo.release, releaseMusicBrainzBaseUrl + mbid.release.Formidable, 'releaseCoverInfo.release');
+    assert.isDefined(releaseCoverInfo.images, 'releaseCoverInfo.images');
+    assert.ok(releaseCoverInfo.images.length > 0, 'releaseCoverInfo.images.length > 0');
+  });
+
+  it('Get best back cover for release Dire Straits', async () => {
+    const coverArtArchiveApiClient = new CoverArtArchiveApi();
+    const releaseCoverInfo = await coverArtArchiveApiClient.getReleaseCovers(mbid.release.DireStraits);
+    assert.isDefined(releaseCoverInfo);
+    assert.strictEqual(releaseCoverInfo.release, releaseMusicBrainzBaseUrl + mbid.release.DireStraits, 'releaseCoverInfo.release');
+    assert.isDefined(releaseCoverInfo.images, 'releaseCoverInfo.images');
+    assert.ok(releaseCoverInfo.images.length > 0, 'releaseCoverInfo.images.length > 0');
   });
 
 });
