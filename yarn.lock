@@ -306,9 +306,9 @@
   integrity sha1-7ihweulOEdK4J7y+UnC86n8+ce4=
 
 "@types/jsontoxml@^1.0.5":
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/@types/jsontoxml/-/jsontoxml-1.0.5.tgz#732ca29c1bdf1cc1149d401be9ae0d4b074c20c8"
-  integrity sha512-gW4wQjeSyNFg8vR9ZNH1CbiHaYQLWTIVrg4ZPqoZlLeCO4Lh45NwWUevcTKdF+xKYOgCSAw59Syrpug7NDBdgQ==
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/@types/jsontoxml/-/jsontoxml-1.0.6.tgz#a9c2fcf24e99bc71e04167371c742d7ce0a83274"
+  integrity sha512-SoeEpHuqdZcpLxZr5uzpB6A/ICmzBOfluwMm59Bm6vDuiSRSv4M/z8hvS+YCRw4ZyGO5BhJ5oeJnrurSigg3Vw==
 
 "@types/mdast@^3.0.0":
   version "3.0.3"
