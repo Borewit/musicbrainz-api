@@ -82,106 +82,14 @@ MusicBrainz API documentation: [XML Web Service/Version 2 Lookups](https://wiki.
 ### Generic lookup function
 
 Arguments:
-*   entity: `'artist'` | `'label'` | `'recording'` | `'release'` | `'release-group'` | `'work'` | `'area'` | `'url'`
+*   entity: `'area'` | `'artist'` | `'collection'` | `'instrument'` | `'label'` | `'place'` | `'release'` | `'release-group'` | `'recording'` | `'series'` | `'work'` | `'url'` | `'event'`
 *   MBID [(MusicBrainz identifier)](https://wiki.musicbrainz.org/MusicBrainz_Identifier)
+*   query
 
 ```js
-const artist = await mbApi.lookupEntity('artist', 'ab2528d9-719f-4261-8098-21849222a0f2');
+const artist = await mbApi.lookup('artist', 'ab2528d9-719f-4261-8098-21849222a0f2');
 ```
 
-### Lookup area
-
-```js
-const area = await mbApi.lookupArea('ab2528d9-719f-4261-8098-21849222a0f2');
-```
-
-### Lookup artist
-
-Lookup an `artist` and include their `releases`, `release-groups` and `aliases`
-
-```js
-const artist = await mbApi.lookupArtist('ab2528d9-719f-4261-8098-21849222a0f2');
-```
-
-### Lookup collection
-
-Lookup an instrument
-
-```js
-const collection = await mbApi.lookupCollection('de4fdfc4-53aa-458a-b463-8761cc7f5af8');
-```
-
-Lookup an event
-
-```js
-const event = await mbApi.lookupEvent('6d32c658-151e-45ec-88c4-fb8787524d61');
-```
-
-### Lookup instrument
-
-Lookup an instrument
-
-```js
-const instrument = await mbApi.lookupInstrument('b3eac5f9-7859-4416-ac39-7154e2e8d348');
-```
-
-### Lookup label
-
-Lookup a label
-
-```js
-const label = await mbApi.lookupLabel('25dda9f9-f069-4898-82f0-59330a106c7f');
-```
-
-### Lookup place
-
-```js
-const place = await mbApi.lookupPlace('e6cfb74d-d69b-44c3-b890-1b3f509816e4');
-```
-
-```js
-const place = await mbApi.lookupSeries('1ae6c9bc-2931-4d75-bee4-3dc53dfd246a');
-```
-
-The second argument can be used to pass [subqueries](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2#Subqueries), which will return more (nested) information:
-```js
-const artist = await mbApi.lookupArtist('ab2528d9-719f-4261-8098-21849222a0f2', ['releases', 'recordings', 'url-rels']);
-```
-
-### Lookup recording
-
-The second argument can be used to pass [subqueries](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2#Subqueries):
-```js
-const recording = await mbApi.lookupRecording('16afa384-174e-435e-bfa3-5591accda31c', ['artists', 'url-rels']);
-```
-
-### Lookup release
-```js
-const release = await mbApi.lookupRelease('976e0677-a480-4a5e-a177-6a86c1900bbf', ['artists', 'url-rels']);
-```
-
-### Lookup release-group
-```js
-const releaseGroup = await mbApi.lookupReleaseGroup('19099ea5-3600-4154-b482-2ec68815883e');
-```
-
-### Lookup work
-```js
-const work = await mbApi.lookupWork('b2aa02f4-6c95-43be-a426-aedb9f9a3805');
-```
-
-### Lookup URL
-```js
-const url = await mbApi.lookupUrl('c69556a6-7ded-4c54-809c-afb45a1abe7d');
-```
-
-## Browse entities
-
-### Browse area
-
-```js
-const area = await browseAreas(query);
-````
 
 | Query argument        | Query value     | 
 |-----------------------|-----------------|  
@@ -190,7 +98,7 @@ const area = await browseAreas(query);
 ### Browse artist
 
 ```js
-const artist = await browseArtist(query);
+const artists = await browse('artist', query);
 ````
 
 | Query argument        | Query value        | 
@@ -204,7 +112,7 @@ const artist = await browseArtist(query);
 
 ### Browse collection
 ```js
-const artist = await browseCollection(query);
+const collections = await browse('collection', query);
 ````
 
 | Query argument        | Query value        | 
@@ -222,7 +130,7 @@ const artist = await browseCollection(query);
 
 ### Browse events
 ```js
-const events = await browseEvents(query);
+const events = await browse('event', query);
 ````
 
 | Query argument        | Query value     | 
@@ -234,7 +142,7 @@ const events = await browseEvents(query);
 
 ### Browse instruments
 ```js
-const instruments = await browseEvents(query);
+const instruments = await browse('event', query);
 ````
 
 | Query argument        | Query value        | 
@@ -243,7 +151,7 @@ const instruments = await browseEvents(query);
 
 ### Browse labels
 ```js
-const labels = await browseLabels(query);
+const labels = await browse('label', query);
 ````
 
 | Query argument     | Query value     | 
@@ -254,7 +162,7 @@ const labels = await browseLabels(query);
 
 ### Browse places
 ```js
-const places = await browsePlaces(query);
+const places = await browse('place', query);
 ````
 
 | Query argument     | Query value     | 
@@ -264,7 +172,7 @@ const places = await browsePlaces(query);
 
 ### Browse recordings
 ```js
-const recordings = await browseRecordings(query);
+const recordings = await browse('recording', query);
 ````
 
 | Query argument     | Query value     | 
@@ -276,7 +184,7 @@ const recordings = await browseRecordings(query);
 
 ### Browse releases
 ```js
-const places = await browseReleases(query);
+const releases = await browse('release', query);
 ````
 
 | Query argument        | Query value        | 
@@ -294,7 +202,7 @@ const places = await browseReleases(query);
 
 ### Browse release-groups
 ```js
-const places = await browseReleaseGroups(query);
+const releaseGroups = await browse('release-group',query);
 ```
 
 | Query argument     | Query value     | 
@@ -305,7 +213,7 @@ const places = await browseReleaseGroups(query);
 
 ### Browse series
 ```js
-const places = await browseSeries();
+const series = await browse('series');
 ````
 
 | Query argument        | Query value        | 
@@ -323,7 +231,7 @@ const places = await browseSeries();
 
 ### Browse works
 ```js
-const places = await browseWorks();
+const works = await browse('work');
 ````
 
 | Query argument     | Query value     | 
@@ -333,7 +241,7 @@ const places = await browseWorks();
 
 ### Browse urls
 ```js
-const urls = await browseUrls();
+const urls = await browse('url');
 ````
 
 | Query argument     | Query value     | 
@@ -347,9 +255,9 @@ Implements [XML Web Service/Version 2/Search](https://wiki.musicbrainz.org/Devel
 
 There are different search fields depending on the entity.
 
-### Generic search function
+### Search function
 
-Searches can be performed using the generic search function: `query(entity: mb.EntityType, query: string | IFormData, offset?: number, limit?: number)`
+Searches can be performed using the generic search function: `query(entity: mb.EntityType, query: string | IFormData, offset?: number, limit?: number): Promise<entity>`
 
 Arguments:
 *   Entity type, which can be one of:
@@ -392,27 +300,25 @@ Same as previous example, but automatically serialize parameters to search query
  mbApi.search('release', 'barcode: 602537479870');
 ````
 
-### Entity specific search functions
-
-The following entity specific search functions are available:
-```TypeScript
-searchArtist(query: string | IFormData, offset?: number, limit?: number): Promise<mb.IArtistList>
-searchReleaseGroup(query: string | IFormData, offset?: number, limit?: number): Promise<mb.IReleaseGroupList>`
-```
+##### Example: search artist by artist name
 
 Search artist:
 ```js
-const result = await mbApi.searchArtist({query: 'Stromae'});
+const result = await mbApi.search('artist', {query: 'Stromae'});
 ```
+
+##### Example: search release-group by artist name
 
 Search release-group:
 ```js
-const result = await mbApi.searchReleaseGroup({query: 'Racine carrée'});
+const result = await mbApi.search('release-group', {query: 'Racine carrée'});
 ```
+
+##### Example: search release-group by release-group and an artist
 
 Search a combination of a release-group and an artist.
 ```js
-const result = await mbApi.searchReleaseGroup({artist: 'Racine carrée', releasegroup: 'Stromae'});
+const result = await mbApi.search('release-group', {artist: 'Racine carrée', releasegroup: 'Stromae'});
 ```
 
 # Submitting data via XML POST
@@ -439,7 +345,7 @@ For all of the following function you need to use a dedicated bot account.
 
 ## Submitting ISRC via post user form-data
 
-<img width="150" src="http://www.clker.com/cliparts/i/w/L/q/u/1/work-in-progress.svg"/>
+<img width="150" src="http://www.clker.com/cliparts/i/w/L/q/u/1/work-in-progress.svg" alt="Work in progress"/>
 Use with caution, and only on a test server, it may clear existing metadata as side effect.
       
 ```js
@@ -448,7 +354,7 @@ const mbid_Formidable = '16afa384-174e-435e-bfa3-5591accda31c';
 const isrc_Formidable = 'BET671300161';
 
     
-const recording = await mbApi.lookupRecording(mbid_Formidable);
+const recording = await mbApi.lookup('recording', mbid_Formidable);
 
 // Authentication the http-session against MusicBrainz (as defined in config.baseUrl)
 const succeed = await mbApi.login();
@@ -461,7 +367,7 @@ await mbApi.addIsrc(recording, isrc_Formidable);
 ### Submit recording URL
 
 ```js
-const recording = await mbApi.lookupRecording('16afa384-174e-435e-bfa3-5591accda31c');
+const recording = await mbApi.lookup('recording', '16afa384-174e-435e-bfa3-5591accda31c');
 
 const succeed = await mbApi.login();
 assert.isTrue(succeed, 'Login successful');
@@ -474,7 +380,7 @@ await mbApi.addUrlToRecording(recording, {
 
 Actually a Spotify-track-ID can be submitted easier: 
 ```js
-const recording = await mbApi.lookupRecording('16afa384-174e-435e-bfa3-5591accda31c');
+const recording = await mbApi.lookup('recording', '16afa384-174e-435e-bfa3-5591accda31c');
 
 const succeed = await mbApi.login();
 assert.isTrue(succeed, 'Login successful');
