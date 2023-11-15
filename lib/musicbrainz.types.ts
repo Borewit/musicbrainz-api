@@ -113,6 +113,7 @@ export interface IRelease extends IEntity {
   relations?: IRelation[];
   'artist-credit'?: IArtistCredit[]; // Include 'artist-credits '
   'release-group'?: IReleaseGroup; // Include: 'release-groups'
+  collections?: ICollection[]
 }
 
 export interface IReleaseEvent {
@@ -175,16 +176,19 @@ export interface IReleaseGroup extends IEntity {
   releases?: IRelease[]; // include 'releases'
 }
 
+export interface IAreaMatch extends IArea, IMatch {
+}
+
 export interface IArtistMatch extends IArtist, IMatch {
+}
+
+export interface IRecordingMatch extends IRecording, IMatch {
 }
 
 export interface IReleaseGroupMatch extends IReleaseGroup, IMatch {
 }
 
 export interface IReleaseMatch extends IRelease, IMatch {
-}
-
-export interface IAreaMatch extends IArea, IMatch {
 }
 
 export interface ISearchResult {
@@ -204,6 +208,11 @@ export interface IAreaList extends ISearchResult {
 export interface IReleaseList extends ISearchResult {
   releases: IReleaseMatch[];
   'release-count': number;
+}
+
+export interface IRecordingList extends ISearchResult {
+  recordings: IRecordingMatch[];
+  'recordings-count': number;
 }
 
 export interface IReleaseGroupList extends ISearchResult {
@@ -348,6 +357,7 @@ export interface ISearchQuery<I extends string> extends IPagination {
    */
   query?: string | IFormData,
   inc?: I[]
+  artist?: string;
 }
 
 /**
@@ -593,7 +603,7 @@ export interface IBrowseReleasesQuery extends IPagination {
 /**
  * Browse release-groups query <entity>: <MBID>
  */
-export interface IReleaseGroupsQuery extends IPagination {
+export interface IBrowseReleaseGroupsQuery extends IPagination {
   artist?: string;
   collection?: string;
   release?: string;
@@ -685,13 +695,13 @@ export interface IBrowseReleaseGroupsResult {
 }
 
 export interface IBrowseSeriesResult {
-  series: IReleaseGroupsQuery[];
+  series: IReleaseGroup[];
   'series-count': number;
   'series-offset': number;
 }
 
 export interface IBrowseWorksResult {
-  works: IReleaseGroupsQuery[];
+  works: IReleaseGroup[];
   'work-count': number;
   'work-offset': number;
 }
