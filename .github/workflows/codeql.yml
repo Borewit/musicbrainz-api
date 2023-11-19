@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ "master" ]
   schedule:
-    - cron: "29 4 * * 0"
+    - cron: '26 7 * * 4'
 
 jobs:
   analyze:
@@ -20,10 +20,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ javascript ]
+        language: [ 'javascript-typescript' ]
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Initialize CodeQL
