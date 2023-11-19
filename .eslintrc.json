@@ -139,9 +139,9 @@
     ],
     "id-match": "error",
     "import/no-extraneous-dependencies": [
-      "error",
+      "warn",
       {
-        "devDependencies": false
+        "devDependencies": ["dev/**/*.ts"]
       }
     ],
     "import/no-internal-modules": "off",

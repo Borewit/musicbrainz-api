@@ -3250,6 +3250,11 @@ randombytes@^2.1.0:
   dependencies:
     safe-buffer "^5.1.0"
 
+rate-limit-threshold@^0.1.5:
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/rate-limit-threshold/-/rate-limit-threshold-0.1.5.tgz#8ad563a4af813b4a871a8bbd2b9aaff7625e6881"
+  integrity sha512-75vpvXC/ZqQJrFDp0dVtfoXZi8kxQP2eBuxVYFvGDfnHhcgE+ZG870u4ItQhWQh54Y6nNwOaaq5g3AL9n27lTg==
+
 read-package-json-fast@^3.0.0, read-package-json-fast@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/read-package-json-fast/-/read-package-json-fast-3.0.2.tgz#394908a9725dc7a5f14e70c8e7556dff1d2b1049"

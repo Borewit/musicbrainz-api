@@ -11,7 +11,7 @@ export { XmlRecording } from './xml/xml-recording.js';
 import { XmlMetadata } from './xml/xml-metadata.js';
 import { DigestAuth } from './digest-auth.js';
 
-import { RateLimiter } from './rate-limiter.js';
+import { RateLimitThreshold } from 'rate-limit-threshold';
 import * as mb from './musicbrainz.types.js';
 
 import got, {type Options, type ToughCookieJar} from 'got';
@@ -202,7 +202,7 @@ export class MusicBrainzApi {
     botAccount: {}
   };
 
-  private rateLimiter: RateLimiter;
+  private rateLimiter: RateLimitThreshold;
   private options: Options;
   private session?: ISessionInformation;
 
@@ -247,14 +247,15 @@ export class MusicBrainzApi {
       cookieJar: cookieJar as ToughCookieJar
     };
 
-    this.rateLimiter = new RateLimiter(15, 18);
+    this.rateLimiter = new RateLimitThreshold(15, 18);
   }
 
   public async restGet<T>(relUrl: string, query: { [key: string]: any; } = {}, attempt: number = 1): Promise<T> {
 
     query.fmt = 'json';
 
-    await this.rateLimiter.limit();
+    const delay = await this.rateLimiter.limit();
+    debug(`Client side rate limiter activated: cool down for ${Math.round(delay / 100)/10} s...`);
     const response: any = await got.get('ws/2' + relUrl, {
       ...this.options,
       searchParams: query,
