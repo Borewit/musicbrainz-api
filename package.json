@@ -80,7 +80,6 @@
     "remark-cli": "^12.0.0",
     "remark-preset-lint-recommended": "^6.1.2",
     "ts-node": "^10.0.0",
-    "tslint": "^6.1.1",
     "typescript": "^5.0.2"
   },
   "scripts": {
