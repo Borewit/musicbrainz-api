@@ -1,6 +1,6 @@
 {
   "name": "musicbrainz-api",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "description": "MusicBrainz API client for reading and submitting metadata",
   "exports": "./lib/index.js",
   "types": "lib/index.d.ts",
