@@ -98,7 +98,7 @@ const artist = await mbApi.lookup('artist', 'ab2528d9-719f-4261-8098-21849222a0f
 ### Browse artist
 
 ```js
-const artists = await browse('artist', query);
+const artists = await mbApi.browse('artist', query);
 ````
 
 | Query argument        | Query value        | 
@@ -112,7 +112,7 @@ const artists = await browse('artist', query);
 
 ### Browse collection
 ```js
-const collections = await browse('collection', query);
+const collections = await mbApi.browse('collection', query);
 ````
 
 | Query argument        | Query value        | 
@@ -130,7 +130,7 @@ const collections = await browse('collection', query);
 
 ### Browse events
 ```js
-const events = await browse('event', query);
+const events = await mbApi.browse('event', query);
 ````
 
 | Query argument        | Query value     | 
@@ -142,7 +142,7 @@ const events = await browse('event', query);
 
 ### Browse instruments
 ```js
-const instruments = await browse('event', query);
+const instruments = await mbApi.browse('event', query);
 ````
 
 | Query argument        | Query value        | 
@@ -151,7 +151,7 @@ const instruments = await browse('event', query);
 
 ### Browse labels
 ```js
-const labels = await browse('label', query);
+const labels = await mbApi.browse('label', query);
 ````
 
 | Query argument     | Query value     | 
@@ -162,7 +162,7 @@ const labels = await browse('label', query);
 
 ### Browse places
 ```js
-const places = await browse('place', query);
+const places = await mbApi.browse('place', query);
 ````
 
 | Query argument     | Query value     | 
@@ -172,7 +172,7 @@ const places = await browse('place', query);
 
 ### Browse recordings
 ```js
-const recordings = await browse('recording', query);
+const recordings = await mbApi.browse('recording', query);
 ````
 
 | Query argument     | Query value     | 
@@ -184,7 +184,7 @@ const recordings = await browse('recording', query);
 
 ### Browse releases
 ```js
-const releases = await browse('release', query);
+const releases = await mbApi.browse('release', query);
 ````
 
 | Query argument        | Query value        | 
@@ -202,7 +202,7 @@ const releases = await browse('release', query);
 
 ### Browse release-groups
 ```js
-const releaseGroups = await browse('release-group',query);
+const releaseGroups = await mbApi.browse('release-group',query);
 ```
 
 | Query argument     | Query value     | 
@@ -213,7 +213,7 @@ const releaseGroups = await browse('release-group',query);
 
 ### Browse series
 ```js
-const series = await browse('series');
+const series = await mbApi.browse('series');
 ````
 
 | Query argument        | Query value        | 
@@ -231,7 +231,7 @@ const series = await browse('series');
 
 ### Browse works
 ```js
-const works = await browse('work');
+const works = await mbApi.browse('work');
 ````
 
 | Query argument     | Query value     | 
@@ -241,7 +241,7 @@ const works = await browse('work');
 
 ### Browse urls
 ```js
-const urls = await browse('url');
+const urls = await mbApi.browse('url');
 ````
 
 | Query argument     | Query value     | 
@@ -277,7 +277,7 @@ Arguments:
 For example, to find any recordings of _'We Will Rock You'_ by Queen:
 ```js
 const query = 'query="We Will Rock You" AND arid:0383dadf-2a4e-4d10-a46a-e9e041da8eb3';
-const result = await mbApi.query<mb.IReleaseGroupList>('release-group', {query});
+const result = await mbApi.search('release-group', {query});
 ```
 
 ##### Example: search Île-de-France
