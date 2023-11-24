@@ -44,18 +44,12 @@ export interface IArtist extends IEntity {
   country?: string;
   ipis?: any[]; // ToDo
   isnis?: string[];
-  aliases?: IAlias[];
+  // aliases?: IAlias[];
   gender?: string;
   type?: string;
   area?: IArea;
   begin_area?: IArea;
   end_area?: IArea;
-  relations?: IRelation[];
-  /**
-   * Only defined if 'releases' are includes
-   */
-  releases?: IRelease[];
-  'release-groups'?: IReleaseGroup[];
 }
 
 export interface IArtistCredit {
@@ -98,18 +92,18 @@ export interface IRelease extends IEntity {
   title: string;
   'text-representation': { 'language': string, 'script': string },
   disambiguation: string;
-  asin: string,
+  asin?: string,
   'status-id': string;
   packaging?: string;
   status: string;
   'packaging-id'?: string;
   'release-events'?: IReleaseEvent[];
   date: string;
-  media: IMedium[];
+  // media: IMedium[];
   'cover-art-archive': ICoverArtArchive;
   country: string;
   quality: string; // type ReleaseQuality doesnt work here
-  barcode: string;
+  barcode?: string;
   relations?: IRelation[];
   'artist-credit'?: IArtistCredit[]; // Include 'artist-credits '
   'release-group'?: IReleaseGroup; // Include: 'release-groups'
@@ -254,6 +248,11 @@ export interface ILabel extends IEntity {
   name: string;
 }
 
+export interface ILabelInformation {
+  catalog_number: string;
+  label: ILabel;
+}
+
 export interface IPlace extends IEntity {
   name: string;
 }
@@ -289,6 +288,17 @@ export interface IExernalIds {
 
 export interface IReleaseSearchResult extends ISearchResult {
   releases: IRelease[];
+}
+
+export interface ITag {
+  count: number;
+  name: string;
+}
+
+export interface IGenre extends IEntity {
+  count: number;
+  disambiguation: string;
+  name: string;
 }
 
 /**
@@ -704,4 +714,109 @@ export interface IBrowseWorksResult {
   works: IReleaseGroup[];
   'work-count': number;
   'work-offset': number;
+}
+
+export interface LookupAreaIncludes {
+  aliases?: IAlias[];
+  annotation?: string;
+  tags?: ITag[];
+  genres?: IGenre[];
+  'area-rels': IRelation[];
+}
+
+export interface LookupArtistIncludes {
+  aliases?: IAlias[];
+  annotation?: string;
+  tags?: ITag[];
+  genres?: IGenre[];
+  'area-rels': IRelation[];
+  recordings: IRecording[];
+  releases: IRelease[];
+  'release-groups': IReleaseGroup[];
+}
+
+export interface LookupCollectionIncludes {
+  aliases?: IAlias[];
+  annotation?: string;
+  tags?: ITag[];
+  genres?: IGenre[];
+  'user-collections': ICollection[];
+}
+
+export interface LookupInstrumentIncludes {
+  aliases?: IAlias[];
+  annotation?: string;
+  tags?: ITag[];
+  genres?: IGenre[];
+}
+
+export interface LookupLabelIncludes {
+  aliases?: IAlias[];
+  annotation?: string;
+  tags?: ITag[];
+  genres?: IGenre[];
+  'label-rels': IRelation[];
+  releases: IRelease[];
+}
+
+export interface LookupPlaceIncludes {
+  aliases?: IAlias[];
+  annotation?: string;
+  tags?: ITag[];
+  genres?: IGenre[];
+}
+
+export interface LookupReleaseIncludes {
+  annotation?: string;
+  tags?: ITag[];
+  genres?: IGenre[];
+  'artist-credits'?: IArtistCredit[];
+  labels?: ILabelInformation[];
+  recordings?: IMedium[];
+  'release-groups'?: IReleaseGroup[];
+  media?: IMedium[];
+  discids?: (IMedium & {disc: any[]})[];
+}
+
+export interface LookupReleaseGroupIncludes {
+  annotation?: string;
+  tags?: ITag[];
+  genres?: IGenre[];
+  'artist-credits'?: IArtistCredit[];
+}
+
+export interface LookupRecordingIncludes {
+  annotation?: string;
+  tags?: ITag[];
+  genres?: IGenre[];
+  'artist-credits': IArtistCredit[];
+  isrcs: string[];
+}
+
+export interface LookupSeriesIncludes {
+  aliases?: IAlias[];
+  annotation?: string;
+  tags?: ITag[];
+  genres?: IGenre[];
+}
+
+export interface LookupWorkIncludes {
+  aliases?: IAlias[];
+  annotation?: string;
+  tags?: ITag[];
+  genres?: IGenre[];
+}
+
+export interface LookupUrlIncludes {
+  aliases?: IAlias[];
+  annotation?: string;
+  tags?: ITag[];
+  genres?: IGenre[];
+}
+
+export interface LookupEventIncludes {
+  aliases?: IAlias[];
+  annotation?: string;
+  tags?: ITag[];
+  genres?: IGenre[];
 }
