@@ -70,7 +70,7 @@ export type MiscIncludes =
   | 'ratings'
   | 'media';
 
-export type AreaIncludes = MiscIncludes | RelationsIncludes;
+export type AreaIncludes = Exclude<MiscIncludes, "ratings"> | RelationsIncludes;
 
 export type ArtistIncludes =
   MiscIncludes
@@ -273,19 +273,32 @@ export class MusicBrainzApi {
    * @param mbid Entity MBID
    * @param inc Query, like: {<entity>: <MBID:}
    */
-  public lookup(entity: 'area', mbid: string, inc?: AreaIncludes[]): Promise<mb.IArea>;
-  public lookup(entity: 'artist', mbid: string, inc?: ArtistIncludes[]): Promise<mb.IArtist>;
-  public lookup(entity: 'collection', mbid: string, inc?: CollectionIncludes[]): Promise<mb.ICollection>;
-  public lookup(entity: 'instrument', mbid: string, inc?: InstrumentIncludes[]): Promise<mb.IInstrument>;
-  public lookup(entity: 'label', mbid: string, inc?: LabelIncludes[]): Promise<mb.ILabel>;
-  public lookup(entity: 'place', mbid: string, inc?: PlaceIncludes[]): Promise<mb.IPlace>;
-  public lookup(entity: 'release', mbid: string, inc?: ReleaseIncludes[]): Promise<mb.IRelease>;
-  public lookup(entity: 'release-group', mbid: string, inc?: ReleaseGroupIncludes[]): Promise<mb.IReleaseGroup>;
-  public lookup(entity: 'recording', mbid: string, inc?: RecordingIncludes[]): Promise<mb.IRecording>;
-  public lookup(entity: 'series', mbid: string, inc?: SeriesIncludes[]): Promise<mb.ISeries>;
-  public lookup(entity: 'work', mbid: string, inc?: WorkIncludes[]): Promise<mb.IWork>;
-  public lookup(entity: 'url', mbid: string, inc?: UrlIncludes[]): Promise<mb.IUrl>;
-  public lookup(entity: 'event', mbid: string, inc?: EventIncludes[]): Promise<mb.IEvent>;
+  public lookup(entity: 'area', mbid: string): Promise<mb.IArea>;
+  public lookup<T extends (keyof mb.LookupAreaIncludes)[]>(entity: 'area', mbid: string, inc: T): Promise<mb.IArea & { [K in T[number]]: mb.LookupAreaIncludes[K] }>;
+  public lookup(entity: 'artist', mbid: string): Promise<mb.IArtist>;
+  public lookup<T extends (keyof mb.LookupArtistIncludes)[]>(entity: 'artist', mbid: string, inc: T): Promise<mb.IArtist & { [K in T[number]]: mb.LookupArtistIncludes[K] }>;
+  public lookup(entity: 'collection', mbid: string): Promise<mb.ICollection>;
+  public lookup<T extends (keyof mb.LookupCollectionIncludes)[]>(entity: 'collection', mbid: string, inc: T): Promise<mb.ICollection & { [K in T[number]]: mb.LookupCollectionIncludes[K] }>;
+  public lookup(entity: 'instrument', mbid: string): Promise<mb.IInstrument>;
+  public lookup<T extends (keyof mb.LookupInstrumentIncludes)[]>(entity: 'instrument', mbid: string, inc: T): Promise<mb.IInstrument& { [K in T[number]]: mb.LookupInstrumentIncludes[K] }>;
+  public lookup(entity: 'label', mbid: string): Promise<mb.ILabel>;
+  public lookup<T extends (keyof mb.LookupLabelIncludes)[]>(entity: 'label', mbid: string, inc: T): Promise<mb.ILabel & { [K in T[number]]: mb.LookupLabelIncludes[K] }>;
+  public lookup(entity: 'place', mbid: string): Promise<mb.IPlace>;
+  public lookup<T extends (keyof mb.LookupPlaceIncludes)[]>(entity: 'place', mbid: string, inc: T): Promise<mb.IPlace & { [K in T[number]]: mb.LookupPlaceIncludes[K] }>;
+  public lookup(entity: 'release', mbid: string): Promise<mb.IRelease>;
+  public lookup<T extends (keyof mb.LookupReleaseIncludes)[]>(entity: 'release', mbid: string, inc: T): Promise<mb.IRelease & { [K in T[number]]: mb.LookupReleaseIncludes[K] }>;
+  public lookup(entity: 'release-group', mbid: string): Promise<mb.IReleaseGroup>;
+  public lookup<T extends (keyof mb.LookupReleaseGroupIncludes)[]>(entity: 'release-group', mbid: string, inc: T): Promise<mb.IReleaseGroup & { [K in T[number]]: mb.LookupReleaseGroupIncludes[K] }>;
+  public lookup(entity: 'recording', mbid: string): Promise<mb.IRecording>;
+  public lookup<T extends (keyof mb.LookupRecordingIncludes)[]>(entity: 'recording', mbid: string, inc: T): Promise<mb.IRecording & { [K in T[number]]: mb.LookupRecordingIncludes[K] }>;
+  public lookup(entity: 'series', mbid: string): Promise<mb.ISeries>;
+  public lookup<T extends (keyof mb.LookupSeriesIncludes)[]>(entity: 'series', mbid: string, inc: T): Promise<mb.ISeries & { [K in T[number]]: mb.LookupSeriesIncludes[K] }>;
+  public lookup(entity: 'work', mbid: string): Promise<mb.IWork>;
+  public lookup<T extends (keyof mb.LookupWorkIncludes)[]>(entity: 'work', mbid: string, inc: T): Promise<mb.IWork & { [K in T[number]]: mb.LookupWorkIncludes[K] }>;
+  public lookup(entity: 'url', mbid: string): Promise<mb.IUrl>;
+  public lookup<T extends (keyof mb.LookupUrlIncludes)[]>(entity: 'url', mbid: string, inc: T): Promise<mb.IUrl & { [K in T[number]]: mb.LookupUrlIncludes[K] }>;
+  public lookup(entity: 'event', mbid: string): Promise<mb.IEvent>;
+  public lookup<T extends (keyof mb.LookupEventIncludes)[]>(entity: 'event', mbid: string, inc: T): Promise<mb.IEvent & { [K in T[number]]: mb.LookupEventIncludes[K] }>;
   public lookup<T, I extends string = never>(entity: mb.EntityType, mbid: string, inc: I[] = []): Promise<T> {
     return this.restGet<T>(`/${entity}/${mbid}`, {inc: inc.join(' ')});
   }
