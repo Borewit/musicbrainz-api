@@ -60,10 +60,10 @@ export class CoverArtArchiveApi {
 
   /**
    *
-   * @param releaseId MusicBrainz Release Group MBID
+   * @param releaseGroupId MusicBrainz Release Group MBID
    */
-  public async getReleaseCovers(releaseGroupId: string, coverType?: 'front' | 'back'): Promise<ICoverInfo> {
-    const path = ['release-group', releaseId];
+  public async getReleaseGroupCovers(releaseGroupId: string, coverType?: 'front' | 'back'): Promise<ICoverInfo> {
+    const path = ['release-group', releaseGroupId];
     if (coverType) {
       path.push(coverType);
     }
@@ -74,5 +74,4 @@ export class CoverArtArchiveApi {
     }
     return info;
   }
-
 }
