@@ -58,4 +58,20 @@ export class CoverArtArchiveApi {
     return info;
   }
 
+  /**
+   *
+   * @param releaseGroupId MusicBrainz Release Group MBID
+   */
+  public async getReleaseGroupCovers(releaseGroupId: string, coverType?: 'front' | 'back'): Promise<ICoverInfo> {
+    const path = ['release-group', releaseGroupId];
+    if (coverType) {
+      path.push(coverType);
+    }
+    const info = await this.getJson('/' + path.join('/')) as ICoverInfo;
+    // Hack to correct http addresses into https
+    if (info.release && info.release.startsWith('http:')) {
+      info.release = 'https' + info.release.substring(4);
+    }
+    return info;
+  }
 }
