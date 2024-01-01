@@ -74,7 +74,7 @@
     "eslint-config-prettier": "^9.0.0",
     "eslint-import-resolver-typescript": "^3.3.0",
     "eslint-plugin-import": "^2.25.4",
-    "eslint-plugin-jsdoc": "^46.8.2",
+    "eslint-plugin-jsdoc": "^47.0.2",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-unicorn": "^49.0.0",
     "mocha": "^10.1.0",
