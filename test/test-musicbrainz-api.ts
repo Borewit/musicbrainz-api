@@ -907,4 +907,13 @@ describe('Cover Art Archive API', function() {
     assert.ok(releaseCoverInfo.images.length > 0, 'releaseCoverInfo.images.length > 0');
   });
 
+  it('Get front cover for release group Formidable', async () => {
+    const coverArtArchiveApiClient = new CoverArtArchiveApi();
+    const releaseCoverInfo = await coverArtArchiveApiClient.getReleaseCovers(mbid.releaseGroup.Formidable);
+    assert.isDefined(releaseCoverInfo);
+    assert.strictEqual(releaseCoverInfo.release, releaseMusicBrainzBaseUrl + mbid.releaseGroup.Formidable, 'releaseCoverInfo.release');
+    assert.isDefined(releaseCoverInfo.images, 'releaseCoverInfo.images');
+    assert.ok(releaseCoverInfo.images.length > 0, 'releaseCoverInfo.images.length > 0');
+  });
+
 });
