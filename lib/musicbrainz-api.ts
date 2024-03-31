@@ -134,7 +134,7 @@ export type IFormData = {[key: string]: string | number};
 const debug = Debug('musicbrainz-api');
 
 export interface IMusicBrainzConfig {
-  botAccount: {
+  botAccount?: {
     username?: string,
     password?: string
   },
@@ -198,8 +198,7 @@ export class MusicBrainzApi {
   }
 
   public readonly config: IMusicBrainzConfig = {
-    baseUrl: 'https://musicbrainz.org',
-    botAccount: {}
+    baseUrl: 'https://musicbrainz.org'
   };
 
   private rateLimiter: RateLimitThreshold;
@@ -390,8 +389,8 @@ export class MusicBrainzApi {
 
   public async login(): Promise<boolean> {
 
-    assert.ok(this.config.botAccount.username, 'bot username should be set');
-    assert.ok(this.config.botAccount.password, 'bot password should be set');
+    assert.ok(this.config.botAccount?.username, 'bot username should be set');
+    assert.ok(this.config.botAccount?.password, 'bot password should be set');
 
     if (this.session && this.session.loggedIn) {
       for (const cookie of await this.getCookies(this.options.prefixUrl as string)) {
@@ -461,8 +460,8 @@ export class MusicBrainzApi {
 
     formData.csrf_session_key = this.session.csrf.sessionKey;
     formData.csrf_token = this.session.csrf.token;
-    formData.username = this.config.botAccount.username;
-    formData.password = this.config.botAccount.password;
+    formData.username = this.config.botAccount?.username;
+    formData.password = this.config.botAccount?.password;
     formData.remember_me = 1;
 
     const response = await got.post(`${entity}/${mbid}/edit`, {

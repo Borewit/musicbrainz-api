@@ -58,7 +58,6 @@ async function makeSearchApi(): Promise<MusicBrainzApi> {
   return new MusicBrainzApi({
 
     baseUrl: 'https://musicbrainz.org',
-    botAccount: {},
 
     /**
      * Enable proxy, like Fiddler
