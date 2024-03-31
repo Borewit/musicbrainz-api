@@ -166,37 +166,6 @@ export interface ISessionInformation {
 
 export class MusicBrainzApi {
 
-  private static escapeText(text: string): string {
-    let str = '';
-    for (const chr of text) {
-      // Escaping Special Characters: + - && || ! ( ) { } [ ] ^ " ~ * ? : \ /
-      // ToDo: && ||
-      switch (chr) {
-        case '+':
-        case '-':
-        case '!':
-        case '(':
-        case ')':
-        case '{':
-        case '}':
-        case '[':
-        case ']':
-        case '^':
-        case '"':
-        case '~':
-        case '*':
-        case '?':
-        case ':':
-        case '\\':
-        case '/':
-          str += '\\';
-
-      }
-      str += chr;
-    }
-    return str;
-  }
-
   public readonly config: IMusicBrainzConfig = {
     baseUrl: 'https://musicbrainz.org',
     botAccount: {}
@@ -220,8 +189,7 @@ export class MusicBrainzApi {
       if (pos >= 0) {
         pos += 7;
         const endValuePos = html.indexOf('"', pos);
-        const value = html.substring(pos, endValuePos);
-        return value;
+        return html.substring(pos, endValuePos);
       }
     }
   }
@@ -250,7 +218,7 @@ export class MusicBrainzApi {
     this.rateLimiter = new RateLimitThreshold(15, 18);
   }
 
-  public async restGet<T>(relUrl: string, query: { [key: string]: any; } = {}, attempt: number = 1): Promise<T> {
+  public async restGet<T>(relUrl: string, query: { [key: string]: any; } = {}): Promise<T> {
 
     query.fmt = 'json';
 
@@ -507,9 +475,8 @@ export class MusicBrainzApi {
    * Add ISRC to recording
    * @param recording Recording to update
    * @param isrc ISRC code to add
-   * @param editNote Edit note
    */
-  public async addIsrc(recording: mb.IRecording, isrc: string, editNote: string = '') {
+  public async addIsrc(recording: mb.IRecording, isrc: string) {
 
     const formData: IFormData = {};
 
