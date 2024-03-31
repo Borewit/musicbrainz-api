@@ -34,7 +34,6 @@
     "download covers"
   ],
   "license": "MIT",
-  "private": false,
   "engines": {
     "node": "^14.13.1 || >=16.0.0"
   },
@@ -111,5 +110,6 @@
       "text"
     ],
     "report-dir": "coverage"
-  }
+  },
+  "packageManager": "yarn@4.1.1"
 }
