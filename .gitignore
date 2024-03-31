@@ -14,3 +14,12 @@ priv
 .travis.yml
 tslint.json
 package-lock.json
+
+# Yarn Berry, not using Zero-Installs:
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

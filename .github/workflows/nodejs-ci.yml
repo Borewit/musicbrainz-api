@@ -15,11 +15,8 @@ jobs:
         with:
           node-version: 20.x
 
-      - name: Install production dependencies, check node engine compatibility
-        run: yarn install --production=true
-
-      - name: Install development dependencies
-        run: yarn install --production=false --ignore-engines
+      - name: Install dependencies
+        run: yarn install
 
       - name: Build & Code analysis
         run: yarn run lint
@@ -59,7 +56,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - name: Install dependencies
-        run: yarn install --ignore-engines
+        run: yarn install
 
       - name: Download build
         uses: actions/download-artifact@v3
