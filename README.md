@@ -391,6 +391,7 @@ await mbApi.addSpotifyIdToRecording(recording, '2AMysGXOe0zzZJMtH3Nizb');
 
 Implementation of the [Cover Art Archive API](https://musicbrainz.org/doc/Cover_Art_Archive/API).
 
+### Release Cover Art
 ```js
 import {CoverArtArchiveApi} from 'musicbrainz-api';
 
@@ -407,6 +408,25 @@ coverArtArchiveApiClient.getReleaseCovers(releaseMbid, 'back').then(releaseCover
 });
 
 ```
+
+### Release Group Cover Art
+```js
+import {CoverArtArchiveApi} from 'musicbrainz-api';
+
+coverArtArchiveApiClient.getReleaseGroupCovers(releaseGroupMbid).then(releaseGroupCoverInfo => {
+    console.log('Release cover info', releaseGroupCoverInfo);
+});
+
+coverArtArchiveApiClient.getReleaseGroupCovers(releaseGroupMbid, 'front').then(releaseGroupCoverInfo => {
+    console.log('Get best front cover', releaseGroupCoverInfo);
+});
+
+coverArtArchiveApiClient.getReleaseGroupCovers(releaseGroupMbid, 'back').then(releaseGroupCoverInfo => {
+    console.log('Get best back cover', releaseGroupCoverInfo);
+});
+
+```
+
 
 ## Compatibility
 
