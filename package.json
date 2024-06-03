@@ -69,7 +69,7 @@
     "c8": "^9.1.0",
     "chai": "^5.1.0",
     "del-cli": "^5.0.0",
-    "eslint": "^8.10.0",
+    "eslint": "^9.4.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-import-resolver-typescript": "^3.3.0",
     "eslint-plugin-import": "^2.25.4",
