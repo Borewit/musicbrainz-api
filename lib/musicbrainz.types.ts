@@ -146,7 +146,7 @@ export interface ITrack extends IEntity{
 
 export interface IMedium {
   title: string;
-  format?: string; // optional, type dosent work
+  format?: string; // optional, type doesn't work
   'format-id': string;
   tracks: ITrack[];
   'track-count': number;
