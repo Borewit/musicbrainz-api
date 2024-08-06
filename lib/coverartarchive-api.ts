@@ -32,9 +32,9 @@ export class CoverArtArchiveApi {
   private host = 'coverartarchive.org';
 
   private async getJson(path: string) {
-    const response = await got.get('https://' + this.host + path, {
+    const response = await got.get(`https://${this.host}${path}`, {
       headers: {
-        Accept: `application/json`
+        Accept: "application/json"
       },
       responseType: 'json'
     });
@@ -73,10 +73,10 @@ export class CoverArtArchiveApi {
     if (coverType) {
       path.push(coverType);
     }
-    const info = await this.getJson('/' + path.join('/')) as ICoverInfo;
+    const info = await this.getJson(`/${path.join('/')}`) as ICoverInfo;
     // Hack to correct http addresses into https
-    if (info.release && info.release.startsWith('http:')) {
-      info.release = 'https' + info.release.substring(4);
+    if (info.release?.startsWith('http:')) {
+      info.release = `https${info.release.substring(4)}`;
     }
     return info;
   }

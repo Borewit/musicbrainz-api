@@ -1,4 +1,4 @@
-import * as assert from 'assert';
+import * as assert from 'node:assert';
 
 import { StatusCodes as HttpStatus } from 'http-status-codes';
 import Debug from 'debug';
@@ -8,7 +8,7 @@ export { XmlIsrc } from './xml/xml-isrc.js';
 export { XmlIsrcList } from './xml/xml-isrc-list.js';
 export { XmlRecording } from './xml/xml-recording.js';
 
-import { XmlMetadata } from './xml/xml-metadata.js';
+import type { XmlMetadata } from './xml/xml-metadata.js';
 import { DigestAuth } from './digest-auth.js';
 
 import { RateLimitThreshold } from 'rate-limit-threshold';
@@ -20,7 +20,7 @@ import {type Cookie, CookieJar} from 'tough-cookie';
 
 export * from './musicbrainz.types.js';
 
-import { promisify } from 'util';
+import { promisify } from 'node:util';
 
 /*
  * https://musicbrainz.org/doc/Development/XML_Web_Service/Version_2#Subqueries
@@ -223,7 +223,7 @@ export class MusicBrainzApi {
 
     const delay = await this.rateLimiter.limit();
     debug(`Client side rate limiter activated: cool down for ${Math.round(delay / 100)/10} s...`);
-    const response: any = await got.get('ws/2' + relUrl, {
+    const response: any = await got.get(`ws/2${relUrl}`, {
       ...this.options,
       searchParams: query,
       responseType: 'json',
@@ -307,7 +307,7 @@ export class MusicBrainzApi {
     if (Array.isArray(query.inc)) {
       urlQuery.inc = urlQuery.inc.join(' ');
     }
-    return this.restGet<T>('/' + entity + '/', urlQuery);
+    return this.restGet<T>(`/${entity}/`, urlQuery);
   }
 
   // ---------------------------------------------------------------------------
@@ -319,7 +319,7 @@ export class MusicBrainzApi {
   public async post(entity: mb.EntityType, xmlMetadata: XmlMetadata): Promise<void> {
 
     if (!this.config.appName || !this.config.appVersion) {
-      throw new Error(`XML-Post requires the appName & appVersion to be defined`);
+      throw new Error("XML-Post requires the appName & appVersion to be defined");
     }
 
     const clientId = `${this.config.appName.replace(/-/g, '.')}-${this.config.appVersion}`;
@@ -360,7 +360,7 @@ export class MusicBrainzApi {
     assert.ok(this.config.botAccount?.username, 'bot username should be set');
     assert.ok(this.config.botAccount?.password, 'bot password should be set');
 
-    if (this.session && this.session.loggedIn) {
+    if (this.session?.loggedIn) {
       for (const cookie of await this.getCookies(this.options.prefixUrl as string)) {
         if (cookie.key === 'remember_login') {
           return true;
@@ -438,7 +438,7 @@ export class MusicBrainzApi {
       followRedirect: false
     });
     if (response.statusCode === HttpStatus.OK)
-      throw new Error(`Failed to submit form data`);
+      throw new Error("Failed to submit form data");
     if (response.statusCode === HttpStatus.MOVED_TEMPORARILY)
       return;
     throw new Error(`Unexpected status code: ${response.statusCode}`);
@@ -450,7 +450,7 @@ export class MusicBrainzApi {
    * @param url2add URL to add to the recording
    * @param editNote Edit note
    */
-  public async addUrlToRecording(recording: mb.IRecording, url2add: { linkTypeId: mb.LinkType, text: string }, editNote: string = '') {
+  public async addUrlToRecording(recording: mb.IRecording, url2add: { linkTypeId: mb.LinkType, text: string }, editNote = '') {
 
     const formData: {[key: string]: string | boolean | number} = {};
 
@@ -479,7 +479,7 @@ export class MusicBrainzApi {
 
     const formData: IFormData = {};
 
-    formData[`edit-recording.name`] = recording.title; // Required
+    formData["edit-recording.name"] = recording.title; // Required
 
     if (!recording.isrcs) {
       throw new Error('You must retrieve recording with existing ISRC values');
@@ -513,7 +513,7 @@ export class MusicBrainzApi {
 
     return this.addUrlToRecording(recording, {
       linkTypeId: mb.LinkType.stream_for_free,
-      text: 'https://open.spotify.com/track/' + spotifyId
+      text: `https://open.spotify.com/track/${spotifyId}`
     }, editNote);
   }
 

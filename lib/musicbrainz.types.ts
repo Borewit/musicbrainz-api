@@ -42,7 +42,7 @@ export interface IArtist extends IEntity {
   'gender-id'?: string;
   'life-span'?: IPeriod;
   country?: string;
-  ipis?: any[]; // ToDo
+  ipis?: string[];
   isnis?: string[];
   aliases?: IAlias[];
   gender?: string;
@@ -226,13 +226,13 @@ export interface IUrlList extends ISearchResult {
 export type RelationDirection = 'backward' | 'forward';
 
 export interface IRelation {
-  'attribute-ids':any;
+  'attribute-ids':unknown[];
   direction: RelationDirection;
   'target-credit': string;
   end: null | unknown;
   'source-credit': string;
   ended: boolean;
-  'attribute-values': unknown;
+  'attribute-values': unknown[];
   attributes?: any[];
   type: string;
   begin?: null | unknown;
