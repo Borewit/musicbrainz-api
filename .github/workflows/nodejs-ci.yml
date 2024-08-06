@@ -18,8 +18,11 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
-      - name: Build & Code analysis
-        run: yarn run lint
+      - name: Lint Typescript
+        run: yarn run lint-ts
+
+      - name: Lint Markdown
+        run: yarn run lint-md
 
       - name: Build
         run: yarn run build
@@ -43,7 +46,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [20.x, 22.x]
 
     steps:
 

@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import * as crypto from 'crypto';
+import * as crypto from 'node:crypto';
 
 interface IChallenge {
   algorithm?: string;
@@ -29,8 +29,8 @@ export class DigestAuth {
    *   HA1=MD5(MD5(username:realm:password):nonce:cnonce)
    */
   public static ha1Compute(algorithm: string, user: string, realm: string, pass: string, nonce: string, cnonce: string): string {
-    const ha1 = md5(user + ':' + realm + ':' + pass); // lgtm [js/insufficient-password-hash]
-    return algorithm && algorithm.toLowerCase() === 'md5-sess' ? md5(ha1 + ':' + nonce + ':' + cnonce) : ha1;
+    const ha1 = md5(`${user}:${realm}:${pass}`); // lgtm [js/insufficient-password-hash]
+    return algorithm && algorithm.toLowerCase() === 'md5-sess' ? md5(`${ha1}:${nonce}:${cnonce}`) : ha1;
   }
 
   public hasAuth: boolean;
@@ -67,10 +67,10 @@ export class DigestAuth {
     const nc = qop && '00000001';
     const cnonce = qop && uuidv4().replace(/-/g, '');
     const ha1 = DigestAuth.ha1Compute(challenge.algorithm as string, this.credentials.username, challenge.realm as string, this.credentials.password, challenge.nonce as string, cnonce as string);
-    const ha2 = md5(method + ':' + path); // lgtm [js/insufficient-password-hash]
+    const ha2 = md5(`${method}:${path}`); // lgtm [js/insufficient-password-hash]
     const digestResponse = qop
-      ? md5(ha1 + ':' + challenge.nonce + ':' + nc + ':' + cnonce + ':' + qop + ':' + ha2) // lgtm [js/insufficient-password-hash]
-      : md5(ha1 + ':' + challenge.nonce + ':' + ha2); // lgtm [js/insufficient-password-hash]
+      ? md5(`${ha1}:${challenge.nonce}:${nc}:${cnonce}:${qop}:${ha2}`) // lgtm [js/insufficient-password-hash]
+      : md5(`${ha1}:${challenge.nonce}:${ha2}`); // lgtm [js/insufficient-password-hash]
     const authValues = {
       username: this.credentials.username,
       realm: challenge.realm,
@@ -88,15 +88,15 @@ export class DigestAuth {
     Object.entries(authValues).forEach(([key, value]) => {
       if (value) {
         if (key === 'qop' || key === 'nc' || key === 'algorithm') {
-          parts.push(key + '=' + value);
+          parts.push(`${key}=${value}`);
         } else {
-          parts.push(key + '="' + value + '"');
+          parts.push(`${key}="${value}"`);
         }
       }
     });
 
-    authHeader = 'Digest ' + parts.join(', ');
+    const digest = `Digest ${parts.join(', ')}`;
     this.sentAuth = true;
-    return authHeader;
+    return digest;
   }
 }

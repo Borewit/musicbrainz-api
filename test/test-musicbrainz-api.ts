@@ -19,11 +19,11 @@ import {
   type ReleaseGroupIncludes,
   type ReleaseIncludes,
   LinkType,
-  MusicBrainzApi, RecordingIncludes, IRecording
+  MusicBrainzApi, type RecordingIncludes, type IRecording
 } from '../lib/index.js';
-import { assert } from 'chai';
-import * as mb from '../lib/musicbrainz.types.js';
-import { readFile } from 'fs/promises';
+import { assert, expect } from 'chai';
+import type * as mb from '../lib/musicbrainz.types.js';
+import { readFile } from 'node:fs/promises';
 
 const appUrl = 'https://github.com/Borewit/musicbrainz-api';
 
@@ -179,6 +179,8 @@ describe('MusicBrainz-api', function () {
         const artist = await mbApi.lookup('artist', mbid.artist.Stromae);
         assert.strictEqual(artist.id, mbid.artist.Stromae);
         assert.strictEqual(artist.name, 'Stromae');
+        // Ref: https://musicbrainz.org/doc/IPI
+        expect(artist.ipis).include('00497406811', 'Contain an Interested Parties Information Code (IPI)');
       });
 
       it('collection', async () => {
@@ -374,9 +376,9 @@ describe('MusicBrainz-api', function () {
 
       function areBunchOf(entity: string, bunch: any) {
         assert.isObject(bunch);
-        assert.isNumber(bunch[entity + '-count']);
-        assert.isNumber(bunch[entity + '-offset']);
-        assert.isArray(bunch[entity.endsWith('s') ? entity : (entity + 's')]);
+        assert.isNumber(bunch[`${entity}-count`]);
+        assert.isNumber(bunch[`${entity}-offset`]);
+        assert.isArray(bunch[entity.endsWith('s') ? entity : (`${entity}s`)]);
       }
 
       describe('area', async () => {
@@ -781,7 +783,7 @@ describe('MusicBrainz-api', function () {
 
       describe('searchUrl', () => {
 
-        const spotifyUrl = 'https://open.spotify.com/album/' + spotify.album.RacineCarree.id;
+        const spotifyUrl = `https://open.spotify.com/album/${spotify.album.RacineCarree.id}`;
 
         it('find url by url', async () => {
           const result = await mbApi.search('url', {query: {url: spotifyUrl}});
@@ -828,7 +830,7 @@ describe('MusicBrainz-api', function () {
 
         await mbTestApi.addUrlToRecording(recording, {
           linkTypeId: LinkType.stream_for_free,
-          text: 'https://open.spotify.com/track/' + spotify.track.Formidable.id
+          text: `https://open.spotify.com/track/${spotify.track.Formidable.id}`
         });
       });
 
