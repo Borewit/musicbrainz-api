@@ -1718,13 +1718,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"import-meta-resolve@npm:^3.0.0":
-  version: 3.1.1
-  resolution: "import-meta-resolve@npm:3.1.1"
-  checksum: 10c0/75545f3f0f4f789f15b91a541b2d3e9d5b25fc9e8c60e8423cbdef4fff226f45520bd040219c63eee001878f075e82b52e436ca0d7d05e6c4fdc0348b7f251dd
-  languageName: node
-  linkType: hard
-
 "import-meta-resolve@npm:^4.0.0":
   version: 4.0.0
   resolution: "import-meta-resolve@npm:4.0.0"
@@ -3463,16 +3456,16 @@ __metadata:
   linkType: hard
 
 "remark-cli@npm:^12.0.0":
-  version: 12.0.0
-  resolution: "remark-cli@npm:12.0.0"
+  version: 12.0.1
+  resolution: "remark-cli@npm:12.0.1"
   dependencies:
-    import-meta-resolve: "npm:^3.0.0"
+    import-meta-resolve: "npm:^4.0.0"
     markdown-extensions: "npm:^2.0.0"
     remark: "npm:^15.0.0"
     unified-args: "npm:^11.0.0"
   bin:
     remark: cli.js
-  checksum: 10c0/4d6681e63cb4b37c74e18814c9ff3e323267ec6f4e912a3c68c5c5bfe0b99fa8030513bb430270a2784b1ff01fe5cc2e80dfdf5945e3e03e652b917e6f8eadb6
+  checksum: 10c0/d1e4997ae5914df3072e09999e7327b388ade87cd78c55aa132375165bd5e60fd6c11e1dfcf8506fc88c79140fa3abb71a94e50035d96e6b996bc46b60aba3c0
   languageName: node
   linkType: hard
 
