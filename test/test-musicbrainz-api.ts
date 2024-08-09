@@ -894,15 +894,23 @@ describe('MusicBrainz-api', function () {
 
   describe("Rate limiting", () => {
     let mbTestApiNoLimit: MusicBrainzApi;
+    let mbTestApiLimit: MusicBrainzApi;
     let mbApiNoLimit: MusicBrainzApi;
+    let mbApiLimit: MusicBrainzApi;
     let rateLimiterSpy: sinon.SinonSpy;
 
     before(async () => {
       mbApiNoLimit = new MusicBrainzApi(await makeSearchApiConfig({
         disableRateLimiting: true
       }));
+      mbApiLimit = new MusicBrainzApi(await makeSearchApiConfig({
+        disableRateLimiting: false
+      }));
       mbTestApiNoLimit = new MusicBrainzApi(await makeTestApiConfig({
         disableRateLimiting: true
+      }));
+      mbTestApiLimit = new MusicBrainzApi(await makeTestApiConfig({
+        disableRateLimiting: false
       }));
     });
 
@@ -921,8 +929,15 @@ describe('MusicBrainz-api', function () {
         sinon.stub(got, "get").resolves({});
       });
 
-      it("rate limits when disableRateLimiting is false", async () => {
+      it("rate limits by default", async () => {
         await mbApi.restGet<IRecording>(
+          `/recording/${mbid.recording.Formidable}`
+        );
+        assert.isTrue(rateLimiterSpy.calledOnce);
+      });
+
+      it("rate limits when disableRateLimiting is false", async () => {
+        await mbApiLimit.restGet<IRecording>(
           `/recording/${mbid.recording.Formidable}`
         );
         assert.isTrue(rateLimiterSpy.calledOnce);
@@ -947,8 +962,13 @@ describe('MusicBrainz-api', function () {
         sinon.stub(got, "post").resolves({});
       });
 
-      it("rate limits when disableRateLimiting is false", async () => {
+      it("rate limits by default", async () => {
         await mbTestApi.post("recording", new XmlMetadata());
+        assert.isTrue(rateLimiterSpy.calledOnce);
+      });
+
+      it("rate limits when disableRateLimiting is false", async () => {
+        await mbTestApiLimit.post("recording", new XmlMetadata());
         assert.isTrue(rateLimiterSpy.calledOnce);
       });
 
@@ -966,11 +986,16 @@ describe('MusicBrainz-api', function () {
 
       beforeEach(() => {
         // Stub to avoid unecessary HTTP requests in the context of these tests
-        sinon.stub(got, "post").resolves({ body: {} });
+        sinon.stub(got, "post").resolves({});
+      });
+
+      it("rate limits by default", async () => {
+        await mbTestApi.editEntity("recording", mbid.recording.Formidable, {});
+        assert.isTrue(rateLimiterSpy.calledOnce);
       });
 
       it("rate limits when disableRateLimiting is false", async () => {
-        await mbTestApi.editEntity("recording", mbid.recording.Formidable, {});
+        await mbTestApiLimit.editEntity("recording", mbid.recording.Formidable, {});
         assert.isTrue(rateLimiterSpy.calledOnce);
       });
 
