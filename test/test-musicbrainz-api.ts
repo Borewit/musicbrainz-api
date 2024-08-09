@@ -19,7 +19,8 @@ import {
   type ReleaseGroupIncludes,
   type ReleaseIncludes,
   LinkType,
-  MusicBrainzApi, type RecordingIncludes, type IRecording
+  MusicBrainzApi, type RecordingIncludes, type IRecording,
+  type IMusicBrainzConfig
 } from '../lib/index.js';
 import { assert, expect } from 'chai';
 import type * as mb from '../lib/musicbrainz.types.js';
@@ -39,26 +40,11 @@ async function readPackageInfo() {
   return JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf-8'));
 }
 
-async function makeTestApi(): Promise<MusicBrainzApi> {
+async function makeTestApiConfig(
+  customConfig?: Partial<IMusicBrainzConfig>
+): Promise<IMusicBrainzConfig> {
   const packageInfo = await readPackageInfo();
-  return new MusicBrainzApi({
-    botAccount: testBotAccount,
-    baseUrl: 'https://test.musicbrainz.org',
-
-    /**
-     * Enable proxy, like Fiddler
-     */
-    proxy: process.env.MBPROXY,
-
-    appName: packageInfo.name,
-    appVersion: packageInfo.version,
-    appContactInfo: appUrl
-  });
-}
-
-async function makeTestApiWithoutRateLimiting(): Promise<MusicBrainzApi> {
-  const packageInfo = await readPackageInfo();
-  return new MusicBrainzApi({
+  return {
     botAccount: testBotAccount,
     baseUrl: 'https://test.musicbrainz.org',
 
@@ -71,13 +57,15 @@ async function makeTestApiWithoutRateLimiting(): Promise<MusicBrainzApi> {
     appVersion: packageInfo.version,
     appContactInfo: appUrl,
 
-    disableRateLimiting: true
-  });
+    ...customConfig
+  };
 }
 
-async function makeSearchApi(): Promise<MusicBrainzApi> {
+async function makeSearchApiConfig(
+  customConfig?: Partial<IMusicBrainzConfig>
+): Promise<IMusicBrainzConfig> {
   const packageInfo = await readPackageInfo();
-  return new MusicBrainzApi({
+  return {
 
     baseUrl: 'https://musicbrainz.org',
 
@@ -88,27 +76,10 @@ async function makeSearchApi(): Promise<MusicBrainzApi> {
 
     appName: packageInfo.name,
     appVersion: packageInfo.version,
-    appContactInfo: appUrl
-  });
-}
-
-async function makeSearchApiWithoutRateLimiting(): Promise<MusicBrainzApi> {
-  const packageInfo = await readPackageInfo();
-  return new MusicBrainzApi({
-
-    baseUrl: "https://musicbrainz.org",
-
-    /**
-     * Enable proxy, like Fiddler
-     */
-    proxy: process.env.MBPROXY,
-
-    appName: packageInfo.name,
-    appVersion: packageInfo.version,
     appContactInfo: appUrl,
 
-    disableRateLimiting: true
-  });
+    ...customConfig
+  };
 }
 
 const mbid = {
@@ -171,8 +142,8 @@ describe('MusicBrainz-api', function () {
   let mbApi: MusicBrainzApi;
 
   before(async () => {
-    mbTestApi = await makeTestApi();
-    mbApi = await makeSearchApi();
+    mbTestApi = new MusicBrainzApi(await makeTestApiConfig());
+    mbApi = new MusicBrainzApi(await makeSearchApiConfig());
     // Hack a shared rate-limiter
     (mbApi as any).rateLimiter = (mbTestApi as any).rateLimiter;
   });
@@ -927,8 +898,12 @@ describe('MusicBrainz-api', function () {
     let rateLimiterSpy: sinon.SinonSpy;
 
     before(async () => {
-      mbTestApiNoLimit = await makeTestApiWithoutRateLimiting();
-      mbApiNoLimit = await makeSearchApiWithoutRateLimiting();
+      mbApiNoLimit = new MusicBrainzApi(await makeSearchApiConfig({
+        disableRateLimiting: true
+      }));
+      mbTestApiNoLimit = new MusicBrainzApi(await makeTestApiConfig({
+        disableRateLimiting: true
+      }));
     });
 
     beforeEach(() => {
