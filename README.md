@@ -69,7 +69,10 @@ const config = {
    },
 
   // Your e-mail address, required for submitting ISRCs
-  appMail: string
+  appMail: string,
+
+  // Helpful if you have your own MusicBrainz server, default: false (optional)
+  disableRateLimiting: false,
 }
 
 const mbApi = new MusicbrainzApi(config);

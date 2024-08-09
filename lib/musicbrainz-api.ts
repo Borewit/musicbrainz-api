@@ -151,7 +151,9 @@ export interface IMusicBrainzConfig {
   /**
    * User e-mail address or application URL
    */
-  appContactInfo?: string
+  appContactInfo?: string,
+
+  disableRateLimiting?: boolean
 }
 
 export interface ICsrfSession {
@@ -221,8 +223,7 @@ export class MusicBrainzApi {
 
     query.fmt = 'json';
 
-    const delay = await this.rateLimiter.limit();
-    debug(`Client side rate limiter activated: cool down for ${Math.round(delay / 100)/10} s...`);
+    await this.applyRateLimiter();
     const response: any = await got.get(`ws/2${relUrl}`, {
       ...this.options,
       searchParams: query,
@@ -332,7 +333,7 @@ export class MusicBrainzApi {
     const postData = xmlMetadata.toXml();
 
     do {
-      await this.rateLimiter.limit();
+      await this.applyRateLimiter();
       const response: any = await got.post(path, {
         ...this.options,
         searchParams: {client: clientId},
@@ -422,7 +423,7 @@ export class MusicBrainzApi {
    */
   public async editEntity(entity: mb.EntityType, mbid: string, formData: Record<string, any>): Promise<void> {
 
-    await this.rateLimiter.limit();
+    await this.applyRateLimiter();
 
     this.session = await this.getSession();
 
@@ -528,6 +529,13 @@ export class MusicBrainzApi {
     return {
       csrf: MusicBrainzApi.fetchCsrf(response.body)
     };
+  }
+
+  private async applyRateLimiter() {
+    if (!this.config.disableRateLimiting) {
+      const delay = await this.rateLimiter.limit();
+      debug(`Client side rate limiter activated: cool down for ${Math.round(delay / 100)/10} s...`);
+    }
   }
 }
 
