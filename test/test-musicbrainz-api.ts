@@ -24,6 +24,9 @@ import {
 import { assert, expect } from 'chai';
 import type * as mb from '../lib/musicbrainz.types.js';
 import { readFile } from 'node:fs/promises';
+import sinon from 'sinon';
+import { RateLimitThreshold } from 'rate-limit-threshold';
+import got from 'got';
 
 const appUrl = 'https://github.com/Borewit/musicbrainz-api';
 
@@ -53,6 +56,25 @@ async function makeTestApi(): Promise<MusicBrainzApi> {
   });
 }
 
+async function makeTestApiWithoutRateLimiting(): Promise<MusicBrainzApi> {
+  const packageInfo = await readPackageInfo();
+  return new MusicBrainzApi({
+    botAccount: testBotAccount,
+    baseUrl: 'https://test.musicbrainz.org',
+
+    /**
+     * Enable proxy, like Fiddler
+     */
+    proxy: process.env.MBPROXY,
+
+    appName: packageInfo.name,
+    appVersion: packageInfo.version,
+    appContactInfo: appUrl,
+
+    disableRateLimiting: true
+  });
+}
+
 async function makeSearchApi(): Promise<MusicBrainzApi> {
   const packageInfo = await readPackageInfo();
   return new MusicBrainzApi({
@@ -67,6 +89,25 @@ async function makeSearchApi(): Promise<MusicBrainzApi> {
     appName: packageInfo.name,
     appVersion: packageInfo.version,
     appContactInfo: appUrl
+  });
+}
+
+async function makeSearchApiWithoutRateLimiting(): Promise<MusicBrainzApi> {
+  const packageInfo = await readPackageInfo();
+  return new MusicBrainzApi({
+
+    baseUrl: "https://musicbrainz.org",
+
+    /**
+     * Enable proxy, like Fiddler
+     */
+    proxy: process.env.MBPROXY,
+
+    appName: packageInfo.name,
+    appVersion: packageInfo.version,
+    appContactInfo: appUrl,
+
+    disableRateLimiting: true
   });
 }
 
@@ -878,6 +919,99 @@ describe('MusicBrainz-api', function () {
 
     });
 
+  });
+
+  describe("Rate limiting", () => {
+    let mbTestApiNoLimit: MusicBrainzApi;
+    let mbApiNoLimit: MusicBrainzApi;
+    let rateLimiterSpy: sinon.SinonSpy;
+
+    before(async () => {
+      mbTestApiNoLimit = await makeTestApiWithoutRateLimiting();
+      mbApiNoLimit = await makeSearchApiWithoutRateLimiting();
+    });
+
+    beforeEach(() => {
+      rateLimiterSpy = sinon.spy(RateLimitThreshold.prototype, "limit");
+    });
+
+    afterEach(() => {
+      rateLimiterSpy.restore();
+    });
+
+    describe('restGet', () => {
+
+      beforeEach(() => {
+        // Stub to avoid unecessary HTTP requests in the context of these tests
+        sinon.stub(got, "get").resolves({});
+      });
+
+      it("rate limits when disableRateLimiting is false", async () => {
+        await mbApi.restGet<IRecording>(
+          `/recording/${mbid.recording.Formidable}`
+        );
+        assert.isTrue(rateLimiterSpy.calledOnce);
+      });
+
+      it("does not rate limit when disableRateLimiting is true", async () => {
+        await mbApiNoLimit.restGet<IRecording>(
+          `/recording/${mbid.recording.Formidable}`
+        );
+        assert.isFalse(rateLimiterSpy.called);
+      });
+
+      afterEach(() => {
+        sinon.restore();
+      });
+    });
+
+    describe('post', () => {
+
+      beforeEach(() => {
+        // Stub to avoid unecessary HTTP requests in the context of these tests
+        sinon.stub(got, "post").resolves({});
+      });
+
+      it("rate limits when disableRateLimiting is false", async () => {
+        await mbTestApi.post("recording", new XmlMetadata());
+        assert.isTrue(rateLimiterSpy.calledOnce);
+      });
+
+      it("does not rate limit when disableRateLimiting is true", async () => {
+        await mbTestApiNoLimit.post("recording", new XmlMetadata());
+        assert.isFalse(rateLimiterSpy.called);
+      });
+
+      afterEach(() => {
+        sinon.restore();
+      });
+    });
+
+    describe.skip('editEntity', () => {
+
+      beforeEach(() => {
+        // Stub to avoid unecessary HTTP requests in the context of these tests
+        sinon.stub(got, "post").resolves({ body: {} });
+      });
+
+      it("rate limits when disableRateLimiting is false", async () => {
+        await mbTestApi.editEntity("recording", mbid.recording.Formidable, {});
+        assert.isTrue(rateLimiterSpy.calledOnce);
+      });
+
+      it("does not rate limit when disableRateLimiting is true", async () => {
+        await mbTestApiNoLimit.editEntity(
+          "recording",
+          mbid.recording.Formidable,
+          {}
+        );
+        assert.isFalse(rateLimiterSpy.called);
+      });
+
+      afterEach(() => {
+        sinon.restore();
+      });
+    });
   });
 
 });
