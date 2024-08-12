@@ -19,11 +19,15 @@ import {
   type ReleaseGroupIncludes,
   type ReleaseIncludes,
   LinkType,
-  MusicBrainzApi, type RecordingIncludes, type IRecording
+  MusicBrainzApi, type RecordingIncludes, type IRecording,
+  type IMusicBrainzConfig
 } from '../lib/index.js';
 import { assert, expect } from 'chai';
 import type * as mb from '../lib/musicbrainz.types.js';
 import { readFile } from 'node:fs/promises';
+import sinon from 'sinon';
+import { RateLimitThreshold } from 'rate-limit-threshold';
+import got from 'got';
 
 const appUrl = 'https://github.com/Borewit/musicbrainz-api';
 
@@ -36,9 +40,11 @@ async function readPackageInfo() {
   return JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf-8'));
 }
 
-async function makeTestApi(): Promise<MusicBrainzApi> {
+async function makeTestApiConfig(
+  customConfig?: Partial<IMusicBrainzConfig>
+): Promise<IMusicBrainzConfig> {
   const packageInfo = await readPackageInfo();
-  return new MusicBrainzApi({
+  return {
     botAccount: testBotAccount,
     baseUrl: 'https://test.musicbrainz.org',
 
@@ -49,13 +55,17 @@ async function makeTestApi(): Promise<MusicBrainzApi> {
 
     appName: packageInfo.name,
     appVersion: packageInfo.version,
-    appContactInfo: appUrl
-  });
+    appContactInfo: appUrl,
+
+    ...customConfig
+  };
 }
 
-async function makeSearchApi(): Promise<MusicBrainzApi> {
+async function makeSearchApiConfig(
+  customConfig?: Partial<IMusicBrainzConfig>
+): Promise<IMusicBrainzConfig> {
   const packageInfo = await readPackageInfo();
-  return new MusicBrainzApi({
+  return {
 
     baseUrl: 'https://musicbrainz.org',
 
@@ -66,8 +76,10 @@ async function makeSearchApi(): Promise<MusicBrainzApi> {
 
     appName: packageInfo.name,
     appVersion: packageInfo.version,
-    appContactInfo: appUrl
-  });
+    appContactInfo: appUrl,
+
+    ...customConfig
+  };
 }
 
 const mbid = {
@@ -130,8 +142,8 @@ describe('MusicBrainz-api', function () {
   let mbApi: MusicBrainzApi;
 
   before(async () => {
-    mbTestApi = await makeTestApi();
-    mbApi = await makeSearchApi();
+    mbTestApi = new MusicBrainzApi(await makeTestApiConfig());
+    mbApi = new MusicBrainzApi(await makeSearchApiConfig());
     // Hack a shared rate-limiter
     (mbApi as any).rateLimiter = (mbTestApi as any).rateLimiter;
   });
@@ -878,6 +890,128 @@ describe('MusicBrainz-api', function () {
 
     });
 
+  });
+
+  describe("Rate limiting", () => {
+    let mbTestApiNoLimit: MusicBrainzApi;
+    let mbTestApiLimit: MusicBrainzApi;
+    let mbApiNoLimit: MusicBrainzApi;
+    let mbApiLimit: MusicBrainzApi;
+    let rateLimiterSpy: sinon.SinonSpy;
+
+    before(async () => {
+      mbApiNoLimit = new MusicBrainzApi(await makeSearchApiConfig({
+        disableRateLimiting: true
+      }));
+      mbApiLimit = new MusicBrainzApi(await makeSearchApiConfig({
+        disableRateLimiting: false
+      }));
+      mbTestApiNoLimit = new MusicBrainzApi(await makeTestApiConfig({
+        disableRateLimiting: true
+      }));
+      mbTestApiLimit = new MusicBrainzApi(await makeTestApiConfig({
+        disableRateLimiting: false
+      }));
+    });
+
+    beforeEach(() => {
+      rateLimiterSpy = sinon.spy(RateLimitThreshold.prototype, "limit");
+    });
+
+    afterEach(() => {
+      rateLimiterSpy.restore();
+    });
+
+    describe('restGet', () => {
+
+      beforeEach(() => {
+        // Stub to avoid unecessary HTTP requests in the context of these tests
+        sinon.stub(got, "get").resolves({});
+      });
+
+      it("rate limits by default", async () => {
+        await mbApi.restGet<IRecording>(
+          `/recording/${mbid.recording.Formidable}`
+        );
+        assert.isTrue(rateLimiterSpy.calledOnce);
+      });
+
+      it("rate limits when disableRateLimiting is false", async () => {
+        await mbApiLimit.restGet<IRecording>(
+          `/recording/${mbid.recording.Formidable}`
+        );
+        assert.isTrue(rateLimiterSpy.calledOnce);
+      });
+
+      it("does not rate limit when disableRateLimiting is true", async () => {
+        await mbApiNoLimit.restGet<IRecording>(
+          `/recording/${mbid.recording.Formidable}`
+        );
+        assert.isFalse(rateLimiterSpy.called);
+      });
+
+      afterEach(() => {
+        sinon.restore();
+      });
+    });
+
+    describe('post', () => {
+
+      beforeEach(() => {
+        // Stub to avoid unecessary HTTP requests in the context of these tests
+        sinon.stub(got, "post").resolves({});
+      });
+
+      it("rate limits by default", async () => {
+        await mbTestApi.post("recording", new XmlMetadata());
+        assert.isTrue(rateLimiterSpy.calledOnce);
+      });
+
+      it("rate limits when disableRateLimiting is false", async () => {
+        await mbTestApiLimit.post("recording", new XmlMetadata());
+        assert.isTrue(rateLimiterSpy.calledOnce);
+      });
+
+      it("does not rate limit when disableRateLimiting is true", async () => {
+        await mbTestApiNoLimit.post("recording", new XmlMetadata());
+        assert.isFalse(rateLimiterSpy.called);
+      });
+
+      afterEach(() => {
+        sinon.restore();
+      });
+    });
+
+    describe.skip('editEntity', () => {
+
+      beforeEach(() => {
+        // Stub to avoid unecessary HTTP requests in the context of these tests
+        sinon.stub(got, "post").resolves({});
+      });
+
+      it("rate limits by default", async () => {
+        await mbTestApi.editEntity("recording", mbid.recording.Formidable, {});
+        assert.isTrue(rateLimiterSpy.calledOnce);
+      });
+
+      it("rate limits when disableRateLimiting is false", async () => {
+        await mbTestApiLimit.editEntity("recording", mbid.recording.Formidable, {});
+        assert.isTrue(rateLimiterSpy.calledOnce);
+      });
+
+      it("does not rate limit when disableRateLimiting is true", async () => {
+        await mbTestApiNoLimit.editEntity(
+          "recording",
+          mbid.recording.Formidable,
+          {}
+        );
+        assert.isFalse(rateLimiterSpy.called);
+      });
+
+      afterEach(() => {
+        sinon.restore();
+      });
+    });
   });
 
 });
