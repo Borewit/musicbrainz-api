@@ -18,7 +18,15 @@ A MusicBrainz-API-client for reading and submitting metadata
 *   Smart and adjustable throttling, like MusicBrainz, it allows a bursts of requests
 *   Build in TypeScript definitions
 
-### Hint
+## Compatibility
+
+Module: [Pure ECMAScript Module (ESM)](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c).
+The distributed JavaScript codebase is compliant with the [ECMAScript 2020 (11th Edition)](https://en.wikipedia.org/wiki/ECMAScript_version_history#11th_Edition_%E2%80%93_ECMAScript_2020) standard.
+
+This module requires a [Node.js ≥ 20](https://nodejs.org/en/about/previous-releases) engine.
+
+> [!NOTE]
+> We are looking into making this package usable in the browser as well.
 
 This package is currently only developed for the use in a [node.js environment](http://nodejs.org/).
 We are looking into making this package usable in the browser as well.
