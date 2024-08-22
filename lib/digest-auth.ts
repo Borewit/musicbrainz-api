@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import * as crypto from 'node:crypto';
+import sparkMd5 from 'spark-md5';
 
 interface IChallenge {
   algorithm?: string;
@@ -14,9 +14,7 @@ export interface ICredentials {
   password: string;
 }
 
-function md5(str: string): string {
-  return crypto.createHash('md5').update(str).digest('hex'); // lgtm [js/insufficient-password-hash]
-}
+const md5 = sparkMd5.hash;
 
 export class DigestAuth {
 

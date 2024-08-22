@@ -24,10 +24,11 @@ import {
 } from '../lib/index.js';
 import { assert, expect } from 'chai';
 import type * as mb from '../lib/musicbrainz.types.js';
+// biome-ignore lint/correctness/noNodejsModules:
 import { readFile } from 'node:fs/promises';
 import sinon from 'sinon';
+import type { HttpClient } from "../lib/httpClient.js";
 import { RateLimitThreshold } from 'rate-limit-threshold';
-import got from 'got';
 
 const appUrl = 'https://github.com/Borewit/musicbrainz-api';
 
@@ -925,8 +926,9 @@ describe('MusicBrainz-api', function () {
     describe('restGet', () => {
 
       beforeEach(() => {
-        // Stub to avoid unecessary HTTP requests in the context of these tests
-        sinon.stub(got, "get").resolves({});
+        // Stub to avoid unnecessary HTTP requests in the context of these tests
+        const x = mbApi as unknown as {httpClient: HttpClient};
+        sinon.stub(x.httpClient, "get").resolves(new Response('{}'));
       });
 
       it("rate limits by default", async () => {
@@ -959,7 +961,8 @@ describe('MusicBrainz-api', function () {
 
       beforeEach(() => {
         // Stub to avoid unecessary HTTP requests in the context of these tests
-        sinon.stub(got, "post").resolves({});
+        const x = mbApi as unknown as {httpClient: HttpClient};
+        sinon.stub(x.httpClient, "post").resolves(new Response('{}'));
       });
 
       it("rate limits by default", async () => {
@@ -985,8 +988,9 @@ describe('MusicBrainz-api', function () {
     describe.skip('editEntity', () => {
 
       beforeEach(() => {
-        // Stub to avoid unecessary HTTP requests in the context of these tests
-        sinon.stub(got, "post").resolves({});
+        // Stub to avoid unnecessary HTTP requests in the context of these tests
+        const x = mbApi as unknown as {httpClient: HttpClient};
+        sinon.stub(x.httpClient, "post").resolves(new Response());
       });
 
       it("rate limits by default", async () => {

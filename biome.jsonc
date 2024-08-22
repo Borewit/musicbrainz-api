@@ -9,6 +9,15 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
+            "correctness": {
+              "noConstantCondition": "warn",
+              "noUnusedImports": "error",
+              "noNodejsModules": "error"
+            },
+            "style": {
+              "noParameterAssign": "off",
+              "useConst": "error"
+            },
 			"recommended": true,
 			"complexity": {
 				"noForEach": "off"
