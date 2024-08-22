@@ -1,5 +1,3 @@
-import * as assert from 'node:assert';
-
 import { StatusCodes as HttpStatus } from 'http-status-codes';
 import Debug from 'debug';
 
@@ -13,14 +11,9 @@ import { DigestAuth } from './digest-auth.js';
 
 import { RateLimitThreshold } from 'rate-limit-threshold';
 import * as mb from './musicbrainz.types.js';
-
-import got, {type Options, type ToughCookieJar} from 'got';
-
-import {type Cookie, CookieJar} from 'tough-cookie';
+import {HttpClient, type HttpFormData} from "./httpClient.js";
 
 export * from './musicbrainz.types.js';
-
-import { promisify } from 'node:util';
 
 /*
  * https://musicbrainz.org/doc/Development/XML_Web_Service/Version_2#Subqueries
@@ -138,7 +131,7 @@ export interface IMusicBrainzConfig {
     username?: string,
     password?: string
   },
-  baseUrl?: string,
+  baseUrl: string,
 
   appName?: string,
   appVersion?: string,
@@ -173,7 +166,7 @@ export class MusicBrainzApi {
   };
 
   private rateLimiter: RateLimitThreshold;
-  private options: Options;
+  private httpClient: HttpClient;
   private session?: ISessionInformation;
 
   public static fetchCsrf(html: string): ICsrfSession {
@@ -195,44 +188,30 @@ export class MusicBrainzApi {
     }
   }
 
-  private getCookies: (currentUrl: string) => Promise<Cookie[]>;
-
   public constructor(_config?: IMusicBrainzConfig) {
 
     Object.assign(this.config, _config);
 
-    const cookieJar: CookieJar = new CookieJar();
-    this.getCookies = promisify(cookieJar.getCookies.bind(cookieJar));
-
-    // @ts-ignore
-    this.options = {
-      prefixUrl: this.config.baseUrl as string,
-      timeout: {
-        read: 20 * 1000
-      },
-      headers: {
-        'User-Agent': `${this.config.appName}/${this.config.appVersion} ( ${this.config.appContactInfo} )`
-      },
-      cookieJar: cookieJar as ToughCookieJar
-    };
+    this.httpClient = new HttpClient({
+      baseUrl: this.config.baseUrl,
+      timeout: 20 * 1000,
+      userAgent: `${this.config.appName}/${this.config.appVersion} ( ${this.config.appContactInfo} )`
+    });
 
     this.rateLimiter = new RateLimitThreshold(15, 18);
   }
 
-  public async restGet<T>(relUrl: string, query: { [key: string]: any; } = {}): Promise<T> {
+  public async restGet<T>(relUrl: string, query: { [key: string]: string; } = {}): Promise<T> {
 
     query.fmt = 'json';
 
     await this.applyRateLimiter();
-    const response: any = await got.get(`ws/2${relUrl}`, {
-      ...this.options,
-      searchParams: query,
-      responseType: 'json',
-      retry: {
-        limit: 10
-      }
+
+    const response = await this.httpClient.get(`ws/2${relUrl}`, {
+      query,
+      retryLimit: 10
     });
-    return response.body;
+    return response.json();
   }
 
   /**
@@ -328,22 +307,21 @@ export class MusicBrainzApi {
     const path = `ws/2/${entity}/`;
     // Get digest challenge
 
-    let digest: string | undefined;
+    let digest = '';
     let n = 1;
     const postData = xmlMetadata.toXml();
 
     do {
       await this.applyRateLimiter();
-      const response: any = await got.post(path, {
-        ...this.options,
-        searchParams: {client: clientId},
+      const response: any = await this.httpClient.post(path, {
+        query: {client: clientId},
         headers: {
           authorization: digest,
           'Content-Type': 'application/xml'
         },
-        body: postData,
-        throwHttpErrors: false
+        body: postData
       });
+
       if (response.statusCode === HttpStatus.UNAUTHORIZED) {
         // Respond to digest challenge
         const auth = new DigestAuth(this.config.botAccount as {username: string, password: string});
@@ -358,37 +336,33 @@ export class MusicBrainzApi {
 
   public async login(): Promise<boolean> {
 
-    assert.ok(this.config.botAccount?.username, 'bot username should be set');
-    assert.ok(this.config.botAccount?.password, 'bot password should be set');
+    if(!this.config.botAccount?.username) throw new Error('bot username should be set');
+    if(!this.config.botAccount?.password) throw new Error('bot password should be set');
 
     if (this.session?.loggedIn) {
-      for (const cookie of await this.getCookies(this.options.prefixUrl as string)) {
-        if (cookie.key === 'remember_login') {
-          return true;
-        }
-      }
+      const cookies = await this.httpClient.getCookies();
+      return cookies.indexOf('musicbrainz_server_session') !== -1;
     }
     this.session = await this.getSession();
 
     const redirectUri = '/success';
 
-    const formData = {
+    const formData: HttpFormData = {
       username: this.config.botAccount.username,
       password: this.config.botAccount.password,
       csrf_session_key: this.session.csrf.sessionKey,
       csrf_token: this.session.csrf.token,
-      remember_me: 1
+      remember_me: '1'
     };
 
-    const response = await got.post('login', {
-      ...this.options,
-      followRedirect: false,
-      searchParams: {
-        returnto: redirectUri
-      },
-      form: formData
+    const response = await this.httpClient.postForm('login', formData, {
+        query: {
+          returnto: redirectUri
+        },
+        followRedirects: false
     });
-    const success = response.statusCode === HttpStatus.MOVED_TEMPORARILY && response.headers.location === redirectUri;
+
+    const success = response.status === HttpStatus.MOVED_TEMPORARILY && response.headers.get('location') === redirectUri;
     if (success) {
       this.session.loggedIn = true;
     }
@@ -401,14 +375,13 @@ export class MusicBrainzApi {
   public async logout(): Promise<boolean> {
     const redirectUri = '/success';
 
-    const response = await got.get('logout', {
-      ...this.options,
-      followRedirect: false,
-      searchParams: {
+    const response = await this.httpClient.post('logout', {
+      followRedirects: false,
+      query: {
         returnto: redirectUri
       }
     });
-    const success = response.statusCode === HttpStatus.MOVED_TEMPORARILY && response.headers.location === redirectUri;
+    const success = response.status === HttpStatus.MOVED_TEMPORARILY && response.headers.get('location') === redirectUri;
     if (success && this.session) {
       this.session.loggedIn = true;
     }
@@ -433,16 +406,14 @@ export class MusicBrainzApi {
     formData.password = this.config.botAccount?.password;
     formData.remember_me = 1;
 
-    const response = await got.post(`${entity}/${mbid}/edit`, {
-      ...this.options,
-      form: formData,
-      followRedirect: false
+    const response = await this.httpClient.postForm(`${entity}/${mbid}/edit`, formData, {
+      followRedirects: false
     });
-    if (response.statusCode === HttpStatus.OK)
+    if (response.status === HttpStatus.OK)
       throw new Error("Failed to submit form data");
-    if (response.statusCode === HttpStatus.MOVED_TEMPORARILY)
+    if (response.status === HttpStatus.MOVED_TEMPORARILY)
       return;
-    throw new Error(`Unexpected status code: ${response.statusCode}`);
+    throw new Error(`Unexpected status code: ${response.status}`);
   }
 
   /**
@@ -510,7 +481,9 @@ export class MusicBrainzApi {
    */
   public addSpotifyIdToRecording(recording: mb.IRecording, spotifyId: string, editNote: string) {
 
-    assert.strictEqual(spotifyId.length, 22);
+    if (spotifyId.length !== 22) {
+      throw new Error('Invalid Spotify ID length');
+    }
 
     return this.addUrlToRecording(recording, {
       linkTypeId: mb.LinkType.stream_for_free,
@@ -520,14 +493,11 @@ export class MusicBrainzApi {
 
   private async getSession(): Promise<ISessionInformation> {
 
-    const response = await got.get('login', {
-      ...this.options,
-      followRedirect: false, // Disable redirects
-      responseType: 'text'
+    const response = await this.httpClient.get('login', {
+      followRedirects: false
     });
-
     return {
-      csrf: MusicBrainzApi.fetchCsrf(response.body)
+      csrf: MusicBrainzApi.fetchCsrf(await response.text())
     };
   }
 

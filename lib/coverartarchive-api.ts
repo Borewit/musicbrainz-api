@@ -1,5 +1,5 @@
 /* eslint-disable-next-line */
-import got from 'got';
+import {HttpClient} from "./httpClient.js";
 
 export type CovertType = 'Front' | 'Back' | 'Booklet' | 'Medium' | 'Obi' | 'Spine' | 'Track' | 'Tray' | 'Sticker' |
 'Poster' | 'Liner' | 'Watermark' | 'Raw/Unedited' | 'Matrix/Runout' | 'Top' | 'Bottom' | 'Other';
@@ -29,16 +29,15 @@ export interface ICoverInfo {
 
 export class CoverArtArchiveApi {
 
-  private host = 'coverartarchive.org';
+  private httpClient = new HttpClient({baseUrl: 'https://coverartarchive.org', userAgent: 'Node.js musicbrains-api', timeout: 20000})
 
   private async getJson(path: string) {
-    const response = await got.get(`https://${this.host}${path}`, {
+    const response = await this.httpClient.get(path, {
       headers: {
         Accept: "application/json"
-      },
-      responseType: 'json'
+      }
     });
-    return response.body;
+    return response.json();
   }
 
   /**
