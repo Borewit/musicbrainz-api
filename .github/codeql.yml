@@ -1,3 +1,0 @@
-query-filters:
-  - exclude:
-      id: js/weak-cryptographic-algorithm
