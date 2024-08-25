@@ -106,7 +106,6 @@ Arguments:
 const artist = await mbApi.lookup('artist', 'ab2528d9-719f-4261-8098-21849222a0f2');
 ```
 
-
 | Query argument        | Query value     | 
 |-----------------------|-----------------|  
 | `query.collection`    | Collection MBID |
@@ -361,8 +360,7 @@ For all of the following function you need to use a dedicated bot account.
 
 ## Submitting ISRC via post user form-data
 
-<img width="150" src="http://www.clker.com/cliparts/i/w/L/q/u/1/work-in-progress.svg" alt="Work in progress"/>
-Use with caution, and only on a test server, it may clear existing metadata as side effect.
+Use with caution, and only on a test server, it may clear existing metadata has side effect.
       
 ```js
 
@@ -409,37 +407,48 @@ Implementation of the [Cover Art Archive API](https://musicbrainz.org/doc/Cover_
 
 ### Release Cover Art
 ```js
-import {CoverArtArchiveApi} from 'musicbrainz-api';
+import { CoverArtArchiveApi } from 'musicbrainz-api';
 
-coverArtArchiveApiClient.getReleaseCovers(releaseMbid).then(releaseCoverInfo => {
-    console.log('Release cover info', releaseCoverInfo);
-});
+const coverArtArchiveApiClient = new CoverArtArchiveApi();
 
-coverArtArchiveApiClient.getReleaseCovers(releaseMbid, 'front').then(releaseCoverInfo => {
-    console.log('Get best front cover', releaseCoverInfo);
-});
+async function getReleaseCoverArt(releaseMbid, coverType = '') {
+    try {
+        const coverInfo = await coverArtArchiveApiClient.getReleaseCovers(releaseMbid, coverType);
+        console.log(`Cover info for ${coverType || 'all covers'}`, coverInfo);
+    } catch (error) {
+        console.error(`Failed to fetch ${coverType || 'all covers'}:`, error);
+    }
+}
 
-coverArtArchiveApiClient.getReleaseCovers(releaseMbid, 'back').then(releaseCoverInfo => {
-    console.log('Get best back cover', releaseCoverInfo);
-});
-
+(async () => {
+    const releaseMbid = 'your-release-mbid-here';  // Replace with actual MBID
+    await getReleaseCoverArt(releaseMbid); // Get all covers
+    await getReleaseCoverArt(releaseMbid, 'front'); // Get best front cover
+    await getReleaseCoverArt(releaseMbid, 'back'); // Get best back cover
+})();
 ```
 
 ### Release Group Cover Art
 ```js
-import {CoverArtArchiveApi} from 'musicbrainz-api';
+import { CoverArtArchiveApi } from 'musicbrainz-api';
 
-coverArtArchiveApiClient.getReleaseGroupCovers(releaseGroupMbid).then(releaseGroupCoverInfo => {
-    console.log('Release cover info', releaseGroupCoverInfo);
-});
+const coverArtArchiveApiClient = new CoverArtArchiveApi();
 
-coverArtArchiveApiClient.getReleaseGroupCovers(releaseGroupMbid, 'front').then(releaseGroupCoverInfo => {
-    console.log('Get best front cover', releaseGroupCoverInfo);
-});
+async function getCoverArt(releaseGroupMbid, coverType = '') {
+    try {
+        const coverInfo = await coverArtArchiveApiClient.getReleaseGroupCovers(releaseGroupMbid, coverType);
+        console.log(`Cover info for ${coverType || 'all covers'}`, coverInfo);
+    } catch (error) {
+        console.error(`Failed to fetch ${coverType || 'all covers'}:`, error);
+    }
+}
 
-coverArtArchiveApiClient.getReleaseGroupCovers(releaseGroupMbid, 'back').then(releaseGroupCoverInfo => {
-    console.log('Get best back cover', releaseGroupCoverInfo);
-});
+(async () => {
+    const releaseGroupMbid = 'your-release-group-mbid-here';  // Replace with actual MBID
+    await getCoverArt(releaseGroupMbid); // Get all covers
+    await getCoverArt(releaseGroupMbid, 'front'); // Get best front cover
+    await getCoverArt(releaseGroupMbid, 'back'); // Get best back cover
+})();
 
 ```
 
