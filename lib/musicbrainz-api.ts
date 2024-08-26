@@ -18,7 +18,6 @@ export * from './musicbrainz.types.js';
 /*
  * https://musicbrainz.org/doc/Development/XML_Web_Service/Version_2#Subqueries
  */
-
 export type RelationsIncludes =
   'area-rels'
   | 'artist-rels'
@@ -161,6 +160,10 @@ export interface ICsrfSession {
 export interface ISessionInformation {
   csrf: ICsrfSession,
   loggedIn?: boolean;
+}
+
+function containsText(value: string | undefined) {
+  return value && value.length > 0;
 }
 
 export class MusicBrainzApi {
@@ -343,8 +346,8 @@ export class MusicBrainzApi {
 
   public async login(): Promise<boolean> {
 
-    if(!this.config.botAccount?.username) throw new Error('bot username should be set');
-    if(!this.config.botAccount?.password) throw new Error('bot password should be set');
+    if(!containsText(this.config.botAccount?.username)) throw new Error('bot username should be set');
+    if(!containsText(this.config.botAccount?.password)) throw new Error('bot password should be set');
 
     if (this.session?.loggedIn) {
       const cookies = await this.httpClient.getCookies();
@@ -355,8 +358,8 @@ export class MusicBrainzApi {
     const redirectUri = '/success';
 
     const formData: HttpFormData = {
-      username: this.config.botAccount.username,
-      password: this.config.botAccount.password,
+      username: this.config.botAccount?.username as string,
+      password: this.config.botAccount?.password as string,
       csrf_session_key: this.session.csrf.sessionKey,
       csrf_token: this.session.csrf.token,
       remember_me: '1'
@@ -371,7 +374,11 @@ export class MusicBrainzApi {
 
     const success = response.status === HttpStatus.MOVED_TEMPORARILY && response.headers.get('location') === redirectUri;
     if (success) {
+      console.info('Login succeed');
       this.session.loggedIn = true;
+    } else {
+      console.warn(`Login failed, http-status=${response.status} location=${response.headers.get('location')}`);
+      this.session.loggedIn = false;
     }
     return success;
   }

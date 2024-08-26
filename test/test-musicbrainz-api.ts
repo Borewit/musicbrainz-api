@@ -825,7 +825,7 @@ describe('MusicBrainz-api', function () {
   /**
    * https://wiki.musicbrainz.org/Development/Release_Editor_Seeding
    */
-  describe.skip('User (bot) post form-data API', () => {
+  describe('User (bot) post form-data API', () => {
 
     it('login & logout', async () => {
       for (let n = 1; n <= 2; ++n) {
@@ -893,7 +893,7 @@ describe('MusicBrainz-api', function () {
 
   });
 
-  describe("Rate limiting", () => {
+  describe.skip("Rate limiting", () => {
     let mbTestApiNoLimit: MusicBrainzApi;
     let mbTestApiLimit: MusicBrainzApi;
     let mbApiNoLimit: MusicBrainzApi;
@@ -985,7 +985,7 @@ describe('MusicBrainz-api', function () {
       });
     });
 
-    describe.skip('editEntity', () => {
+    describe('editEntity', () => {
 
       beforeEach(() => {
         // Stub to avoid unnecessary HTTP requests in the context of these tests
