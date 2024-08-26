@@ -49,7 +49,7 @@
     "http-status-codes": "^2.1.4",
     "json-stringify-safe": "^5.0.1",
     "jsontoxml": "^1.0.1",
-    "rate-limit-threshold": "^0.1.5",
+    "rate-limit-threshold": "^0.2.0",
     "spark-md5": "^3.0.2",
     "tough-cookie": "^4.1.3",
     "uuid": "^10.0.0"

@@ -2705,7 +2705,7 @@ __metadata:
     json-stringify-safe: "npm:^5.0.1"
     jsontoxml: "npm:^1.0.1"
     mocha: "npm:^10.7.3"
-    rate-limit-threshold: "npm:^0.1.5"
+    rate-limit-threshold: "npm:^0.2.0"
     remark-cli: "npm:^12.0.0"
     remark-preset-lint-recommended: "npm:^7.0.0"
     sinon: "npm:^18.0.0"
@@ -3032,10 +3032,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rate-limit-threshold@npm:^0.1.5":
-  version: 0.1.5
-  resolution: "rate-limit-threshold@npm:0.1.5"
-  checksum: 10c0/e6cad4f1c16a035023824d882df83a251f945f04b25240193c9f3753b8d07e915fd23dd9bad303ed9862a2e6925d431467c6e11a1f158425975cc8ee7908bcb0
+"rate-limit-threshold@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "rate-limit-threshold@npm:0.2.0"
+  dependencies:
+    "@biomejs/biome": "npm:^1.8.3"
+  checksum: 10c0/480309027c7d5a2ed86095ad7eb8748572cfe27dae7e009e82e03ecd315f8aef65450cea1ec2d88fa1f5373be620c4a8a7b977f50ee7d22e979a642f9fa77aed
   languageName: node
   linkType: hard
 
