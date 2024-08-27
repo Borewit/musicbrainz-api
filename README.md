@@ -14,98 +14,108 @@
 A MusicBrainz-API-client for reading and submitting metadata
 
 ## Features
-- Access metadata from MusicBrainz
-- Submit metadata 
-- Smart and adjustable throttling, like MusicBrainz, it allows a bursts of requests
-- Build in TypeScript definitions
+- **Access Metadata**: Retrieve detailed metadata from the [MusicBrainz database](https://musicbrainz.org/).
+- **Submit metadata**: Easily submit new metadata to [MusicBrainz](https://musicbrainz.org/). 
+- **Smart throttling**: Implements intelligent throttling, allowing bursts of requests while adhering to [MusicBrainz rate limits](https://musicbrainz.org/doc/MusicBrainz_API/Rate_Limiting).
+- **TypeScript Definitions**: Fully typed with built-in [TypeScript](https://www.typescriptlang.org/) definitions for a seamless development experience.
 
 ## Compatibility
 
-Module: [Pure ECMAScript Module (ESM)](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c).
+Module: version 8 migrated from [CommonJS](https://en.wikipedia.org/wiki/CommonJS) to [pure ECMAScript Module (ESM)](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c).
 The distributed JavaScript codebase is compliant with the [ECMAScript 2020 (11th Edition)](https://en.wikipedia.org/wiki/ECMAScript_version_history#11th_Edition_%E2%80%93_ECMAScript_2020) standard.
 
-This module requires a [Node.js ≥ 20](https://nodejs.org/en/about/previous-releases) engine.
+### Requirements
+- Node.js: Requires [Node.js version 16](https://nodejs.org/en/about/previous-releases) or higher.
+- Browser: Can be used in browser environments when bundled with a module bundler (not actively tested).
 
 > [!NOTE]
 > We are looking into making this package usable in the browser as well.
 
-## Sponsor
-If you appreciate my work and want to support the development of open-source projects like [musicbrainz-api](https://github.com/Borewit/musicbrainz-api), [music-metadata](https://github.com/Borewit/music-metadata), [file-type](https://github.com/sindresorhus/file-type), [listFix()](https://github.com/Borewit/listFix), [lizzy](https://github.com/Borewit/lizzy), [strtok3](https://github.com/Borewit/strtok3), or [tokenizer-s3](https://github.com/Borewit/tokenizer-s3), please consider becoming a sponsor or making a small contribution.
-Your support helps sustain ongoing development and improvements.
-[Become a sponsor to Borewit](https://github.com/sponsors/Borewit)
+## Support the Project
+If you find this project useful and would like to support its development, consider sponsoring or contributing:
+ 
+- [Become a sponsor to Borewit](https://github.com/sponsors/Borewit)
+ 
+- Buy me a coffee:
+  
+  <a href="https://www.buymeacoffee.com/borewit" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy me A coffee" height="41" width="174"></a>
 
-This package is currently only developed for the use in a [node.js environment](http://nodejs.org/).
-We are looking into making this package usable in the browser as well.
+## Getting Started
 
-## Before using this library
+### Identifying Your Application
 
-MusicBrainz asks that you to [identify your application](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2#User%20Data) by filling in the ['User-Agent' Header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent).
-By passing `appName`, `appVersion`, `appMail` musicbrainz-api takes care of that.
+MusicBrainz requires all API clients to [identify their application](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2#User%20Data).
+Ensure you set the User-Agent header by providing `appName`, `appVersion`, and `appContactInfo` when configuring the client.
+This library will automatically handle this for you.
 
-## Submitting metadata
+### Submitting metadata
 
 If you plan to use this module for submitting metadata, please ensure you comply with [the MusicBrainz Code of conduct/Bots](https://wiki.musicbrainz.org/Code_of_Conduct/Bots).
 
-## Example
+## Example Usage
 
-Example, how to import 'musicbrainz-api:
+### Importing the Library
+
 ```js
-import {MusicBrainzApi} from 'musicbrainz-api';
+import { MusicBrainzApi } from 'musicbrainz-api';
 
 const mbApi = new MusicBrainzApi({
-  appName: 'my-app',
-  appVersion: '0.1.0',
-  appContactInfo: 'user@mail.org'
+    appName: 'my-app',
+    appVersion: '0.1.0',
+    appContactInfo: 'user@mail.org',
 });
 ```
 
-The following configuration settings can be passed 
+### Configuration Options
+
 ```js
-import {MusicBrainzApi} from 'musicbrainz-api';
-
 const config = {
-  // MusicBrainz bot account username & password (optional)
-  botAccount: { 
-    username: 'myUserName_bot',
-    password: 'myPassword' 
-  },
-  
-  // API base URL, default: 'https://musicbrainz.org' (optional)
-  baseUrl: 'https://musicbrainz.org',
+    // Optional: MusicBrainz bot account credentials
+    botAccount: {
+        username: 'myUserName_bot',
+        password: 'myPassword',
+    },
 
-  appName: 'my-app',
-  appVersion: '0.1.0',
+    // Optional: API base URL (default: 'https://musicbrainz.org')
+    baseUrl: 'https://musicbrainz.org',
 
-  // Optional, default: no proxy server
-  proxy: {
-    host: 'localhost',
-    port: 8888
-   },
+    // Required: Application details
+    appName: 'my-app',
+    appVersion: '0.1.0',
+    appMail: 'user@mail.org',
 
-  // Your e-mail address, required for submitting ISRCs
-  appMail: string,
+    // Optional: Proxy settings (default: no proxy server)
+    proxy: {
+        host: 'localhost',
+        port: 8888,
+    },
 
-  // Helpful if you have your own MusicBrainz server, default: false (optional)
-  disableRateLimiting: false,
-}
+    // Optional: Disable rate limiting (default: false)
+    disableRateLimiting: false,
+};
 
-const mbApi = new MusicbrainzApi(config);
+const mbApi = new MusicBrainzApi(config);
 ```
+
+## Accessing MusicBrainz Data
+
+The MusicBrainz API allows you to look up various entities. Here’s how to use the lookup function:
 
 ## Lookup MusicBrainz Entities
 
 MusicBrainz API documentation: [XML Web Service/Version 2 Lookups](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2#Lookups)
 
-### Generic lookup function
+### Lookup Function
+
+```js
+const artist = await mbApi.lookup('artist', 'ab2528d9-719f-4261-8098-21849222a0f2');
+```
 
 Arguments:
 - entity: `'area'` | `'artist'` | `'collection'` | `'instrument'` | `'label'` | `'place'` | `'release'` | `'release-group'` | `'recording'` | `'series'` | `'work'` | `'url'` | `'event'`
 - MBID [(MusicBrainz identifier)](https://wiki.musicbrainz.org/MusicBrainz_Identifier)
 - query
 
-```js
-const artist = await mbApi.lookup('artist', 'ab2528d9-719f-4261-8098-21849222a0f2');
-```
 
 | Query argument        | Query value     | 
 |-----------------------|-----------------|  
@@ -404,9 +414,9 @@ await mbApi.addSpotifyIdToRecording(recording, '2AMysGXOe0zzZJMtH3Nizb');
 
 ## Cover Art Archive API
 
-Implementation of the [Cover Art Archive API](https://musicbrainz.org/doc/Cover_Art_Archive/API).
+This library also supports the [Cover Art Archive API](https://musicbrainz.org/doc/Cover_Art_Archive/API).
 
-### Release Cover Art
+### Fetch Release Cover Art
 ```js
 import { CoverArtArchiveApi } from 'musicbrainz-api';
 
@@ -453,8 +463,3 @@ async function getCoverArt(releaseGroupMbid, coverType = '') {
 
 ```
 
-
-## Compatibility
-
-The JavaScript in runtime is compliant with [ECMAScript 2017 (ES8)](https://en.wikipedia.org/wiki/ECMAScript#8th_Edition_-_ECMAScript_2017).
-Requires [Node.js®](https://nodejs.org/) version 6 or higher.
