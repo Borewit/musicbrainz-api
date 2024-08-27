@@ -149,6 +149,10 @@ export interface IMusicBrainzConfig {
   disableRateLimiting?: boolean
 }
 
+interface IInternalConfig extends IMusicBrainzConfig {
+  baseUrl: string,
+}
+
 export interface ICsrfSession {
   sessionKey: string;
   token: string;
@@ -161,9 +165,7 @@ export interface ISessionInformation {
 
 export class MusicBrainzApi {
 
-  public readonly config: IMusicBrainzConfig = {
-    baseUrl: 'https://musicbrainz.org'
-  };
+  public readonly config: IInternalConfig;
 
   private rateLimiter: RateLimitThreshold;
   private httpClient: HttpClient;
@@ -190,10 +192,15 @@ export class MusicBrainzApi {
 
   public constructor(_config?: IMusicBrainzConfig) {
 
-    Object.assign(this.config, _config);
+    this.config = {
+      ...{
+        baseUrl: 'https://musicbrainz.org'
+      },
+      ..._config
+    }
 
     this.httpClient = new HttpClient({
-      baseUrl: this.config.baseUrl as string,
+      baseUrl: this.config.baseUrl,
       timeout: 20 * 1000,
       userAgent: `${this.config.appName}/${this.config.appVersion} ( ${this.config.appContactInfo} )`
     });
