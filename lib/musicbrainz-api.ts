@@ -131,7 +131,7 @@ export interface IMusicBrainzConfig {
     username?: string,
     password?: string
   },
-  baseUrl: string,
+  baseUrl?: string,
 
   appName?: string,
   appVersion?: string,
@@ -193,7 +193,7 @@ export class MusicBrainzApi {
     Object.assign(this.config, _config);
 
     this.httpClient = new HttpClient({
-      baseUrl: this.config.baseUrl,
+      baseUrl: this.config.baseUrl as string,
       timeout: 20 * 1000,
       userAgent: `${this.config.appName}/${this.config.appVersion} ( ${this.config.appContactInfo} )`
     });
