@@ -11,7 +11,9 @@
 
 # musicbrainz-api
 
-A MusicBrainz-API-client for reading and submitting metadata
+A MusicBrainz-API-client for reading and submitting metadata.
+
+<img src="doc/musicbrainz-api-logo.png" width="40%" style="center"></img>
 
 ## Features
 - **Access Metadata**: Retrieve detailed metadata from the [MusicBrainz database](https://musicbrainz.org/).
