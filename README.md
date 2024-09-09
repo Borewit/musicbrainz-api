@@ -26,6 +26,9 @@ A MusicBrainz-API-client for reading and submitting metadata.
 Module: version 8 migrated from [CommonJS](https://en.wikipedia.org/wiki/CommonJS) to [pure ECMAScript Module (ESM)](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c).
 The distributed JavaScript codebase is compliant with the [ECMAScript 2020 (11th Edition)](https://en.wikipedia.org/wiki/ECMAScript_version_history#11th_Edition_%E2%80%93_ECMAScript_2020) standard.
 
+> [!NOTE]
+> See also [CommonJS backward compatibility](#commonjs-backward-compatibility)
+
 ### Requirements
 - Node.js: Requires [Node.js version 16](https://nodejs.org/en/about/previous-releases) or higher.
 - Browser: Can be used in browser environments when bundled with a module bundler (not actively tested).
@@ -67,6 +70,9 @@ const mbApi = new MusicBrainzApi({
     appContactInfo: 'user@mail.org',
 });
 ```
+
+> [!NOTE]
+> See also [CommonJS backward compatibility](#commonjs-backward-compatibility)
 
 ### Configuration Options
 
@@ -465,3 +471,29 @@ async function getCoverArt(releaseGroupMbid, coverType = '') {
 
 ```
 
+## CommonJS backward compatibility
+
+For legacy CommonJS projects needing to load the `music-metadata` ESM module, you can use the `loadMusicMetadata` function:
+```js
+const { loadMusicBrainzApi } = require('musicbrainz-api');
+
+(async () => {
+
+    // Dynamically loads the ESM module in a CommonJS project
+    const  {MusicBrainzApi} = await loadMusicBrainzApi();
+
+    const mbApi = new MusicBrainzApi({
+        appName: 'my-app',
+        appVersion: '0.1.0',
+        appContactInfo: 'user@mail.org',
+    });
+
+    const releaseList = await mbApi.search('release', {query: {barcode: 602537479870}});
+    for(const release of releaseList.releases) {
+        console.log(release.title);
+    }
+})();
+```
+
+> [!NOTE]
+> The `loadMusicMetadata` function is experimental.

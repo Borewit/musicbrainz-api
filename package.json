@@ -2,11 +2,15 @@
   "name": "musicbrainz-api",
   "version": "0.18.2",
   "description": "MusicBrainz API client for reading and submitting metadata",
-  "exports": "./lib/index.js",
+  "exports": {
+    "import": "./lib/index.js",
+    "require": "./lib/default.cjs"
+  },
   "types": "lib/index.d.ts",
   "files": [
     "lib/**/*.js",
-    "lib/**/*.d.ts"
+    "lib/**/*.d.ts",
+    "lib/default.cjs"
   ],
   "type": "module",
   "author": {
