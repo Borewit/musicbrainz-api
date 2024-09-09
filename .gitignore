@@ -15,11 +15,6 @@ priv
 tslint.json
 package-lock.json
 
-# Yarn Berry, not using Zero-Installs:
+# Yarn Berry
 .pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
+.yarn
