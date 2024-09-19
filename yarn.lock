@@ -42,17 +42,17 @@ __metadata:
   linkType: hard
 
 "@biomejs/biome@npm:^1.8.3":
-  version: 1.8.3
-  resolution: "@biomejs/biome@npm:1.8.3"
+  version: 1.9.1
+  resolution: "@biomejs/biome@npm:1.9.1"
   dependencies:
-    "@biomejs/cli-darwin-arm64": "npm:1.8.3"
-    "@biomejs/cli-darwin-x64": "npm:1.8.3"
-    "@biomejs/cli-linux-arm64": "npm:1.8.3"
-    "@biomejs/cli-linux-arm64-musl": "npm:1.8.3"
-    "@biomejs/cli-linux-x64": "npm:1.8.3"
-    "@biomejs/cli-linux-x64-musl": "npm:1.8.3"
-    "@biomejs/cli-win32-arm64": "npm:1.8.3"
-    "@biomejs/cli-win32-x64": "npm:1.8.3"
+    "@biomejs/cli-darwin-arm64": "npm:1.9.1"
+    "@biomejs/cli-darwin-x64": "npm:1.9.1"
+    "@biomejs/cli-linux-arm64": "npm:1.9.1"
+    "@biomejs/cli-linux-arm64-musl": "npm:1.9.1"
+    "@biomejs/cli-linux-x64": "npm:1.9.1"
+    "@biomejs/cli-linux-x64-musl": "npm:1.9.1"
+    "@biomejs/cli-win32-arm64": "npm:1.9.1"
+    "@biomejs/cli-win32-x64": "npm:1.9.1"
   dependenciesMeta:
     "@biomejs/cli-darwin-arm64":
       optional: true
@@ -72,62 +72,62 @@ __metadata:
       optional: true
   bin:
     biome: bin/biome
-  checksum: 10c0/95fe99ce82cd8242f1be51cbf3ac26043b253f5a369d3dc24df09bdb32ec04dba679b1d4fa8b9d602b1bf2c30ecd80af14aa8f5c92d6e0cd6214a99a1099a65b
+  checksum: 10c0/ed51a98794b4942840593143ef3e2c4614f8f3bd1ad86c044f276310571dd34549177aeffa8bd7f006adf2b9c4c590dc887d9df374d18cb29187b7cdff32fc2d
   languageName: node
   linkType: hard
 
-"@biomejs/cli-darwin-arm64@npm:1.8.3":
-  version: 1.8.3
-  resolution: "@biomejs/cli-darwin-arm64@npm:1.8.3"
+"@biomejs/cli-darwin-arm64@npm:1.9.1":
+  version: 1.9.1
+  resolution: "@biomejs/cli-darwin-arm64@npm:1.9.1"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@biomejs/cli-darwin-x64@npm:1.8.3":
-  version: 1.8.3
-  resolution: "@biomejs/cli-darwin-x64@npm:1.8.3"
+"@biomejs/cli-darwin-x64@npm:1.9.1":
+  version: 1.9.1
+  resolution: "@biomejs/cli-darwin-x64@npm:1.9.1"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@biomejs/cli-linux-arm64-musl@npm:1.8.3":
-  version: 1.8.3
-  resolution: "@biomejs/cli-linux-arm64-musl@npm:1.8.3"
+"@biomejs/cli-linux-arm64-musl@npm:1.9.1":
+  version: 1.9.1
+  resolution: "@biomejs/cli-linux-arm64-musl@npm:1.9.1"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
 
-"@biomejs/cli-linux-arm64@npm:1.8.3":
-  version: 1.8.3
-  resolution: "@biomejs/cli-linux-arm64@npm:1.8.3"
+"@biomejs/cli-linux-arm64@npm:1.9.1":
+  version: 1.9.1
+  resolution: "@biomejs/cli-linux-arm64@npm:1.9.1"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@biomejs/cli-linux-x64-musl@npm:1.8.3":
-  version: 1.8.3
-  resolution: "@biomejs/cli-linux-x64-musl@npm:1.8.3"
+"@biomejs/cli-linux-x64-musl@npm:1.9.1":
+  version: 1.9.1
+  resolution: "@biomejs/cli-linux-x64-musl@npm:1.9.1"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
 
-"@biomejs/cli-linux-x64@npm:1.8.3":
-  version: 1.8.3
-  resolution: "@biomejs/cli-linux-x64@npm:1.8.3"
+"@biomejs/cli-linux-x64@npm:1.9.1":
+  version: 1.9.1
+  resolution: "@biomejs/cli-linux-x64@npm:1.9.1"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@biomejs/cli-win32-arm64@npm:1.8.3":
-  version: 1.8.3
-  resolution: "@biomejs/cli-win32-arm64@npm:1.8.3"
+"@biomejs/cli-win32-arm64@npm:1.9.1":
+  version: 1.9.1
+  resolution: "@biomejs/cli-win32-arm64@npm:1.9.1"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@biomejs/cli-win32-x64@npm:1.8.3":
-  version: 1.8.3
-  resolution: "@biomejs/cli-win32-x64@npm:1.8.3"
+"@biomejs/cli-win32-x64@npm:1.9.1":
+  version: 1.9.1
+  resolution: "@biomejs/cli-win32-x64@npm:1.9.1"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -439,9 +439,9 @@ __metadata:
   linkType: hard
 
 "@types/mocha@npm:^10.0.4":
-  version: 10.0.7
-  resolution: "@types/mocha@npm:10.0.7"
-  checksum: 10c0/48a2df4dd02b6e66a11129dca6a23cf0cc3995faf8525286eb851043685bd8b7444780f4bb29a1c42df7559ed63294e5308bfce3a6b862ad2e0359cb21c21329
+  version: 10.0.8
+  resolution: "@types/mocha@npm:10.0.8"
+  checksum: 10c0/af01f70cf2888762e79e91219dcc28b5d82c85d9a1c8ba4606d3ae30748be7e2cb9f06d680ad36112c78f5e568d0423a65ba8b7c53d02d37b193787bbc03d088
   languageName: node
   linkType: hard
 
