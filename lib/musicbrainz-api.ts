@@ -11,7 +11,7 @@ import { DigestAuth } from './digest-auth.js';
 
 import { RateLimitThreshold } from 'rate-limit-threshold';
 import * as mb from './musicbrainz.types.js';
-import {HttpClient, type HttpFormData} from "./httpClient.js";
+import {HttpClient} from "./http-client.js";
 
 export * from './musicbrainz.types.js';
 
@@ -167,9 +167,9 @@ export class MusicBrainzApi {
 
   public readonly config: IInternalConfig;
 
-  private rateLimiter: RateLimitThreshold;
-  private httpClient: HttpClient;
-  private session?: ISessionInformation;
+  protected rateLimiter: RateLimitThreshold;
+  protected httpClient: HttpClient;
+  protected session?: ISessionInformation;
 
   public static fetchCsrf(html: string): ICsrfSession {
     return {
@@ -199,13 +199,17 @@ export class MusicBrainzApi {
       ..._config
     }
 
-    this.httpClient = new HttpClient({
+    this.httpClient = this.initHttpClient();
+
+    this.rateLimiter = new RateLimitThreshold(15, 18);
+  }
+
+  protected initHttpClient(): HttpClient {
+    return new HttpClient({
       baseUrl: this.config.baseUrl,
       timeout: 20 * 1000,
       userAgent: `${this.config.appName}/${this.config.appVersion} ( ${this.config.appContactInfo} )`
     });
-
-    this.rateLimiter = new RateLimitThreshold(15, 18);
   }
 
   public async restGet<T>(relUrl: string, query: { [key: string]: string; } = {}): Promise<T> {
@@ -341,60 +345,6 @@ export class MusicBrainzApi {
     } while (n++ < 5);
   }
 
-  public async login(): Promise<boolean> {
-
-    if(!this.config.botAccount?.username) throw new Error('bot username should be set');
-    if(!this.config.botAccount?.password) throw new Error('bot password should be set');
-
-    if (this.session?.loggedIn) {
-      const cookies = await this.httpClient.getCookies();
-      return cookies.indexOf('musicbrainz_server_session') !== -1;
-    }
-    this.session = await this.getSession();
-
-    const redirectUri = '/success';
-
-    const formData: HttpFormData = {
-      username: this.config.botAccount.username,
-      password: this.config.botAccount.password,
-      csrf_session_key: this.session.csrf.sessionKey,
-      csrf_token: this.session.csrf.token,
-      remember_me: '1'
-    };
-
-    const response = await this.httpClient.postForm('login', formData, {
-        query: {
-          returnto: redirectUri
-        },
-        followRedirects: false
-    });
-
-    const success = response.status === HttpStatus.MOVED_TEMPORARILY && response.headers.get('location') === redirectUri;
-    if (success) {
-      this.session.loggedIn = true;
-    }
-    return success;
-  }
-
-  /**
-   * Logout
-   */
-  public async logout(): Promise<boolean> {
-    const redirectUri = '/success';
-
-    const response = await this.httpClient.post('logout', {
-      followRedirects: false,
-      query: {
-        returnto: redirectUri
-      }
-    });
-    const success = response.status === HttpStatus.MOVED_TEMPORARILY && response.headers.get('location') === redirectUri;
-    if (success && this.session) {
-      this.session.loggedIn = true;
-    }
-    return success;
-  }
-
   /**
    * Submit entity
    * @param entity Entity type e.g. 'recording'
@@ -498,7 +448,7 @@ export class MusicBrainzApi {
     }, editNote);
   }
 
-  private async getSession(): Promise<ISessionInformation> {
+  protected async getSession(): Promise<ISessionInformation> {
 
     const response = await this.httpClient.get('login', {
       followRedirects: false
@@ -508,7 +458,7 @@ export class MusicBrainzApi {
     };
   }
 
-  private async applyRateLimiter() {
+  protected async applyRateLimiter() {
     if (!this.config.disableRateLimiting) {
       const delay = await this.rateLimiter.limit();
       debug(`Client side rate limiter activated: cool down for ${Math.round(delay / 100)/10} s...`);

@@ -21,14 +21,16 @@ import {
   LinkType,
   MusicBrainzApi, type RecordingIncludes, type IRecording,
   type IMusicBrainzConfig
-} from '../lib/index.js';
+} from '../lib/entry-default.js';
 import { assert, expect } from 'chai';
 import type * as mb from '../lib/musicbrainz.types.js';
 // biome-ignore lint/correctness/noNodejsModules:
 import { readFile } from 'node:fs/promises';
 import sinon from 'sinon';
-import type { HttpClient } from "../lib/httpClient.js";
+import type { HttpClient } from "../lib/http-client.js";
 import { RateLimitThreshold } from 'rate-limit-threshold';
+import {MusicBrainzApi as MusicBrainzApiDefault} from "../lib/musicbrainz-api.js";
+import {MusicBrainzApi as MusicBrainzApiNode} from "../lib/musicbrainz-api-node.js";
 
 const appUrl = 'https://github.com/Borewit/musicbrainz-api';
 
@@ -137,32 +139,32 @@ const mbid = {
   }
 };
 
+const spotify = {
+  album: {
+    RacineCarree: {
+      id: '6uyslsVGFsHKzdGUosFwBM'
+    }
+  },
+  track: {
+    Formidable: {
+      id: '2AMysGXOe0zzZJMtH3Nizb'
+    }
+  }
+};
+
 describe('MusicBrainz-api', function () {
 
-  let mbTestApi: MusicBrainzApi;
-  let mbApi: MusicBrainzApi;
+  let mbTestApi: MusicBrainzApiDefault;
+  let mbApi: MusicBrainzApiDefault;
 
   before(async () => {
-    mbTestApi = new MusicBrainzApi(await makeTestApiConfig());
-    mbApi = new MusicBrainzApi(await makeSearchApiConfig());
+    mbTestApi = new MusicBrainzApiDefault(await makeTestApiConfig());
+    mbApi = new MusicBrainzApiDefault(await makeSearchApiConfig());
     // Hack a shared rate-limiter
     (mbApi as any).rateLimiter = (mbTestApi as any).rateLimiter;
   });
 
   this.timeout(40000); // MusicBrainz has a rate limiter
-
-  const spotify = {
-    album: {
-      RacineCarree: {
-        id: '6uyslsVGFsHKzdGUosFwBM'
-      }
-    },
-    track: {
-      Formidable: {
-        id: '2AMysGXOe0zzZJMtH3Nizb'
-      }
-    }
-  };
 
   it('Required environment variable', () => {
     assert.isDefined(process.env.MBUSER, 'process.env.MBUSER');
@@ -822,77 +824,6 @@ describe('MusicBrainz-api', function () {
 
   });
 
-  /**
-   * https://wiki.musicbrainz.org/Development/Release_Editor_Seeding
-   */
-  describe.skip('User (bot) post form-data API', () => {
-
-    it('login & logout', async () => {
-      for (let n = 1; n <= 2; ++n) {
-        assert.isTrue(await mbTestApi.login(), `Login ${n}`);
-        assert.isTrue(await mbTestApi.logout(), `Logout ${n}`);
-      }
-    });
-
-    describe('Recording', () => {
-
-      it('add link', async () => {
-        const recording = await mbTestApi.lookup('recording', mbid.recording.Formidable);
-        assert.strictEqual(recording.id, mbid.recording.Formidable);
-        assert.strictEqual(recording.title, 'Formidable');
-
-        await mbTestApi.addUrlToRecording(recording, {
-          linkTypeId: LinkType.stream_for_free,
-          text: `https://open.spotify.com/track/${spotify.track.Formidable.id}`
-        });
-      });
-
-      it('add Spotify-ID', async () => {
-        const recording = await mbTestApi.lookup('recording', mbid.recording.Formidable);
-
-        const editNote = `Unit-test musicbrainz-api (${appUrl}), test augment recording with Spotify URL & ISRC`;
-        await mbTestApi.addSpotifyIdToRecording(recording, spotify.track.Formidable.id, editNote);
-      });
-
-      it('add Spotify-ID to recording with ISRC', async () => {
-        // https://test.musicbrainz.org/recording/a75b85bf-63dd-4fe1-8008-d15541b93bac
-        const recording_id = 'a75b85bf-63dd-4fe1-8008-d15541b93bac';
-
-        const recording = await mbTestApi.lookup('recording', recording_id);
-        const editNote = `Unit-test musicbrainz-api (${appUrl}), test augment recording with Spotify URL & ISRC`;
-        await mbTestApi.addSpotifyIdToRecording(recording, '3ZDO5YINwfoifRQ3ElshPM', editNote);
-      });
-
-    });
-
-    describe('ISRC', () => {
-
-      it('add ISRC', async () => {
-        const recording = await mbTestApi.lookup('recording', mbid.recording.Formidable, ['isrcs']);
-        assert.strictEqual(recording.id, mbid.recording.Formidable);
-        assert.strictEqual(recording.title, 'Formidable');
-
-        await mbTestApi.addIsrc(recording, 'BET671300161');
-      });
-
-    });
-
-    /**
-     * https://musicbrainz.org/doc/Development/XML_Web_Service/Version_2#ISRC_submission
-     */
-    describe('ISRC submission', () => {
-
-      it('add ISRC', async () => {
-        const xmlMedata = new XmlMetadata();
-        const xmlRec = xmlMedata.pushRecording('94fb868b-9233-4f9e-966b-e8036bf7461e');
-        xmlRec.isrcList.pushIsrc('GB5EM1801762');
-        await mbTestApi.post('recording', xmlMedata);
-      });
-
-    });
-
-  });
-
   describe("Rate limiting", () => {
     let mbTestApiNoLimit: MusicBrainzApi;
     let mbTestApiLimit: MusicBrainzApi;
@@ -1052,6 +983,93 @@ describe('Cover Art Archive API', function() {
     assert.isDefined(releaseCoverInfo);
     assert.isDefined(releaseCoverInfo.images, 'releaseCoverInfo.images');
     assert.ok(releaseCoverInfo.images.length > 0, 'releaseCoverInfo.images.length > 0');
+  });
+
+});
+
+describe.skip('Node specific API', function (){
+
+  let mbTestApi: MusicBrainzApiNode;
+  let mbApi: MusicBrainzApiNode;
+
+  before(async () => {
+    mbTestApi = new MusicBrainzApiNode(await makeTestApiConfig());
+    mbApi = new MusicBrainzApiNode(await makeSearchApiConfig());
+    // Hack a shared rate-limiter
+    (mbApi as any).rateLimiter = (mbTestApi as any).rateLimiter;
+  });
+
+  this.timeout(40000); // MusicBrainz has a rate limiter
+
+  /**
+   * https://wiki.musicbrainz.org/Development/Release_Editor_Seeding
+   */
+  describe('User (bot) post form-data API', () => {
+
+    it('login & logout', async () => {
+      for (let n = 1; n <= 2; ++n) {
+        assert.isTrue(await mbTestApi.login(), `Login ${n}`);
+        assert.isTrue(await mbTestApi.logout(), `Logout ${n}`);
+      }
+    });
+
+    describe('Recording', () => {
+
+      it('add link', async () => {
+        const recording = await mbTestApi.lookup('recording', mbid.recording.Formidable);
+        assert.strictEqual(recording.id, mbid.recording.Formidable);
+        assert.strictEqual(recording.title, 'Formidable');
+
+        await mbTestApi.addUrlToRecording(recording, {
+          linkTypeId: LinkType.stream_for_free,
+          text: `https://open.spotify.com/track/${spotify.track.Formidable.id}`
+        });
+      });
+
+      it('add Spotify-ID', async () => {
+        const recording = await mbTestApi.lookup('recording', mbid.recording.Formidable);
+
+        const editNote = `Unit-test musicbrainz-api (${appUrl}), test augment recording with Spotify URL & ISRC`;
+        await mbTestApi.addSpotifyIdToRecording(recording, spotify.track.Formidable.id, editNote);
+      });
+
+      it('add Spotify-ID to recording with ISRC', async () => {
+        // https://test.musicbrainz.org/recording/a75b85bf-63dd-4fe1-8008-d15541b93bac
+        const recording_id = 'a75b85bf-63dd-4fe1-8008-d15541b93bac';
+
+        const recording = await mbTestApi.lookup('recording', recording_id);
+        const editNote = `Unit-test musicbrainz-api (${appUrl}), test augment recording with Spotify URL & ISRC`;
+        await mbTestApi.addSpotifyIdToRecording(recording, '3ZDO5YINwfoifRQ3ElshPM', editNote);
+      });
+
+    });
+
+    describe('ISRC', () => {
+
+      it('add ISRC', async () => {
+        const recording = await mbTestApi.lookup('recording', mbid.recording.Formidable, ['isrcs']);
+        assert.strictEqual(recording.id, mbid.recording.Formidable);
+        assert.strictEqual(recording.title, 'Formidable');
+
+        await mbTestApi.addIsrc(recording, 'BET671300161');
+      });
+
+    });
+
+    /**
+     * https://musicbrainz.org/doc/Development/XML_Web_Service/Version_2#ISRC_submission
+     */
+    describe('ISRC submission', () => {
+
+      it('add ISRC', async () => {
+        const xmlMedata = new XmlMetadata();
+        const xmlRec = xmlMedata.pushRecording('94fb868b-9233-4f9e-966b-e8036bf7461e');
+        xmlRec.isrcList.pushIsrc('GB5EM1801762');
+        await mbTestApi.post('recording', xmlMedata);
+      });
+
+    });
+
   });
 
 });

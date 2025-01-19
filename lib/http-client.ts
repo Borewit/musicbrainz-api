@@ -1,4 +1,4 @@
-import {CookieJar} from "tough-cookie";
+import type {Cookie} from "tough-cookie";
 
 export type HttpFormData = { [key: string]: string; }
 
@@ -18,10 +18,7 @@ export interface IFetchOptions {
 
 export class HttpClient {
 
-  private cookieJar: CookieJar;
-
-  public constructor(private options: IHttpClientOptions) {
-    this.cookieJar = new CookieJar();
+  public constructor(protected options: IHttpClientOptions) {
   }
 
   public get(path: string, options?: IFetchOptions): Promise<Response> {
@@ -54,11 +51,11 @@ export class HttpClient {
 
     const cookies = await this.getCookies();
 
-    const headers: HeadersInit = {
-      ...options.headers,
-      'User-Agent': this.options.userAgent,
-      'Cookie': cookies
-    };
+    const headers: HeadersInit = new Headers(options.headers);
+    headers.set('User-Agent', this.options.userAgent);
+    if (cookies !== null) {
+      headers.set('Cookie', cookies);
+    }
 
     const response = await fetch(url, {
       method,
@@ -71,15 +68,12 @@ export class HttpClient {
     return response;
   }
 
-  private registerCookies(response: Response) {
-    const cookie = response.headers.get('set-cookie');
-    if (cookie) {
-      return this.cookieJar.setCookie(cookie, response.url);
-    }
+  protected registerCookies(response: Response): Promise<Cookie | undefined> {
+    return Promise.resolve(undefined);
   }
 
-  public getCookies(): Promise<string> {
-    return this.cookieJar.getCookieString(this.options.baseUrl); // Get cookies for the request
+  public async getCookies(): Promise<string | null> {
+    return Promise.resolve(null);
   }
 
 }

@@ -1,5 +1,5 @@
 /* eslint-disable-next-line */
-import {HttpClient} from "./httpClient.js";
+import {HttpClient} from "./http-client.js";
 
 export type CovertType = 'Front' | 'Back' | 'Booklet' | 'Medium' | 'Obi' | 'Spine' | 'Track' | 'Tray' | 'Sticker' |
 'Poster' | 'Liner' | 'Watermark' | 'Raw/Unedited' | 'Matrix/Runout' | 'Top' | 'Bottom' | 'Other';
