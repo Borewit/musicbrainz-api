@@ -3,14 +3,21 @@
   "version": "0.19.1",
   "description": "MusicBrainz API client for reading and submitting metadata",
   "exports": {
-    "import": "./lib/index.js",
-    "require": "./lib/default.cjs"
+    "node": {
+      "import": "./lib/entry-node.js",
+      "require": "./lib/entry-node.cjs"
+    },
+    "default": {
+      "import": "./lib/entry-default.js",
+      "require": "./lib/entry-default.cjs"
+    }
   },
   "types": "lib/index.d.ts",
   "files": [
     "lib/**/*.js",
     "lib/**/*.d.ts",
-    "lib/default.cjs"
+    "lib/entry-node.cjs",
+    "lib/entry-default.cjs"
   ],
   "type": "module",
   "author": {
