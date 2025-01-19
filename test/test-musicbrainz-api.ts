@@ -687,6 +687,13 @@ describe('MusicBrainz-api', function () {
 
     describe('Query', () => {
 
+      it('query: Queen - Made In Heaven', async () => {
+        const query = 'query=artist:"Queen" AND release:"Made in Heaven"';
+        const result = await mbApi.search('release-group', {query});
+        assert.isAtLeast(result.count, 1);
+        assert.strictEqual(result["release-groups"][0].id, '780e6a16-9384-307d-ae65-02e1d6313753');
+      });
+
       it('query: Queen - We Will Rock You', async () => {
         const query = 'query="We Will Rock You" AND arid:0383dadf-2a4e-4d10-a46a-e9e041da8eb3';
         const result = await mbApi.search('release-group', {query});
