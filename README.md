@@ -308,9 +308,9 @@ Arguments:
   - `query.offset`: optional, return search results starting at a given offset. Used for paging through more than one page of results.
   - `limit.query`: optional, an integer value defining how many entries should be returned. Only values between 1 and 100 (both inclusive) are allowed. If not given, this defaults to 25.
 
-For example, to find any recordings of _'We Will Rock You'_ by Queen:
+For example, to search for _release-group_: _"We Will Rock You"_ by _Queen_:
 ```js
-const query = 'query="We Will Rock You" AND arid:0383dadf-2a4e-4d10-a46a-e9e041da8eb3';
+const query = 'query=artist:"Queen" AND release:"We Will Rock You"';
 const result = await mbApi.search('release-group', {query});
 ```
 
