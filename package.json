@@ -109,5 +109,5 @@
     ],
     "report-dir": "coverage"
   },
-  "packageManager": "yarn@4.1.1"
+  "packageManager": "yarn@4.6.0"
 }
