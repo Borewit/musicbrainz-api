@@ -2928,8 +2928,8 @@ __metadata:
   linkType: hard
 
 "remark-preset-lint-recommended@npm:^7.0.0":
-  version: 7.0.0
-  resolution: "remark-preset-lint-recommended@npm:7.0.0"
+  version: 7.0.1
+  resolution: "remark-preset-lint-recommended@npm:7.0.1"
   dependencies:
     remark-lint: "npm:^10.0.0"
     remark-lint-final-newline: "npm:^3.0.0"
@@ -2946,7 +2946,7 @@ __metadata:
     remark-lint-no-unused-definitions: "npm:^4.0.0"
     remark-lint-ordered-list-marker-style: "npm:^4.0.0"
     unified: "npm:^11.0.0"
-  checksum: 10c0/ee425c9a3733e077889de9e644d6892f846edc4efb23d6a9b1e5e9c0d74d09f0b79cb0bb2d6cd1bca920288435a21a1c034cd6ab692ed00280b26f4f023333e1
+  checksum: 10c0/6d6cd159f56a8098e3fdac9d3bc68801f3181faf4bec37628c97f37fd2e69075ee3733268405fbd5bc1d73c25e3be820803ac3efbde68bc5e044df9ab244dd00
   languageName: node
   linkType: hard
 
