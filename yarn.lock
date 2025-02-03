@@ -448,9 +448,9 @@ __metadata:
   linkType: hard
 
 "@types/mocha@npm:^10.0.4":
-  version: 10.0.9
-  resolution: "@types/mocha@npm:10.0.9"
-  checksum: 10c0/76dd782ac7e971ea159d4a7fd40c929afa051e040be3f41187ff03a2d7b3279e19828ddaa498ba1757b3e6b91316263bb7640db0e906938275b97a06e087b989
+  version: 10.0.10
+  resolution: "@types/mocha@npm:10.0.10"
+  checksum: 10c0/d2b8c48138cde6923493e42b38e839695eb42edd04629abe480a8f34c0e3f50dd82a55832c2e8d2b6e6f9e4deb492d7d733e600fbbdd5a0ceccbcfc6844ff9d5
   languageName: node
   linkType: hard
 
@@ -462,20 +462,20 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:*, @types/node@npm:^22.5.0":
-  version: 22.10.2
-  resolution: "@types/node@npm:22.10.2"
+  version: 22.13.0
+  resolution: "@types/node@npm:22.13.0"
   dependencies:
     undici-types: "npm:~6.20.0"
-  checksum: 10c0/2c7b71a040f1ef5320938eca8ebc946e6905caa9bbf3d5665d9b3774a8d15ea9fab1582b849a6d28c7fc80756a62c5666bc66b69f42f4d5dafd1ccb193cdb4ac
+  checksum: 10c0/9cf6358b2863ae7bf9588ca1cc3d87f6a6289c3880e95a046a188760666870e2c12502df8b0a473bec8aa8ffee85e025d60382a6104b10f197120793235b2c22
   languageName: node
   linkType: hard
 
 "@types/node@npm:^20.0.0":
-  version: 20.17.10
-  resolution: "@types/node@npm:20.17.10"
+  version: 20.17.16
+  resolution: "@types/node@npm:20.17.16"
   dependencies:
     undici-types: "npm:~6.19.2"
-  checksum: 10c0/458ec725319e57d4692cbb56d81f1a90f9074cef9ec185c59e6f6c557a3d2ded57c5e443b1e82eba923d53dda4db18797fb131ee6e46fdb3d7d2f54d54aaebe3
+  checksum: 10c0/50c589dd6a377238bc51b6fb5b8fc60ff6d688df0bde621d4a9fc59f480eb956cdf6d46052e1cb9536f150bc62e9194ddc733aa78b65e812155b4d3a32717de2
   languageName: node
   linkType: hard
 
