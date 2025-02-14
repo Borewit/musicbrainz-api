@@ -38,22 +38,14 @@ export class CoverArtArchiveApi {
       }
     });
 
-    try {
-      const j = await response.json();
-      return j;
-    } catch (e) {
-      if (response.status === 404) {
-        return {
-            "error": "Not Found",
-            "help": "For usage, please see: https://musicbrainz.org/development/mmd"
-        }
-      } else {
-        return {
-          "error": (e as Error).message,
-          "help": "For usage, please see: https://musicbrainz.org/development/mmd"
-        }
+    if (response.status === 404) {
+      return {
+        "error": "Not Found",
+        "help": "For usage, please see: https://musicbrainz.org/development/mmd"
       }
     }
+
+    return response.json();
   }
 
   /**
