@@ -992,6 +992,28 @@ describe('Cover Art Archive API', function() {
     assert.ok(releaseCoverInfo.images.length > 0, 'releaseCoverInfo.images.length > 0');
   });
 
+  it('Test an ID that does not exist', async () => {
+    const coverArtArchiveApiClient = new CoverArtArchiveApi();
+    const releaseCoverInfo = await coverArtArchiveApiClient.getReleaseGroupCovers('a8d5bd1b-e325-462d-af75-13ff94353101');
+    assert.isDefined(releaseCoverInfo);
+    // @ts-expect-error 
+    assert.isDefined(releaseCoverInfo.error);
+
+  });
+
+  it('Failure test for the content type of the api', async () => {
+    const response = await fetch('https://coverartarchive.org/release/a8d5bd1b-e325-462d-af75-13ff94353101',{
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        UserAgent: "Node.js musicbrains-api"
+      }
+    });
+    const body = await response.text();
+    assert.notEqual(response.headers.get("Content-Type"), "application/json");
+    assert.throws(() => JSON.parse(body), SyntaxError, undefined, 'The cover art api previously returned HTML instead of JSON')
+  });
+
 });
 
 describe.skip('Node specific API', function (){
