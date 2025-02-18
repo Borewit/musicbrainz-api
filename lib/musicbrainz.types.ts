@@ -226,6 +226,7 @@ export interface IUrlList extends ISearchResult {
 export type RelationDirection = 'backward' | 'forward';
 
 export interface IRelation {
+  artist?: IArtist;
   'attribute-ids':unknown[];
   direction: RelationDirection;
   'target-credit': string;
