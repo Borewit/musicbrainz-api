@@ -39,7 +39,7 @@ export class CoverArtArchiveApi {
     });
 
     const contentType = response.headers.get("Content-Type");
-    if (contentType?.toLowerCase() !== "application/json" && response.status === 404) {
+    if (response.status === 404 && contentType?.toLowerCase() !== "application/json") {
       return {
         "error": "Not Found",
         "help": "For usage, please see: https://musicbrainz.org/development/mmd"
