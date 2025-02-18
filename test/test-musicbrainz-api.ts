@@ -20,7 +20,7 @@ import {
   type ReleaseIncludes,
   LinkType,
   MusicBrainzApi, type RecordingIncludes, type IRecording,
-  type IMusicBrainzConfig
+  type IMusicBrainzConfig, type IArtist
 } from '../lib/entry-default.js';
 import { assert, expect } from 'chai';
 import type * as mb from '../lib/musicbrainz.types.js';
@@ -700,6 +700,59 @@ describe('MusicBrainz-api', function () {
         assert.isAtLeast(result.count, 1);
       });
 
+      // Based on https://stackoverflow.com/a/79369493/28701779
+      it('Find all artist relations of Queen - Made in Heaven', async () => {
+
+        async function findReleaseGroup(artist: string, title: string) {
+          const result = await mbApi.search('release-group', {query: `artist:"${artist}" AND release:"${title}"`});
+          return result.count > 0 ? result["release-groups"][0] : undefined;
+        }
+
+        /**
+         * Find all artists for provided MBID (MusicBrainz ID)
+         * @param mbidReleaseGroup MBID (MusicBrainz ID) Release-group
+         */
+        async function findAllRelatedArtist(mbidReleaseGroup: string): Promise<MapIterator<IArtist>> {
+          const relInfoGrp = await mbApi.lookup('release-group', mbidReleaseGroup, ['releases']);
+          assert.exists(relInfoGrp.releases, 'relInfoGrp.releases');
+          assert.isAtLeast(relInfoGrp.releases.length, 1, 'relInfoGrp.releases.length');
+          let release = relInfoGrp.releases[0]; // Pick the first (some) release from the release-group
+          release = await mbApi.lookup('release', release.id, ['artists', 'recordings']);
+
+          const artistRelations = new Map<string, IArtist>(); // Set to track unique relations
+
+          for(const media of release.media) {
+            for(const track of media.tracks) {
+              const recording = await mbApi.lookup('recording', track.recording.id, ['artists', 'artist-rels']);
+              assert.exists(recording.relations, 'recording.relations');
+              for(const relation of recording.relations) {
+                if (relation.artist) {
+                  const relationKey = `${relation.type}/${relation.artist.name}`; // Create a unique key
+                  if (!artistRelations.has(relationKey)) {
+                    artistRelations.set(relationKey, relation.artist); // Add the key to the set
+                  }
+                }
+              }
+            }
+          }
+          return artistRelations.values();
+        }
+
+        const releaseGroup = await findReleaseGroup('Queen', 'Made in Heaven');
+        assert.isDefined(releaseGroup, 'Should be able to find the release-group for: Queen - Made in Heaven');
+        if (releaseGroup) {
+          const artists = Array.from(await findAllRelatedArtist(releaseGroup.id));
+          const artistNames = artists.map(artist => artist.name);
+          assert.include(artistNames, 'Queen');
+          assert.include(artistNames, 'Josh Macrae');
+          assert.include(artistNames, 'David Richards');
+          assert.include(artistNames, 'Justin Shirley‐Smith');
+          assert.include(artistNames, 'John Deacon');
+          assert.include(artistNames, 'Brian May');
+          assert.include(artistNames, 'Freddie Mercury');
+          assert.include(artistNames, 'Roger Taylor');
+        }
+      });
     });
 
     describe('Search', () => {
@@ -1100,5 +1153,6 @@ describe.skip('Node specific API', function (){
     });
 
   });
+
 
 });
