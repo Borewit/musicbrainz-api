@@ -473,27 +473,35 @@ async function getCoverArt(releaseGroupMbid, coverType = '') {
 
 ## CommonJS backward compatibility
 
-For legacy CommonJS projects needing to load the `music-metadata` ESM module, you can use the `loadMusicMetadata` function:
+I recommend CommonJS projects to consider upgrading their project to ECMAScript Module (ESM).
+Please continue reading how to use **musicbrainz-api** in a CommonJS project.
+
+Using Node.js ≥ 22, which is support loading ESM module via require, you can use:
 ```js
-const { loadMusicBrainzApi } = require('musicbrainz-api');
-
-(async () => {
-
-    // Dynamically loads the ESM module in a CommonJS project
-    const  {MusicBrainzApi} = await loadMusicBrainzApi();
-
-    const mbApi = new MusicBrainzApi({
-        appName: 'my-app',
-        appVersion: '0.1.0',
-        appContactInfo: 'user@mail.org',
-    });
-
-    const releaseList = await mbApi.search('release', {query: {barcode: 602537479870}});
-    for(const release of releaseList.releases) {
-        console.log(release.title);
-    }
-})();
+const { MusicBrainzApi } = require('musicbrainz-api');
 ```
 
-> [!NOTE]
-> The `loadMusicMetadata` function is experimental.
+Other CommonJS projects have to use [dynamic import](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Operators/import) to load the **musicbrainz-api** pure ESM module:
+```js
+async function run() {
+  // Dynamically loads the ESM module in a CommonJS project  
+  const { MusicBrainzApi } = await import('musicbrainz-api');
+};
+
+run();
+```
+
+This is known not to work in TypeScript CommonJS projects, as the TypeScript compiler, in my opinion,
+incorrectly converts the [dynamic import](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Operators/import) 
+to `require()`. To perform the dynamic import in TypeScript, you can use [load-esm](https://github.com/Borewit/load-esm):
+
+```js
+import {loadEsm} from 'load-esm';
+
+async function run() {
+    // Dynamically loads the ESM module in a TypeScript CommonJS project  
+  const { MusicBrainzApi } = await loadEsm<typeof import('musicbrainz-api')>('musicbrainz-api');
+};
+
+run();
+```
