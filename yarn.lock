@@ -3327,11 +3327,11 @@ __metadata:
   linkType: hard
 
 "tough-cookie@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "tough-cookie@npm:5.0.0"
+  version: 5.1.1
+  resolution: "tough-cookie@npm:5.1.1"
   dependencies:
     tldts: "npm:^6.1.32"
-  checksum: 10c0/4a69c885bf6f45c5a64e60262af99e8c0d58a33bd3d0ce5da62121eeb9c00996d0128a72df8fc4614cbde59cc8b70aa3e21e4c3c98c2bbde137d7aba7fa00124
+  checksum: 10c0/84fe18b7c28ce273c916d95028c00ffff58c285d58e90fbd44eb9380dd1bc21892c675cd1bbd4bfbc95108fe833c406b285844757d41636248bfe264655a6ef8
   languageName: node
   linkType: hard
 
