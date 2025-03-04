@@ -505,3 +505,7 @@ async function run() {
 
 run();
 ```
+
+## Licence
+
+This project is licensed under the [MIT License](LICENSE.txt). Feel free to use, modify, and distribute as needed.
