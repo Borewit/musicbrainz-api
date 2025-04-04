@@ -89,7 +89,8 @@ const mbid = {
   area: {
     Belgium: '5b8a5ee5-0bb3-34cf-9a75-c27c44e341fc',
     IleDeFrance: 'd79e4501-8cba-431b-96e7-bb9976f0ae76',
-    Lisbon: '9aee8c1a-c7d5-4713-af71-c022bccf50b4'
+    Lisbon: '9aee8c1a-c7d5-4713-af71-c022bccf50b4',
+    Queens: '431a085b-9f4c-4fbb-82de-2ca7ce735da8'
   },
   artist: {
     Stromae: 'ab2528d9-719f-4261-8098-21849222a0f2',
@@ -184,16 +185,40 @@ describe('MusicBrainz-api', function () {
 
     describe('Lookup', () => {
 
-      it('area', async () => {
-        const area = await mbApi.lookup('area', mbid.area.Belgium);
-        assert.strictEqual(area.id, mbid.area.Belgium);
-        assert.strictEqual(area.name, 'Belgium');
+      describe('Area', () => {
+
+        it('Belgium', async () => {
+          const area = await mbApi.lookup('area', mbid.area.Belgium);
+          assert.strictEqual(area.type, 'Country', 'area.type');
+          assert.strictEqual(area.id, mbid.area.Belgium, 'area.id');
+          assert.strictEqual(area.name, 'Belgium', 'area.name');
+          assert.strictEqual(area['sort-name'], 'Belgium', 'area.sort-name');
+          assert.isDefined(area['life-span'], 'area.life-span');
+          assert.strictEqual(area['life-span'].begin, null, 'area.life-span.begin');
+          assert.strictEqual(area['life-span'].end, null, 'area.life-span.end');
+          assert.strictEqual(area['life-span'].ended, false, 'area.life-span.ended');
+        });
+
+        it('Queens', async () => {
+          const area = await mbApi.lookup('area', mbid.area.Queens);
+          assert.strictEqual(area.type, 'District', 'area.type');
+          assert.strictEqual(area.id, mbid.area.Queens, 'area.id');
+          assert.strictEqual(area.name, 'Queens', 'area.name');
+          assert.strictEqual(area['sort-name'], 'Queens', 'area.sort-name');
+          assert.isDefined(area['life-span'], 'area.life-span');
+          assert.strictEqual(area['life-span'].begin, null, 'area.life-span.begin');
+          assert.strictEqual(area['life-span'].end, null, 'area.life-span.end');
+          assert.strictEqual(area['life-span'].ended, false, 'area.life-span.ended');
+        });
+
       });
 
       it('artist', async () => {
         const artist = await mbApi.lookup('artist', mbid.artist.Stromae);
         assert.strictEqual(artist.id, mbid.artist.Stromae);
         assert.strictEqual(artist.name, 'Stromae');
+        assert.strictEqual(artist.country, 'BE');
+        assert.strictEqual(artist.gender, 'Male');
         // Ref: https://musicbrainz.org/doc/IPI
         expect(artist.ipis).include('00497406811', 'Contain an Interested Parties Information Code (IPI)');
       });
@@ -207,13 +232,19 @@ describe('MusicBrainz-api', function () {
       it('instrument', async () => {
         const instrument = await mbApi.lookup('instrument', mbid.instrument.spanishAcousticGuitar);
         assert.strictEqual(instrument.id, mbid.instrument.spanishAcousticGuitar);
+        assert.strictEqual(instrument.name, 'classical guitar');
+        assert.strictEqual(instrument.disambiguation, 'Modern acoustic gut/nylon string guitar');
         assert.strictEqual(instrument.type, 'String instrument');
+        assert.strictEqual(instrument.description, 'Also known as Spanish guitar, it is used in classical, folk and other styles, the strings are nylon or gut.');
       });
 
       it('label', async () => {
         const label = await mbApi.lookup('label', mbid.label.Mosaert);
         assert.strictEqual(label.id, mbid.label.Mosaert);
         assert.strictEqual(label.name, 'Mosaert');
+        assert.strictEqual(label['sort-name'], 'Mosaert');
+        expect(label.ipis).include('00367549320', 'Contain an Interested Parties Information Code (IPI)');
+
       });
 
       describe('release', () => {
@@ -222,6 +253,14 @@ describe('MusicBrainz-api', function () {
           const release = await mbApi.lookup('release', mbid.release.Formidable);
           assert.strictEqual(release.id, mbid.release.Formidable);
           assert.strictEqual(release.title, 'Formidable');
+          assert.strictEqual(release.status, 'Official');
+          assert.strictEqual(release["status-id"], '4e304316-386d-3409-af2e-78857eec5cfe');
+          assert.strictEqual(release.country, null);
+          assert.strictEqual(release.asin, null);
+          assert.strictEqual(release.quality, 'normal');
+          assert.strictEqual(release.packaging, 'None');
+          assert.strictEqual(release["packaging-id"], '119eba76-b343-3e02-a292-f0f00644bb9b');
+          assert.isObject(release["cover-art-archive"]);
         });
 
         it('check release Anomalie', async () => {
@@ -293,8 +332,10 @@ describe('MusicBrainz-api', function () {
 
         it('recording', async () => {
           const recording = await mbApi.lookup('recording', mbid.recording.Formidable);
+          assert.strictEqual(recording.length, 214000);
           assert.strictEqual(recording.id, mbid.recording.Formidable);
           assert.strictEqual(recording.title, 'Formidable');
+          assert.strictEqual(recording["first-release-date"], '2013-06-01');
           assert.isUndefined(recording.isrcs);
           assert.isUndefined(recording['artist-credit']);
           assert.isUndefined(recording.releases);
@@ -685,7 +726,16 @@ describe('MusicBrainz-api', function () {
 
     });
 
-    describe('Query', () => {
+    describe('Query release', () => {
+
+      it('query: Release by barcode', async () => {
+        const query = "query=barcode:00888072456686";
+        const result = await mbApi.search('release', {query});
+        assert.isAtLeast(result.count, 1);
+        const release = result.releases[0];
+        assert.strictEqual(release.count, 1);
+        assert.strictEqual(release.score, 100);
+      });
 
       it('query: Queen - Made In Heaven', async () => {
         const query = 'query=artist:"Queen" AND release:"Made in Heaven"';
@@ -698,6 +748,9 @@ describe('MusicBrainz-api', function () {
         const query = 'query="We Will Rock You" AND arid:0383dadf-2a4e-4d10-a46a-e9e041da8eb3';
         const result = await mbApi.search('release-group', {query});
         assert.isAtLeast(result.count, 1);
+        const releaseGroup = result["release-groups"][0];
+        assert.strictEqual(releaseGroup.count, 2);
+        assert.strictEqual(releaseGroup.score, 100);
       });
 
       // Based on https://stackoverflow.com/a/79369493/28701779
