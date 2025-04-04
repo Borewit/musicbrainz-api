@@ -1,5 +1,5 @@
 import DateTimeFormat = Intl.DateTimeFormat;
-import type { IFormData } from './musicbrainz-api.js';
+import type {IFormData} from './musicbrainz-api.js';
 
 export interface IPeriod {
   'begin': string;
@@ -7,23 +7,36 @@ export interface IPeriod {
   'end': string;
 }
 
+export interface ITypedEntity extends IEntity {
+  'type-id': string;
+  type: string;
+  id: string;
+}
+
 export interface IEntity {
   id: string;
 }
 
-export interface IArea extends IEntity {
-  'iso-3166-1-codes': string[];
+export interface LifeSpan {
+  ended: boolean,
+  begin: null | string,
+  end: null | string
+}
+
+export interface IArea extends ITypedEntity {
+  type: 'Country' | 'Subdivision' | 'Municipality' | 'City' | 'District' | 'Island'
+  'iso-3166-1-codes'?: string[];
+  primary: boolean,
   name: string;
   'sort-name': string;
   disambiguation: string;
+  'life-span': LifeSpan
 }
 
-export interface IAlias extends IEntity {
+export interface IAlias extends ITypedEntity {
   name: string;
   'sort-name': string;
   ended: boolean;
-  'type-id': string;
-  type: string;
   locale: string;
   primary: string;
   begin: string;
@@ -31,22 +44,22 @@ export interface IAlias extends IEntity {
 }
 
 export interface IMatch {
-  score: number; // ToDo: provide feedback: should be a number
+  score: number;
 }
 
-export interface IArtist extends IEntity {
+export type Gender = 'male' | 'female' | 'other' | 'not applicable';
+
+export interface IArtist extends ITypedEntity {
   name: string;
   disambiguation: string;
   'sort-name': string;
-  'type-id'?: string;
   'gender-id'?: string;
   'life-span'?: IPeriod;
   country?: string;
   ipis?: string[];
   isnis?: string[];
   aliases?: IAlias[];
-  gender?: string;
-  type?: string;
+  gender?: Gender;
   area?: IArea;
   begin_area?: IArea;
   end_area?: IArea;
@@ -64,56 +77,94 @@ export interface IArtistCredit {
   name: string;
 }
 
-export interface ICollection extends IEntity {
-  type: string;
+export interface ICollection extends ITypedEntity {
+  type: 'Recording collection';
   name: string;
-  'type-id': string;
   'recording-count': number;
   editor: string;
   'entity-type': string;
 }
 
-export interface IEvent extends IEntity {
+export interface IEvent extends ITypedEntity {
   cancelled: boolean;
-  type: string;
   'life-span': IPeriod;
   disambiguation: string;
-  'type-id': string;
   time: string;
   setlist: string;
   name: string;
 }
 
-export interface IInstrument extends IEntity {
+export type InstrumentType =
+  'Wind instrument'
+  | 'String instrument'
+  | 'Percussion instrument'
+  | 'Electronic instrument'
+  | 'Family'
+  | 'Ensemble'
+  | 'Other instrument'
+
+export interface IInstrument extends ITypedEntity {
   disambiguation: string;
   name: string;
-  'type-id': string;
-  type: string;
+  type: InstrumentType;
   description: string;
 }
 
-export type ReleaseQuality = 'normal';  // ToDo
+export type ReleaseQuality = 'normal' | 'high';
+export type ReleaseStatus =
+  'Official'
+  | 'Promotion'
+  | 'Bootleg'
+  | 'Pseudo-release'
+  | 'Withdrawn'
+  | 'Expunged'
+  | 'Cancelled';
+export type ReleasePackaging =
+  'Book'
+  | 'Box'
+  | 'Cardboard/Paper Sleeve'
+  | 'Cassette Case'
+  | 'Clamshell Case'
+  | 'Digibook'
+  | 'Digifile'
+  | 'Digipak'
+  | 'Discbox Slider'
+  | 'Fatbox'
+  | 'Gatefold Cover'
+  | 'Jewel case'
+  | 'Keep Case'
+  | 'Longbox'
+  | 'Metal Tin'
+  | 'Plastic sleeve'
+  | 'Slidepack'
+  | 'Slim Jewel Case'
+  | 'Snap Case'
+  | 'SnapPack'
+  | 'Super Jewel Box'
+  | 'Other'
+  | 'None'
 
 export interface IRelease extends IEntity {
   title: string;
   'text-representation': { 'language': string, 'script': string },
   disambiguation: string;
-  asin: string,
+  asin: null | string,
+  status: ReleaseStatus;
   'status-id': string;
-  packaging?: string;
-  status: string;
+  packaging?: ReleasePackaging;
   'packaging-id'?: string;
   'release-events'?: IReleaseEvent[];
   date: string;
   media: IMedium[];
   'cover-art-archive': ICoverArtArchive;
   country: string;
-  quality: string; // type ReleaseQuality doesnt work here
+  quality: ReleaseQuality;
   barcode: string;
   relations?: IRelation[];
   'artist-credit'?: IArtistCredit[]; // Include 'artist-credits '
   'release-group'?: IReleaseGroup; // Include: 'release-groups'
-  collections?: ICollection[]
+  collections?: ICollection[],
+  'track-count'?: number;
 }
 
 export interface IReleaseEvent {
@@ -133,9 +184,10 @@ export interface IRecording extends IEntity {
   relations?: IRelation[];
   'artist-credit'?: IArtistCredit[];
   aliases?: IAlias[];
+  'first-release-date': string;
 }
 
-export interface ITrack extends IEntity{
+export interface ITrack extends IEntity {
   position: number;
   recording: IRecording;
   'number': string; // in JSON, this is a string field
@@ -189,6 +241,7 @@ export interface IReleaseGroupMatch extends IReleaseGroup, IMatch {
 }
 
 export interface IReleaseMatch extends IRelease, IMatch {
+  count: number;
 }
 
 export interface ISearchResult {
@@ -227,7 +280,7 @@ export type RelationDirection = 'backward' | 'forward';
 
 export interface IRelation {
   artist?: IArtist;
-  'attribute-ids':unknown[];
+  'attribute-ids': unknown[];
   direction: RelationDirection;
   'target-credit': string;
   end: null | unknown;
@@ -252,18 +305,25 @@ export interface IWork extends IEntity {
 }
 
 export interface ILabel extends IEntity {
+  asin: null | string;
+  barcode: null | string;
+  country: null | string;
   name: string;
+  'sort-name': string;
+  'life-span': LifeSpan;
+  disambiguation?: string;
+  'label-code': null | string;
+  ipis: string[];
+  area: IArea;
 }
 
 export interface IPlace extends IEntity {
   name: string;
 }
 
-export interface ISeries extends IEntity {
+export interface ISeries extends ITypedEntity {
   name: string;
-  type: string;
   disambiguation: string;
-  'type-id': string;
 }
 
 export interface IUrl extends IEntity {
@@ -296,31 +356,31 @@ export interface IReleaseSearchResult extends ISearchResult {
  * https://musicbrainz.org/doc/Development/XML_Web_Service/Version_2#Subqueries
  */
 export type EntityType = 'area' |
-'artist' |
-'collection' |
-'event' |
-'instrument' |
-'label' |
-'place' |
-'recording' |
-'release' |
-'release-group' |
-'series' |
-'work' |
-'url';
+  'artist' |
+  'collection' |
+  'event' |
+  'instrument' |
+  'label' |
+  'place' |
+  'recording' |
+  'release' |
+  'release-group' |
+  'series' |
+  'work' |
+  'url';
 
 export type Relationships = 'area-rels' |
-'artist-rels' |
-'event-rels' |
-'instrument-rels' |
-'label-rels' |
-'place-rels' |
-'recording-rels' |
-'release-rels' |
-'release-group-rels' |
-'series-rels' |
-'url-rels' |
-'work-rels';
+  'artist-rels' |
+  'event-rels' |
+  'instrument-rels' |
+  'label-rels' |
+  'place-rels' |
+  'recording-rels' |
+  'release-rels' |
+  'release-group-rels' |
+  'series-rels' |
+  'url-rels' |
+  'work-rels';
 
 export enum LinkType {
   license = 302,
@@ -573,6 +633,7 @@ export interface IBrowsePlacesQuery extends IPagination {
   area?: string;
   collection?: string;
 }
+
 /**
  * Browse recordings query <entity>: <MBID>
  * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
