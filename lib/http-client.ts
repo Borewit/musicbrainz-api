@@ -6,6 +6,7 @@ export interface IHttpClientOptions {
   baseUrl: string,
   timeout: number;
   userAgent: string;
+  followRedirects?: boolean;
 }
 
 export interface IFetchOptions {
@@ -44,7 +45,7 @@ export class HttpClient {
 
     if (!options) options = {};
 
-    let url = `${this.options.baseUrl}/${path}`;
+    let url = path.startsWith('/') ? `${this.options.baseUrl}${path}` : `${this.options.baseUrl}/${path}`;
     if (options.query) {
         url += `?${new URLSearchParams(options.query)}`;
     }

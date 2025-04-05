@@ -218,7 +218,7 @@ export class MusicBrainzApi {
 
     await this.applyRateLimiter();
 
-    const response = await this.httpClient.get(`ws/2${relUrl}`, {
+    const response = await this.httpClient.get(`/ws/2${relUrl}`, {
       query,
       retryLimit: 10
     });
@@ -315,7 +315,7 @@ export class MusicBrainzApi {
 
     const clientId = `${this.config.appName.replace(/-/g, '.')}-${this.config.appVersion}`;
 
-    const path = `ws/2/${entity}/`;
+    const path = `/ws/2/${entity}/`;
     // Get digest challenge
 
     let digest = '';
@@ -363,7 +363,7 @@ export class MusicBrainzApi {
     formData.password = this.config.botAccount?.password;
     formData.remember_me = 1;
 
-    const response = await this.httpClient.postForm(`${entity}/${mbid}/edit`, formData, {
+    const response = await this.httpClient.postForm(`/${entity}/${mbid}/edit`, formData, {
       followRedirects: false
     });
     if (response.status === HttpStatus.OK)

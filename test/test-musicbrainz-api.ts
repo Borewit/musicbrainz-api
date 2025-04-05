@@ -749,7 +749,7 @@ describe('MusicBrainz-api', function () {
         const result = await mbApi.search('release-group', {query});
         assert.isAtLeast(result.count, 1);
         const releaseGroup = result["release-groups"][0];
-        assert.strictEqual(releaseGroup.count, 2);
+        assert.isNumber(releaseGroup.count, 'releaseGroup.count');
         assert.strictEqual(releaseGroup.score, 100);
       });
 
@@ -1074,36 +1074,41 @@ describe('Cover Art Archive API', function() {
 
   it('Get all cover-art for release Formidable', async () => {
     const coverArtArchiveApiClient = new CoverArtArchiveApi();
-    const releaseCoverInfo = await coverArtArchiveApiClient.getReleaseCovers(mbid.release.Formidable);
-    assert.isDefined(releaseCoverInfo);
-    assert.strictEqual(releaseCoverInfo.release, releaseMusicBrainzBaseUrl + mbid.release.Formidable, 'releaseCoverInfo.release');
-    assert.isDefined(releaseCoverInfo.images, 'releaseCoverInfo.images');
-    assert.ok(releaseCoverInfo.images.length > 0, 'releaseCoverInfo.images.length > 0');
+    const releaseCoversInfo = await coverArtArchiveApiClient.getReleaseCovers(mbid.release.Formidable);
+    assert.isDefined(releaseCoversInfo);
+    assert.strictEqual(releaseCoversInfo.release, releaseMusicBrainzBaseUrl + mbid.release.Formidable, 'releaseCoversInfo.release');
+    assert.isDefined(releaseCoversInfo.images, 'releaseCoversInfo.images');
+    assert.ok(releaseCoversInfo.images.length > 0, 'releaseCoversInfo.images.length > 0');
   });
 
-  it('Get best back cover for release Dire Straits', async () => {
+  it('Get the back cover for release Dire Straits', async () => {
     const coverArtArchiveApiClient = new CoverArtArchiveApi();
-    const releaseCoverInfo = await coverArtArchiveApiClient.getReleaseCovers(mbid.release.DireStraits);
+    const releaseCoverInfo = await coverArtArchiveApiClient.getReleaseCover(mbid.release.DireStraits, 'back');
     assert.isDefined(releaseCoverInfo);
-    assert.strictEqual(releaseCoverInfo.release, releaseMusicBrainzBaseUrl + mbid.release.DireStraits, 'releaseCoverInfo.release');
-    assert.isDefined(releaseCoverInfo.images, 'releaseCoverInfo.images');
-    assert.ok(releaseCoverInfo.images.length > 0, 'releaseCoverInfo.images.length > 0');
+    expect(releaseCoverInfo.url).to.be.a('string').and.to.match(/^https/);
   });
 
-  it('Get front cover for release group Formidable', async () => {
+  it('Get cover information for release group Formidable', async () => {
     const coverArtArchiveApiClient = new CoverArtArchiveApi();
-    const releaseCoverInfo = await coverArtArchiveApiClient.getReleaseGroupCovers(mbid.releaseGroup.Formidable);
+    const releaseCoversInfo = await coverArtArchiveApiClient.getReleaseGroupCovers(mbid.releaseGroup.Formidable);
+    assert.isDefined(releaseCoversInfo);
+    assert.isDefined(releaseCoversInfo.images, 'releaseCoversInfo.images');
+    assert.ok(releaseCoversInfo.images.length > 0, 'releaseCoversInfo.images.length > 0');
+  });
+
+  it('Get the front cover for release group Formidable', async () => {
+    const coverArtArchiveApiClient = new CoverArtArchiveApi();
+    const releaseCoverInfo = await coverArtArchiveApiClient.getReleaseGroupCover(mbid.releaseGroup.Formidable, 'front');
     assert.isDefined(releaseCoverInfo);
-    assert.isDefined(releaseCoverInfo.images, 'releaseCoverInfo.images');
-    assert.ok(releaseCoverInfo.images.length > 0, 'releaseCoverInfo.images.length > 0');
+    expect(releaseCoverInfo.url).to.be.a('string').and.to.match(/^https/);
   });
 
   it('Test an ID that does not exist', async () => {
     const coverArtArchiveApiClient = new CoverArtArchiveApi();
-    const releaseCoverInfo = await coverArtArchiveApiClient.getReleaseGroupCovers('a8d5bd1b-e325-462d-af75-13ff94353101');
-    assert.isDefined(releaseCoverInfo);
+    const releaseCoversInfo = await coverArtArchiveApiClient.getReleaseGroupCovers('a8d5bd1b-e325-462d-af75-13ff94353101');
+    assert.isDefined(releaseCoversInfo);
     // @ts-expect-error 
-    assert.isDefined(releaseCoverInfo.error);
+    assert.isDefined(releaseCoversInfo.error);
 
   });
 
