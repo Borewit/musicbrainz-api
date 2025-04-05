@@ -425,26 +425,40 @@ await mbApi.addSpotifyIdToRecording(recording, '2AMysGXOe0zzZJMtH3Nizb');
 This library also supports the [Cover Art Archive API](https://musicbrainz.org/doc/Cover_Art_Archive/API).
 
 ### Fetch Release Cover Art
+
+#### Fetch available cover art information
+
 ```js
 import { CoverArtArchiveApi } from 'musicbrainz-api';
 
 const coverArtArchiveApiClient = new CoverArtArchiveApi();
 
-async function getReleaseCoverArt(releaseMbid, coverType = '') {
-    try {
-        const coverInfo = await coverArtArchiveApiClient.getReleaseCovers(releaseMbid, coverType);
-        console.log(`Cover info for ${coverType || 'all covers'}`, coverInfo);
-    } catch (error) {
-        console.error(`Failed to fetch ${coverType || 'all covers'}:`, error);
+async function fetchCoverArt(releaseMbid, coverType = '') {
+    const coverInfo = await coverArtArchiveApiClient.getReleaseCovers(releaseMbid);
+    for(const image of coverInfo.images) {
+        console.log(`Cover art front=${image.front} back=${image.back} url=${image.image}`);
     }
 }
 
-(async () => {
-    const releaseMbid = 'your-release-mbid-here';  // Replace with actual MBID
-    await getReleaseCoverArt(releaseMbid); // Get all covers
-    await getReleaseCoverArt(releaseMbid, 'front'); // Get best front cover
-    await getReleaseCoverArt(releaseMbid, 'back'); // Get best back cover
-})();
+fetchCoverArt('976e0677-a480-4a5e-a177-6a86c1900bbf').catch(error => {
+    console.error(`Failed to fetch cover art: ${error.message}`);
+})
+```
+
+#### Fetch front or back cover for a release
+```js
+import { CoverArtArchiveApi } from 'musicbrainz-api';
+
+const coverArtArchiveApiClient = new CoverArtArchiveApi();
+
+async function fetchCoverArt(releaseMbid, coverType = '') {
+    const coverInfo = await coverArtArchiveApiClient.getReleaseCover(releaseMbid, 'front');
+    console.log(`Cover art url=${coverInfo.url}`);
+}
+
+fetchCoverArt('976e0677-a480-4a5e-a177-6a86c1900bbf').catch(error => {
+    console.error(`Failed to fetch cover art: ${error.message}`);
+})
 ```
 
 ### Release Group Cover Art
@@ -453,22 +467,32 @@ import { CoverArtArchiveApi } from 'musicbrainz-api';
 
 const coverArtArchiveApiClient = new CoverArtArchiveApi();
 
-async function getCoverArt(releaseGroupMbid, coverType = '') {
-    try {
-        const coverInfo = await coverArtArchiveApiClient.getReleaseGroupCovers(releaseGroupMbid, coverType);
-        console.log(`Cover info for ${coverType || 'all covers'}`, coverInfo);
-    } catch (error) {
-        console.error(`Failed to fetch ${coverType || 'all covers'}:`, error);
+async function fetchCoverArt(releaseMbid, coverType = '') {
+    const coverInfo = await coverArtArchiveApiClient.getReleaseGroupCovers(releaseMbid);
+    for(const image of coverInfo.images) {
+        console.log(`Cover art front=${image.front} back=${image.back} url=${image.image}`);
     }
 }
 
-(async () => {
-    const releaseGroupMbid = 'your-release-group-mbid-here';  // Replace with actual MBID
-    await getCoverArt(releaseGroupMbid); // Get all covers
-    await getCoverArt(releaseGroupMbid, 'front'); // Get best front cover
-    await getCoverArt(releaseGroupMbid, 'back'); // Get best back cover
-})();
+fetchCoverArt('976e0677-a480-4a5e-a177-6a86c1900bbf').catch(error => {
+    console.error(`Failed to fetch cover art: ${error.message}`);
+})
+```
 
+#### Fetch front or back cover for a release-group
+```js
+import { CoverArtArchiveApi } from 'musicbrainz-api';
+
+const coverArtArchiveApiClient = new CoverArtArchiveApi();
+
+async function fetchCoverArt(releaseMbid, coverType = '') {
+    const coverInfo = await coverArtArchiveApiClient.getReleaseGroupCover(releaseMbid, 'front');
+    console.log(`Cover art url=${coverInfo.url}`);
+}
+
+fetchCoverArt('976e0677-a480-4a5e-a177-6a86c1900bbf').catch(error => {
+    console.error(`Failed to fetch cover art: ${error.message}`);
+})
 ```
 
 ## CommonJS backward compatibility
