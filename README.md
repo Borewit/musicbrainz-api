@@ -116,18 +116,13 @@ MusicBrainz API documentation: [XML Web Service/Version 2 Lookups](https://wiki.
 ### Lookup Function
 
 ```js
-const artist = await mbApi.lookup('artist', 'ab2528d9-719f-4261-8098-21849222a0f2');
+const artist = await mbApi.lookup('artist', 'ab2528d9-719f-4261-8098-21849222a0f2', ['recordings']);
 ```
 
 Arguments:
-- entity: `'area'` | `'artist'` | `'collection'` | `'instrument'` | `'label'` | `'place'` | `'release'` | `'release-group'` | `'recording'` | `'series'` | `'work'` | `'url'` | `'event'`
-- MBID [(MusicBrainz identifier)](https://wiki.musicbrainz.org/MusicBrainz_Identifier)
-- query
-
-
-| Query argument        | Query value     | 
-|-----------------------|-----------------|  
-| `query.collection`    | Collection MBID |
+- entity (`string`): `'area'` | `'artist'` | `'collection'` | `'instrument'` | `'label'` | `'place'` | `'release'` | `'release-group'` | `'recording'` | `'series'` | `'work'` | `'url'` | `'event'`
+- MBID (`string`): [(MusicBrainz identifier)](https://wiki.musicbrainz.org/MusicBrainz_Identifier)
+- include arguments (`string[]`), see [Include arguments](#include-arguments)
 
 ### Browse artist
 
@@ -354,6 +349,82 @@ Search a combination of a release-group and an artist.
 ```js
 const result = await mbApi.search('release-group', {artist: 'Racine carrée', releasegroup: 'Stromae'});
 ```
+
+## Include arguments
+
+
+### Subqueries
+
+_Include Arguments_ which allow you to request more information to be included about the entity.
+
+| entity           | supported _include arguments_                                              |
+|------------------|----------------------------------------------------------------------------|
+| `area`           |                                                                            |
+| `artist`         | `recordings`, `releases`, `release-groups`, `works`                        |                             
+| `collection`     | `user-collections` (includes private collections, requires authentication) |
+| `event`          |                                                                            |
+| `genre`          |                                                                            |
+| `instrument`     |                                                                            |
+| `label`          | `releases`                                                                 |
+| `place`          |                                                                            |
+| `recording`      | `artists`, `releases`, `release-groups`, `isrcs`, `url-rels`               |
+| `release`        | `artists`, `collections`, `labels`, `recordings`, `release-groups`         |
+| `release-group`  | `artists`, `releases`                                                      |
+| `series`         |                                                                            | 
+| `work`           |                                                                            | 
+| `url`            |                                                                            |
+
+### Arguments which affect subqueries
+
+Some additional _include parameters_ are supported to specify how much of the data about the linked entities should be included:
+
+| _include argument_ | Description                                                                                                                                                                                                           |
+|--------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `discids`          | include discids for all media in the releases                                                                                                                                                                         |
+| `media`            | include media for all releases, this includes the # of tracks on each medium and its format.                                                                                                                          |                             
+| `isrcs`            | user-collections (includes private collections, requires authentication)include isrcs for all recordings                                                                                                              |
+| `artist-credits`   | include artists credits for all releases and recordings                                                                                                                                                               |
+| `various-artists`  | include only those releases where the artist appears on one of the tracks, but not in the artist credit for the release itself (this is only valid on entity `"artist"` and _include argument_ `"releases request"`). |
+
+### Miscellaneous arguments
+
+| _include argument_          | Description                                                                                                                            |
+|-----------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| `aliases`                   | include artist, label, area or work aliases; treat these as a set, as they are not deliberately ordered                                |
+| `annotation`                | include annotation                                                                                                                     |                             
+| `tags`, `ratings`           | include tags and/or ratings for the entity                                                                                             |
+| `user-tags`, `user-ratings` | same as above, but only return the tags and/or ratings submitted by the specified user                                                 |
+| `genres`, `user-genres`     | include genres (tags in the [genres list](https://musicbrainz.org/genres)): either all or the ones submitted by the user, respectively |
+
+### Relationships
+
+You can request relationships with the appropriate includes:
+- `area-rels`
+- `artist-rels`
+- `event-rels`
+- `genre-rels`
+- `instrument-rels`
+- `label-rels`
+- `place-rels`
+- `recording-rels`
+- `release-rels`
+- `release-group-rels`
+- `series-rels`
+- `url-rels`
+- `work-rels`
+
+These will load relationships between the requested entity and the specific entity type. 
+For example, if you request "work-rels" when looking up an artist, 
+you'll get all the relationships between this artist and any works, 
+and if you request "artist-rels" you'll get the relationships between this artist and any other artists. 
+As such, keep in mind requesting "artist-rels" for an artist, "release-rels" for a release, etc. will not load all the relationships for the entity, just the ones to other entities of the same type.
+
+In a release request, you might also be interested on relationships for the recordings linked to the release, or the release group linked to the release, or even for the works linked to those recordings that are linked to the release (for example, to find out who played guitar on a specific track, who wrote the lyrics for the song being performed, or whether the release group is part of a series). Similarly, for a recording request, you might want to get the relationships for any linked works. 
+There are three additional includes for this:
+
+- recording-level-rels
+- release-group-level-rels (for releases only)
+- work-level-rels
 
 # Submitting data via XML POST
 
