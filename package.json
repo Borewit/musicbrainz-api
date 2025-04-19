@@ -95,7 +95,8 @@
     "build": "yarn run clean && yarn run compile",
     "start": "yarn run compile && yarn run lint && yarn run cover-test",
     "test-coverage": "c8 yarn run test",
-    "send-codacy": "c8 report --reporter=text-lcov | codacy-coverage"
+    "send-codacy": "c8 report --reporter=text-lcov | codacy-coverage",
+    "prepublishOnly": "yarn run build"
   },
   "nyc": {
     "exclude": [
