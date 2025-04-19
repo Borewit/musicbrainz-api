@@ -329,14 +329,14 @@ export interface ISeries extends ITypedEntity {
 export interface IUrl extends IEntity {
   id: string,
   resource: string,
-  'relation-list'?: IRelationList[];
+  relations?: IRelationList[];
 }
 
 export interface IUrlMatch extends IMatch, IUrl {
 }
 
 export interface IUrlSearchResult extends ISearchResult {
-  urls?: IUrlMatch[];
+  urls: IUrlMatch[];
 }
 
 export interface IIsrcSearchResult extends ISearchResult {
@@ -766,4 +766,10 @@ export interface IBrowseWorksResult {
   works: IReleaseGroup[];
   'work-count': number;
   'work-offset': number;
+}
+
+export interface IUrlLookupResult {
+  'url-offset': number;
+  'url-count': number;
+  urls: IUrl[];
 }

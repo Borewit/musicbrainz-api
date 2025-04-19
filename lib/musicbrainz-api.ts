@@ -11,7 +11,7 @@ import { DigestAuth } from './digest-auth.js';
 
 import { RateLimitThreshold } from 'rate-limit-threshold';
 import * as mb from './musicbrainz.types.js';
-import {HttpClient} from "./http-client.js";
+import {HttpClient, type MultiQueryFormData} from "./http-client.js";
 
 export * from './musicbrainz.types.js';
 
@@ -124,6 +124,7 @@ export type UrlIncludes = RelationsIncludes;
 
 export type IFormData = {[key: string]: string | number};
 
+
 const debug = Debug('musicbrainz-api');
 
 export interface IMusicBrainzConfig {
@@ -212,7 +213,7 @@ export class MusicBrainzApi {
     });
   }
 
-  public async restGet<T>(relUrl: string, query: { [key: string]: string; } = {}): Promise<T> {
+  public async restGet<T>(relUrl: string, query: MultiQueryFormData = {}): Promise<T> {
 
     query.fmt = 'json';
 
@@ -246,6 +247,21 @@ export class MusicBrainzApi {
   public lookup(entity: 'event', mbid: string, inc?: EventIncludes[]): Promise<mb.IEvent>;
   public lookup<T, I extends string = never>(entity: mb.EntityType, mbid: string, inc: I[] = []): Promise<T> {
     return this.restGet<T>(`/${entity}/${mbid}`, {inc: inc.join(' ')});
+  }
+
+  public lookupUrl(url: string, inc?: UrlIncludes[]): Promise<mb.IUrl>;
+  public lookupUrl(url: string[], inc?: UrlIncludes[]): Promise<mb.IUrlLookupResult>;
+  public async lookupUrl(url: string | string[], inc: UrlIncludes[] = []): Promise<mb.IUrlLookupResult | mb.IUrl> {
+    const result = await this.restGet<mb.IUrlLookupResult>('/url', {resource: url, inc: inc.join(' ')});
+    if (Array.isArray(url) && url.length <= 1) {
+      const searchResult: mb.IUrlLookupResult = {
+        'url-count': 1,
+        'url-offset': 0,
+        urls: [result as any as mb.IUrl],
+      };
+      return searchResult;
+    }
+    return result;
   }
 
   /**
