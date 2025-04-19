@@ -124,6 +124,27 @@ Arguments:
 - MBID (`string`): [(MusicBrainz identifier)](https://wiki.musicbrainz.org/MusicBrainz_Identifier)
 - include arguments (`string[]`), see [Include arguments](#include-arguments)
 
+#### Lookup URLs
+
+There is special method to lookup URL entity / entities by one, or an array of URLs 
+([MusicBrainz documentation](https://musicbrainz.org/doc/MusicBrainz_API#url_(by_text))):
+
+```js
+const urls = await mbApi.lookupUrl(['https://open.spotify.com/track/2AMysGXOe0zzZJMtH3Nizb', 'https://open.spotify.com/track/78Teboqh9lPIxWlIW5RMQL']);
+```
+
+or 
+
+```js
+const url = await mbApi.lookupUrl('https://open.spotify.com/track/2AMysGXOe0zzZJMtH3Nizb']);
+```
+
+Arguments:
+- url (`string` | `string[]`): URL or array of URLs
+- include arguments (`string[]`), see [Include arguments](#include-arguments)
+
+Note that the return type is different, depending on if a single URL or an array of URLs is provided.
+
 ### Browse artist
 
 ```js

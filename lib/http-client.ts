@@ -2,6 +2,11 @@ import type {Cookie} from "tough-cookie";
 
 export type HttpFormData = { [key: string]: string; }
 
+/**
+ * Allows multiple entries for the same key
+ */
+export type MultiQueryFormData = { [key: string]: string | string[]; }
+
 export interface IHttpClientOptions {
   baseUrl: string,
   timeout: number;
@@ -10,7 +15,7 @@ export interface IHttpClientOptions {
 }
 
 export interface IFetchOptions {
-    query?: HttpFormData;
+    query?: MultiQueryFormData;
     retryLimit?: number;
     body?: string;
     headers?: HeadersInit;
@@ -47,7 +52,14 @@ export class HttpClient {
 
     let url = path.startsWith('/') ? `${this.options.baseUrl}${path}` : `${this.options.baseUrl}/${path}`;
     if (options.query) {
-        url += `?${new URLSearchParams(options.query)}`;
+      const urlSearchParams = new URLSearchParams();
+      for(const key of Object.keys(options.query)) {
+        const value = options.query[key];
+        (Array.isArray(value) ? value : [value]).forEach(value => {
+          urlSearchParams.append(key, value);
+        })
+      }
+      url += `?${urlSearchParams.toString()}`;
     }
 
     const cookies = await this.getCookies();

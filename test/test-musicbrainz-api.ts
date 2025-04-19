@@ -136,7 +136,9 @@ const mbid = {
     DireStraitsRemastered: '1ae6c9bc-2931-4d75-bee4-3dc53dfd246a'
   },
   url: {
-    SpotifyLisboaMulata: 'c69556a6-7ded-4c54-809c-afb45a1abe7d'
+    SpotifyLisboaMulata: 'c69556a6-7ded-4c54-809c-afb45a1abe7d',
+    Formidable: '9b30672a-5f1f-492b-ae82-529c9aa9d4c7',
+    BigInJapan: 'e46c4635-a038-4d18-801c-8dcf67423b7c'
   }
 };
 
@@ -144,11 +146,18 @@ const spotify = {
   album: {
     RacineCarree: {
       id: '6uyslsVGFsHKzdGUosFwBM'
+    },
+    LisboaMulata: {
+      url: 'https://open.spotify.com/album/5PCfptvsmuFcxsMt86L6wn'
     }
   },
   track: {
     Formidable: {
-      id: '2AMysGXOe0zzZJMtH3Nizb'
+      id: '2AMysGXOe0zzZJMtH3Nizb',
+      url: 'https://open.spotify.com/track/2AMysGXOe0zzZJMtH3Nizb'
+    },
+    BigInJapan: {
+      url: 'https://open.spotify.com/track/78Teboqh9lPIxWlIW5RMQL'
     }
   }
 };
@@ -398,9 +407,8 @@ describe('MusicBrainz-api', function () {
       it('url', async () => {
         const url = await mbApi.lookup('url', mbid.url.SpotifyLisboaMulata);
         assert.strictEqual(url.id, mbid.url.SpotifyLisboaMulata);
-        assert.strictEqual(url.resource, 'https://open.spotify.com/album/5PCfptvsmuFcxsMt86L6wn');
+        assert.strictEqual(url.resource, spotify.album.LisboaMulata.url);
       });
-
 
       describe('event', () => {
         it('event', async () => {
@@ -427,6 +435,60 @@ describe('MusicBrainz-api', function () {
       });
 
     });
+
+    describe('Lookup URLs', () => {
+
+      it('single URLs', async () => {
+
+        const urlsResult = await mbApi.lookupUrl(spotify.track.BigInJapan.url);
+
+        assert.isDefined(urlsResult, 'Expect a result');
+        assert.strictEqual(urlsResult.id, mbid.url.BigInJapan, 'id');
+        assert.strictEqual(urlsResult.resource, spotify.track.BigInJapan.url, 'resource');
+      });
+
+      it('multiple URLs', async () => {
+        const urls = [
+          spotify.track.BigInJapan.url,
+          spotify.track.Formidable.url
+        ];
+
+        const urlsResult = await mbApi.lookupUrl(urls);
+
+        assert.isDefined(urlsResult, 'Expect a result');
+        assert.isArray(urlsResult.urls, 'urls');
+        assert.strictEqual(urlsResult.urls?.length, 2, 'urls.length');
+
+        expect(urlsResult.urls).to.deep.include({id: mbid.url.Formidable, resource: spotify.track.Formidable.url}, 'Formidable');
+        expect(urlsResult.urls).to.deep.include({id: mbid.url.BigInJapan, resource: spotify.track.BigInJapan.url}, 'BigInJapan');
+      });
+
+      it('array with single value', async () => {
+        const urls = [
+          spotify.track.BigInJapan.url,
+        ];
+
+        const urlsResult = await mbApi.lookupUrl(urls);
+
+        assert.isDefined(urlsResult, 'Expect a result');
+        assert.isArray(urlsResult.urls, 'urls');
+        assert.strictEqual(urlsResult.urls?.length, 1, 'urls.length');
+
+        expect(urlsResult.urls).to.deep.include({id: mbid.url.BigInJapan, resource: spotify.track.BigInJapan.url}, 'BigInJapan');
+      });
+
+      it('include relations', async () => {
+
+        const urlsResult = await mbApi.lookupUrl(spotify.track.BigInJapan.url, ["recording-rels"]);
+
+        assert.isDefined(urlsResult, 'Expect a result');
+        assert.strictEqual(urlsResult.id, mbid.url.BigInJapan, 'id');
+        assert.strictEqual(urlsResult.resource, spotify.track.BigInJapan.url, 'resource');
+        assert.isArray(urlsResult.relations, 'relations');
+      });
+
+    });
+
 
     describe('Browse', () => {
 
