@@ -137,7 +137,7 @@ const urls = await mbApi.lookupUrl(['https://open.spotify.com/track/2AMysGXOe0zz
 or 
 
 ```js
-const url = await mbApi.lookupUrl('https://open.spotify.com/track/2AMysGXOe0zzZJMtH3Nizb']);
+const url = await mbApi.lookupUrl('https://open.spotify.com/track/2AMysGXOe0zzZJMtH3Nizb');
 ```
 
 Arguments:
@@ -149,11 +149,26 @@ Note that the return type is different, depending on if a single URL or an array
 ## Browse requests
 Browse requests are a direct lookup of all the entities directly linked to another entity ("directly linked" here meaning it does not include entities linked by a relationship).
 
+For example, browse _releases_:
+```js
+
+const artist_mbid = 'ab2528d9-719f-4261-8098-21849222a0f2';
+
+const releases = await mbApi.browse('release', {
+    track_artist:  artist_mbid,
+    limit: 0,
+    offset: 0,
+  }, ['url-rels', 'isrcs', 'recordings']);
+```
+
+For the optional include arguments (`string[]`), see [Include arguments](#include-arguments).
+
 ### Browse artist
 
 ```js
 const artists = await mbApi.browse('artist', query);
-````
+const artists = await mbApi.browse('artist', query, ['area', 'collection']);
+```
 
 | Query argument        | Query value        | 
 |-----------------------|--------------------|  
@@ -167,7 +182,8 @@ const artists = await mbApi.browse('artist', query);
 ### Browse collection
 ```js
 const collections = await mbApi.browse('collection', query);
-````
+const collections = await mbApi.browse('collection', query, ['area', 'artist']);
+```
 
 | Query argument        | Query value        | 
 |-----------------------|--------------------|  
@@ -185,7 +201,8 @@ const collections = await mbApi.browse('collection', query);
 ### Browse events
 ```js
 const events = await mbApi.browse('event', query);
-````
+const events = await mbApi.browse('instrument', query, ['area', 'artist']);
+```
 
 | Query argument        | Query value     | 
 |-----------------------|-----------------|  
@@ -197,7 +214,8 @@ const events = await mbApi.browse('event', query);
 ### Browse instruments
 ```js
 const instruments = await mbApi.browse('instrument', query);
-````
+const instruments = await mbApi.browse('instrument', query, ['collection']);
+```
 
 | Query argument        | Query value        | 
 |-----------------------|--------------------|  
@@ -206,7 +224,8 @@ const instruments = await mbApi.browse('instrument', query);
 ### Browse labels
 ```js
 const labels = await mbApi.browse('label', query);
-````
+const places = await mbApi.browse('place', query, ['area', 'collection']);
+```
 
 | Query argument     | Query value     | 
 |--------------------|-----------------|  
@@ -217,7 +236,8 @@ const labels = await mbApi.browse('label', query);
 ### Browse places
 ```js
 const places = await mbApi.browse('place', query);
-````
+const places = await mbApi.browse('place', query, ['area', 'collection']);
+```
 
 | Query argument     | Query value     | 
 |--------------------|-----------------|  
@@ -226,8 +246,8 @@ const places = await mbApi.browse('place', query);
 
 ### Browse recordings
 ```js
-const recordings = await mbApi.browse('recording', query);
-````
+const recordings = await mbApi.browse('recording', query, ['artist']);
+```
 
 | Query argument     | Query value     | 
 |--------------------|-----------------|  
@@ -239,7 +259,8 @@ const recordings = await mbApi.browse('recording', query);
 ### Browse releases
 ```js
 const releases = await mbApi.browse('release', query);
-````
+const releases = await mbApi.browse('release', query, ['artist', 'track']);
+```
 
 | Query argument        | Query value        | 
 |-----------------------|--------------------|  
@@ -256,7 +277,8 @@ const releases = await mbApi.browse('release', query);
 
 ### Browse release-groups
 ```js
-const releaseGroups = await mbApi.browse('release-group',query);
+const releaseGroups = await mbApi.browse('release-group', query);
+const releaseGroups = await mbApi.browse('release-group', query, ['artist', 'release']);
 ```
 
 | Query argument     | Query value     | 
@@ -268,7 +290,8 @@ const releaseGroups = await mbApi.browse('release-group',query);
 ### Browse series
 ```js
 const series = await mbApi.browse('series');
-````
+const series = await mbApi.browse('series', ['collection']);
+```
 
 | Query argument        | Query value        | 
 |-----------------------|--------------------|  
@@ -286,7 +309,8 @@ const series = await mbApi.browse('series');
 ### Browse works
 ```js
 const works = await mbApi.browse('work');
-````
+const series = await mbApi.browse('series', ['artist', 'collection']);
+```
 
 | Query argument     | Query value     | 
 |--------------------|-----------------|  
@@ -296,7 +320,8 @@ const works = await mbApi.browse('work');
 ### Browse urls
 ```js
 const urls = await mbApi.browse('url');
-````
+const series = await mbApi.browse('series', ['artist', 'collection', 'artist-rels']);
+```
 
 | Query argument     | Query value     | 
 |--------------------|-----------------|  
@@ -305,7 +330,7 @@ const urls = await mbApi.browse('url');
 
 ## Search (query)
 
-Implements [XML Web Service/Version 2/Search](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2/Search).
+Implements [MusicBrainz API: Search](https://wiki.musicbrainz.org/MusicBrainz_API/Search).
 
 There are different search fields depending on the entity.
 
@@ -338,21 +363,21 @@ const result = await mbApi.search('release-group', {query});
 
 ```js
  mbApi.search('area', 'Île-de-France');
-````
+```
 
 ##### Example: search release by barcode
 
 Search a release with the barcode 602537479870:
 ```js
  mbApi.search('release', {query: {barcode: 602537479870}});
-````
+```
 
 ##### Example: search by object
 
 Same as previous example, but automatically serialize parameters to search query
 ```js
  mbApi.search('release', 'barcode: 602537479870');
-````
+```
 
 ##### Example: search artist by artist name
 
@@ -447,9 +472,9 @@ As such, keep in mind requesting "artist-rels" for an artist, "release-rels" for
 In a release request, you might also be interested on relationships for the recordings linked to the release, or the release group linked to the release, or even for the works linked to those recordings that are linked to the release (for example, to find out who played guitar on a specific track, who wrote the lyrics for the song being performed, or whether the release group is part of a series). Similarly, for a recording request, you might want to get the relationships for any linked works. 
 There are three additional includes for this:
 
-- recording-level-rels
-- release-group-level-rels (for releases only)
-- work-level-rels
+- `recording-level-rels`
+- `release-group-level-rels` (for releases only)
+- `work-level-rels`
 
 # Submitting data via XML POST
 
