@@ -196,7 +196,7 @@ const events = await mbApi.browse('event', query);
 
 ### Browse instruments
 ```js
-const instruments = await mbApi.browse('event', query);
+const instruments = await mbApi.browse('instrument', query);
 ````
 
 | Query argument        | Query value        | 
