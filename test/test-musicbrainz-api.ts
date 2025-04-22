@@ -29,8 +29,8 @@ import { readFile } from 'node:fs/promises';
 import sinon from 'sinon';
 import type { HttpClient } from "../lib/http-client.js";
 import { RateLimitThreshold } from 'rate-limit-threshold';
-import {MusicBrainzApi as MusicBrainzApiDefault} from "../lib/musicbrainz-api.js";
-import {MusicBrainzApi as MusicBrainzApiNode} from "../lib/musicbrainz-api-node.js";
+import { MusicBrainzApi as MusicBrainzApiDefault } from "../lib/musicbrainz-api.js";
+import { MusicBrainzApi as MusicBrainzApiNode } from "../lib/musicbrainz-api-node.js";
 
 const appUrl = 'https://github.com/Borewit/musicbrainz-api';
 
@@ -278,7 +278,7 @@ describe('MusicBrainz-api', function () {
           assert.strictEqual(release.title, 'Anomalie');
         });
 
-        const includes: {inc: ReleaseIncludes, key: keyof IRelease}[] = [
+        const includes: { inc: ReleaseIncludes, key: keyof IRelease }[] = [
           {inc: 'artist-credits', key: 'artist-credit'},
           {inc: 'artists', key: 'artist-credit'},
           {inc: 'collections', key: 'collections'},
@@ -307,7 +307,7 @@ describe('MusicBrainz-api', function () {
           assert.strictEqual(releaseGroup.title, 'Formidable');
         });
 
-        const includes: {inc: ReleaseGroupIncludes, key: keyof IReleaseGroup}[] = [
+        const includes: { inc: ReleaseGroupIncludes, key: keyof IReleaseGroup }[] = [
           {inc: 'artist-credits', key: 'artist-credit'}
         ];
 
@@ -350,7 +350,7 @@ describe('MusicBrainz-api', function () {
           assert.isUndefined(recording.releases);
         });
 
-        const includes:{inc: RecordingIncludes, key: keyof IRecording}[] = [
+        const includes: { inc: RecordingIncludes, key: keyof IRecording }[] = [
           {inc: 'isrcs', key: 'isrcs'},
           {inc: 'artist-credits', key: 'artist-credit'},
           {inc: 'artists', key: 'artist-credit'},
@@ -459,8 +459,14 @@ describe('MusicBrainz-api', function () {
         assert.isArray(urlsResult.urls, 'urls');
         assert.strictEqual(urlsResult.urls?.length, 2, 'urls.length');
 
-        expect(urlsResult.urls).to.deep.include({id: mbid.url.Formidable, resource: spotify.track.Formidable.url}, 'Formidable');
-        expect(urlsResult.urls).to.deep.include({id: mbid.url.BigInJapan, resource: spotify.track.BigInJapan.url}, 'BigInJapan');
+        expect(urlsResult.urls).to.deep.include({
+          id: mbid.url.Formidable,
+          resource: spotify.track.Formidable.url
+        }, 'Formidable');
+        expect(urlsResult.urls).to.deep.include({
+          id: mbid.url.BigInJapan,
+          resource: spotify.track.BigInJapan.url
+        }, 'BigInJapan');
       });
 
       it('array with single value', async () => {
@@ -474,7 +480,10 @@ describe('MusicBrainz-api', function () {
         assert.isArray(urlsResult.urls, 'urls');
         assert.strictEqual(urlsResult.urls?.length, 1, 'urls.length');
 
-        expect(urlsResult.urls).to.deep.include({id: mbid.url.BigInJapan, resource: spotify.track.BigInJapan.url}, 'BigInJapan');
+        expect(urlsResult.urls).to.deep.include({
+          id: mbid.url.BigInJapan,
+          resource: spotify.track.BigInJapan.url
+        }, 'BigInJapan');
       });
 
       it('include relations', async () => {
@@ -500,7 +509,7 @@ describe('MusicBrainz-api', function () {
       }
 
       describe('area', async () => {
-        function areBunchOfAreas(areas : mb.IBrowseAreasResult) {
+        function areBunchOfAreas(areas: mb.IBrowseAreasResult) {
           areBunchOf('area', areas);
         }
 
@@ -553,7 +562,6 @@ describe('MusicBrainz-api', function () {
           areBunchOfArtists(artists);
           assert.strictEqual(artists.artists[0].name, 'Dead Combo');
         });
-
       });
 
       describe('collection', () => {
@@ -712,6 +720,26 @@ describe('MusicBrainz-api', function () {
           areBunchOfReleases(releases);
         });
 
+        it('by track_artist', async () => {
+          const releases = await mbApi.browse('release', {
+            track_artist: mbid.artist.Stromae,
+            limit: 0,
+            offset: 0
+          });
+
+          areBunchOfReleases(releases);
+        });
+
+        it('by track_artist, with includes', async () => {
+          const releases = await mbApi.browse('release', {
+            track_artist: mbid.artist.Stromae,
+            limit: 0,
+            offset: 0,
+          }, ['url-rels', 'isrcs', 'recordings']);
+
+          areBunchOfReleases(releases);
+        });
+
         it('by labels', async () => {
           const releases = await mbApi.browse('release', {label: mbid.label.Mosaert, limit: 3});
           areBunchOfReleases(releases);
@@ -726,6 +754,7 @@ describe('MusicBrainz-api', function () {
           const releases = await mbApi.browse('release', {'release-group': mbid.releaseGroup.Formidable, limit: 3});
           areBunchOfReleases(releases);
         });
+
       });
 
       describe('release-group', () => {
@@ -836,11 +865,11 @@ describe('MusicBrainz-api', function () {
 
           const artistRelations = new Map<string, IArtist>(); // Set to track unique relations
 
-          for(const media of release.media) {
-            for(const track of media.tracks) {
+          for (const media of release.media) {
+            for (const track of media.tracks) {
               const recording = await mbApi.lookup('recording', track.recording.id, ['artists', 'artist-rels']);
               assert.exists(recording.relations, 'recording.relations');
-              for(const relation of recording.relations) {
+              for (const relation of recording.relations) {
                 if (relation.artist) {
                   const relationKey = `${relation.type}/${relation.artist.name}`; // Create a unique key
                   if (!artistRelations.has(relationKey)) {
@@ -1033,7 +1062,7 @@ describe('MusicBrainz-api', function () {
 
       beforeEach(() => {
         // Stub to avoid unnecessary HTTP requests in the context of these tests
-        const x = mbApi as unknown as {httpClient: HttpClient};
+        const x = mbApi as unknown as { httpClient: HttpClient };
         sinon.stub(x.httpClient, "get").resolves(new Response('{}'));
       });
 
@@ -1067,7 +1096,7 @@ describe('MusicBrainz-api', function () {
 
       beforeEach(() => {
         // Stub to avoid unecessary HTTP requests in the context of these tests
-        const x = mbApi as unknown as {httpClient: HttpClient};
+        const x = mbApi as unknown as { httpClient: HttpClient };
         sinon.stub(x.httpClient, "post").resolves(new Response('{}'));
       });
 
@@ -1095,7 +1124,7 @@ describe('MusicBrainz-api', function () {
 
       beforeEach(() => {
         // Stub to avoid unnecessary HTTP requests in the context of these tests
-        const x = mbApi as unknown as {httpClient: HttpClient};
+        const x = mbApi as unknown as { httpClient: HttpClient };
         sinon.stub(x.httpClient, "post").resolves(new Response());
       });
 
@@ -1126,7 +1155,7 @@ describe('MusicBrainz-api', function () {
 
 });
 
-describe('Cover Art Archive API', function() {
+describe('Cover Art Archive API', function () {
 
   // Base URL used by cover-art-archive to refer back to MusicBrainz release
   // The addresses are normalized to https by `CoverArtArchiveApi`
@@ -1175,7 +1204,7 @@ describe('Cover Art Archive API', function() {
   });
 
   it('Failure test for the content type of the api', async () => {
-    const response = await fetch('https://coverartarchive.org/release/a8d5bd1b-e325-462d-af75-13ff94353101',{
+    const response = await fetch('https://coverartarchive.org/release/a8d5bd1b-e325-462d-af75-13ff94353101', {
       method: "GET",
       headers: {
         Accept: "application/json",
@@ -1189,7 +1218,7 @@ describe('Cover Art Archive API', function() {
 
 });
 
-describe.skip('Node specific API', function (){
+describe.skip('Node specific API', function () {
 
   let mbTestApi: MusicBrainzApiNode;
   let mbApi: MusicBrainzApiNode;

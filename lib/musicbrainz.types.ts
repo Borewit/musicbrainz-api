@@ -1,6 +1,7 @@
 import DateTimeFormat = Intl.DateTimeFormat;
 import type {IFormData} from './musicbrainz-api.js';
 
+
 export interface IPeriod {
   'begin': string;
   'ended': boolean;
@@ -659,6 +660,7 @@ export interface IBrowseReleasesQuery extends IPagination {
   recording?: string;
   release?: string;
   'release-group'?: string;
+  track_artist?: string;
   work?: string;
 }
 

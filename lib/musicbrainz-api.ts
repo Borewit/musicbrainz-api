@@ -1,17 +1,16 @@
 import { StatusCodes as HttpStatus } from 'http-status-codes';
 import Debug from 'debug';
-
-export { XmlMetadata } from './xml/xml-metadata.js';
-export { XmlIsrc } from './xml/xml-isrc.js';
-export { XmlIsrcList } from './xml/xml-isrc-list.js';
-export { XmlRecording } from './xml/xml-recording.js';
-
 import type { XmlMetadata } from './xml/xml-metadata.js';
 import { DigestAuth } from './digest-auth.js';
 
 import { RateLimitThreshold } from 'rate-limit-threshold';
 import * as mb from './musicbrainz.types.js';
-import {HttpClient, type MultiQueryFormData} from "./http-client.js";
+import { HttpClient, type MultiQueryFormData } from "./http-client.js";
+
+export { XmlMetadata } from './xml/xml-metadata.js';
+export { XmlIsrc } from './xml/xml-isrc.js';
+export { XmlIsrcList } from './xml/xml-isrc-list.js';
+export { XmlRecording } from './xml/xml-recording.js';
 
 export * from './musicbrainz.types.js';
 
@@ -34,9 +33,9 @@ export type RelationsIncludes =
   | 'work-rels';
 
 export type SubQueryIncludes =
-  /**
-   * include discids for all media in the releases
-   */
+/**
+ * include discids for all media in the releases
+ */
   'discids'
   /**
    * include media for all releases, this includes the # of tracks on each medium and its format.
@@ -122,7 +121,7 @@ export type WorkIncludes = MiscIncludes | RelationsIncludes;
 
 export type UrlIncludes = RelationsIncludes;
 
-export type IFormData = {[key: string]: string | number};
+export type IFormData = { [key: string]: string | number };
 
 
 const debug = Debug('musicbrainz-api');
@@ -179,7 +178,7 @@ export class MusicBrainzApi {
     };
   }
 
-  private static fetchValue(html: string, key: string): string | undefined{
+  private static fetchValue(html: string, key: string): string | undefined {
     let pos = html.indexOf(`name="${key}"`);
     if (pos >= 0) {
       pos = html.indexOf('value="', pos + key.length + 7);
@@ -230,7 +229,7 @@ export class MusicBrainzApi {
    * Lookup entity
    * @param entity 'area', 'artist', collection', 'instrument', 'label', 'place', 'release', 'release-group', 'recording', 'series', 'work', 'url' or 'event'
    * @param mbid Entity MBID
-   * @param inc Query, like: {<entity>: <MBID:}
+   * @param inc Includes, which allows you to request more information to be included about the entity
    */
   public lookup(entity: 'area', mbid: string, inc?: AreaIncludes[]): Promise<mb.IArea>;
   public lookup(entity: 'artist', mbid: string, inc?: ArtistIncludes[]): Promise<mb.IArtist>;
@@ -254,12 +253,11 @@ export class MusicBrainzApi {
   public async lookupUrl(url: string | string[], inc: UrlIncludes[] = []): Promise<mb.IUrlLookupResult | mb.IUrl> {
     const result = await this.restGet<mb.IUrlLookupResult>('/url', {resource: url, inc: inc.join(' ')});
     if (Array.isArray(url) && url.length <= 1) {
-      const searchResult: mb.IUrlLookupResult = {
+      return {
         'url-count': 1,
         'url-offset': 0,
         urls: [result as any as mb.IUrl],
       };
-      return searchResult;
     }
     return result;
   }
@@ -272,21 +270,27 @@ export class MusicBrainzApi {
    * For example: http://musicbrainz.org/ws/2/release?label=47e718e1-7ee4-460c-b1cc-1192a841c6e5&offset=12&limit=2
    * @param entity MusicBrainz entity
    * @param query Query, like: {<entity>: <MBID:}
+   * @param inc Includes, which allows you to request more information to be included about the entity
    */
-  public browse(entity: 'area', query?: mb.IBrowseAreasQuery): Promise<mb.IBrowseAreasResult>;
-  public browse(entity: 'artist', query?: mb.IBrowseArtistsQuery): Promise<mb.IBrowseArtistsResult>;
-  public browse(entity: 'collection', query?: mb.IBrowseCollectionsQuery): Promise<mb.IBrowseCollectionsResult> ;
-  public browse(entity: 'event', query?: mb.IBrowseEventsQuery): Promise<mb.IBrowseEventsResult>;
-  public browse(entity: 'label', query?: mb.IBrowseLabelsQuery): Promise<mb.IBrowseLabelsResult>;
-  public browse(entity: 'instrument', query?: mb.IBrowseInstrumentsQuery): Promise<mb.IBrowseInstrumentsResult>;
-  public browse(entity: 'place', query?: mb.IBrowsePlacesQuery): Promise<mb.IBrowsePlacesResult>;
-  public browse(entity: 'recording', query?: mb.IBrowseRecordingsQuery): Promise<mb.IBrowseRecordingsResult>;
-  public browse(entity: 'release', query?: mb.IBrowseReleasesQuery): Promise<mb.IBrowseReleasesResult>;
-  public browse(entity: 'release-group', query?: mb.IBrowseReleaseGroupsQuery): Promise<mb.IBrowseReleaseGroupsResult>;
-  public browse(entity: 'series', query?: mb.IBrowseSeriesQuery): Promise<mb.IBrowseSeriesResult>;
-  public browse(entity: 'url', query?: mb.IBrowseUrlsQuery): Promise<mb.IUrl>;
-  public browse(entity: 'work', query?: mb.IBrowseWorksQuery): Promise<mb.IBrowseWorksResult>;
-  public browse<T>(entity: mb.EntityType, query?: { [key: string]: any; }): Promise<T> {
+  public browse(entity: 'area', query?: mb.IBrowseAreasQuery, inc?: AreaIncludes[]): Promise<mb.IBrowseAreasResult>;
+  public browse(entity: 'artist', query?: mb.IBrowseArtistsQuery, inc?: ArtistIncludes[]): Promise<mb.IBrowseArtistsResult>;
+  public browse(entity: 'collection', query?: mb.IBrowseCollectionsQuery, inc?: CollectionIncludes[]): Promise<mb.IBrowseCollectionsResult> ;
+  public browse(entity: 'event', query?: mb.IBrowseEventsQuery, inc?: EventIncludes[]): Promise<mb.IBrowseEventsResult>;
+  public browse(entity: 'label', query?: mb.IBrowseLabelsQuery, inc?: LabelIncludes[]): Promise<mb.IBrowseLabelsResult>;
+  public browse(entity: 'instrument', query?: mb.IBrowseInstrumentsQuery, inc?: InstrumentIncludes[]): Promise<mb.IBrowseInstrumentsResult>;
+  public browse(entity: 'place', query?: mb.IBrowsePlacesQuery, inc?: PlaceIncludes[]): Promise<mb.IBrowsePlacesResult>;
+  public browse(entity: 'recording', query?: mb.IBrowseRecordingsQuery, inc?: RecordingIncludes[]): Promise<mb.IBrowseRecordingsResult>;
+  public browse(entity: 'release', query?: mb.IBrowseReleasesQuery, inc?: ReleaseIncludes[]): Promise<mb.IBrowseReleasesResult>;
+  public browse(entity: 'release-group', query?: mb.IBrowseReleaseGroupsQuery, inc?: ReleaseGroupIncludes[]): Promise<mb.IBrowseReleaseGroupsResult>;
+  public browse(entity: 'series', query?: mb.IBrowseSeriesQuery, inc?: SeriesIncludes[]): Promise<mb.IBrowseSeriesResult>;
+  public browse(entity: 'url', query?: mb.IBrowseUrlsQuery, inc?: UrlIncludes[]): Promise<mb.IUrl>;
+  public browse(entity: 'work', query?: mb.IBrowseWorksQuery, inc?: WorkIncludes[]): Promise<mb.IBrowseWorksResult>;
+  public browse<T>(entity: mb.EntityType, query?: { [key: string]: any; }, inc?: string[]): Promise<T> {
+    query = query ? query : {};
+    if (inc) {
+      // Serialize include parameter
+      query.inc = inc.join(' ');
+    }
     return this.restGet<T>(`/${entity}`, query);
   }
 
@@ -300,12 +304,12 @@ export class MusicBrainzApi {
    * @param entity e.g. 'recording'
    * @param query Arguments
    */
-  public search(entity:'area', query: mb.ISearchQuery<AreaIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IAreaList>;
-  public search(artist:'artist', query: mb.ISearchQuery<ArtistIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IArtistList>;
-  public search(artist:'recording', query: mb.ISearchQuery<AreaIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IRecordingList>;
-  public search(artist:'release', query: mb.ISearchQuery<ReleaseIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IReleaseList>;
-  public search(artist:'release-group', query: mb.ISearchQuery<ReleaseGroupIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IReleaseGroupList>;
-  public search(artist:'url', query: mb.ISearchQuery<UrlIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IUrlList>;
+  public search(entity: 'area', query: mb.ISearchQuery<AreaIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IAreaList>;
+  public search(artist: 'artist', query: mb.ISearchQuery<ArtistIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IArtistList>;
+  public search(artist: 'recording', query: mb.ISearchQuery<AreaIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IRecordingList>;
+  public search(artist: 'release', query: mb.ISearchQuery<ReleaseIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IReleaseList>;
+  public search(artist: 'release-group', query: mb.ISearchQuery<ReleaseGroupIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IReleaseGroupList>;
+  public search(artist: 'url', query: mb.ISearchQuery<UrlIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IUrlList>;
   public search<T extends mb.ISearchResult, I extends string = never>(entity: mb.EntityType, query: mb.ISearchQuery<I>): Promise<T> {
     const urlQuery: any = {...query};
     if (typeof query.query === 'object') {
@@ -351,7 +355,7 @@ export class MusicBrainzApi {
 
       if (response.statusCode === HttpStatus.UNAUTHORIZED) {
         // Respond to digest challenge
-        const auth = new DigestAuth(this.config.botAccount as {username: string, password: string});
+        const auth = new DigestAuth(this.config.botAccount as { username: string, password: string });
         const relPath = response.requestUrl.pathname; // Ensure path is relative
         digest = auth.digest(response.request.method, relPath as string, response.headers['www-authenticate']);
         ++n;
@@ -395,9 +399,12 @@ export class MusicBrainzApi {
    * @param url2add URL to add to the recording
    * @param editNote Edit note
    */
-  public async addUrlToRecording(recording: mb.IRecording, url2add: { linkTypeId: mb.LinkType, text: string }, editNote = '') {
+  public async addUrlToRecording(recording: mb.IRecording, url2add: {
+    linkTypeId: mb.LinkType,
+    text: string
+  }, editNote = '') {
 
-    const formData: {[key: string]: string | boolean | number} = {};
+    const formData: { [key: string]: string | boolean | number } = {};
 
     formData['edit-recording.name'] = recording.title; // Required
     formData['edit-recording.comment'] = recording.disambiguation;
@@ -477,7 +484,7 @@ export class MusicBrainzApi {
   protected async applyRateLimiter() {
     if (!this.config.disableRateLimiting) {
       const delay = await this.rateLimiter.limit();
-      debug(`Client side rate limiter activated: cool down for ${Math.round(delay / 100)/10} s...`);
+      debug(`Client side rate limiter activated: cool down for ${Math.round(delay / 100) / 10} s...`);
     }
   }
 }
