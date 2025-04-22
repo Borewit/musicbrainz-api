@@ -111,7 +111,8 @@ The MusicBrainz API allows you to look up various entities. Here’s how to use 
 
 ## Lookup MusicBrainz Entities
 
-MusicBrainz API documentation: [XML Web Service/Version 2 Lookups](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2#Lookups)
+You can use the lookup function, to look up an entity, when you have the MBID for that entity.
+MusicBrainz API documentation: [MusicBrainz API - Lookups](https://wiki.musicbrainz.org/MusicBrainz_API#Lookups)
 
 ### Lookup Function
 
@@ -127,7 +128,7 @@ Arguments:
 #### Lookup URLs
 
 There is special method to lookup URL entity / entities by one, or an array of URLs 
-([MusicBrainz documentation](https://musicbrainz.org/doc/MusicBrainz_API#url_(by_text))):
+([MusicBrainz API documentation: url (by text)](https://musicbrainz.org/doc/MusicBrainz_API#url_(by_text))):
 
 ```js
 const urls = await mbApi.lookupUrl(['https://open.spotify.com/track/2AMysGXOe0zzZJMtH3Nizb', 'https://open.spotify.com/track/78Teboqh9lPIxWlIW5RMQL']);
@@ -144,6 +145,9 @@ Arguments:
 - include arguments (`string[]`), see [Include arguments](#include-arguments)
 
 Note that the return type is different, depending on if a single URL or an array of URLs is provided.
+
+## Browse requests
+Browse requests are a direct lookup of all the entities directly linked to another entity ("directly linked" here meaning it does not include entities linked by a relationship).
 
 ### Browse artist
 
