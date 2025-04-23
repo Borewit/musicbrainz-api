@@ -559,8 +559,130 @@ export interface ILinkedEntitiesUrl {
   resource?: string;
 }
 
+// Shared utility to enforce only one key
+export type OneOf<T> = {
+  [K in keyof T]: { [P in K]: T[K] } & Partial<Record<Exclude<keyof T, K>, never>>
+}[keyof T];
+
 /**
- * Browse artist query <entity>: <MBID>
+ * List of entity names allowed for browsing releases by a single MBID.
+ * Used as a key set for constructing exclusive query types.
+ */
+interface BrowseReleasesEntityParams {
+  area: string;
+  artist: string;
+  editor: string;
+  event: string;
+  label: string;
+  place: string;
+  recording: string;
+  release: string;
+  'release-group': string;
+  track_artist: string;
+  work: string;
+}
+export type IBrowseReleasesQuery = IPagination & OneOf<BrowseReleasesEntityParams>;
+
+/**
+ * List of entity names allowed for browsing artists by a single MBID.
+ * Used as a key set for constructing exclusive query types.
+ */
+interface BrowseArtistsEntityParams {
+  area: string;
+  collection: string;
+  recording: string;
+  release: string;
+  'release-group': string;
+  work: string;
+}
+export type IBrowseArtistsQuery = IPagination & OneOf<BrowseArtistsEntityParams>;
+
+/**
+ * List of entity names allowed for browsing collections by a single MBID.
+ * Used as a key set for constructing exclusive query types.
+ */
+interface BrowseCollectionsEntityParams {
+  area: string;
+  artist: string;
+  editor: string;
+  event: string;
+  label: string;
+  place: string;
+  recording: string;
+  release: string;
+  'release-group': string;
+  work: string;
+}
+export type IBrowseCollectionsQuery = IPagination & OneOf<BrowseCollectionsEntityParams>;
+
+/**
+ * List of entity names allowed for browsing events by a single MBID.
+ * Used as a key set for constructing exclusive query types.
+ */
+interface BrowseEventsEntityParams {
+  area: string;
+  artist: string;
+  collection: string;
+  place: string;
+}
+export type IBrowseEventsQuery = IPagination & OneOf<BrowseEventsEntityParams>;
+
+/**
+ * List of entity names allowed for browsing labels by a single MBID.
+ * Used as a key set for constructing exclusive query types.
+ */
+interface BrowseLabelsEntityParams {
+  area: string;
+  collection: string;
+  release: string;
+}
+export type IBrowseLabelsQuery = IPagination & OneOf<BrowseLabelsEntityParams>;
+
+/**
+ * List of entity names allowed for browsing places by a single MBID.
+ * Used as a key set for constructing exclusive query types.
+ */
+interface BrowsePlacesEntityParams {
+  area: string;
+  collection: string;
+}
+export type IBrowsePlacesQuery = IPagination & OneOf<BrowsePlacesEntityParams>;
+
+/**
+ * List of entity names allowed for browsing recordings by a single MBID.
+ * Used as a key set for constructing exclusive query types.
+ */
+interface BrowseRecordingsEntityParams {
+  artist: string;
+  collection: string;
+  release: string;
+  work: string;
+}
+export type IBrowseRecordingsQuery = IPagination & OneOf<BrowseRecordingsEntityParams>;
+
+/**
+ * List of entity names allowed for browsing release-groups by a single MBID.
+ * Used as a key set for constructing exclusive query types.
+ */
+interface BrowseReleaseGroupsEntityParams {
+  artist: string;
+  collection: string;
+  release: string;
+}
+export type IBrowseReleaseGroupsQuery = IPagination & OneOf<BrowseReleaseGroupsEntityParams>;
+
+/**
+ * List of entity names allowed for browsing works by a single MBID.
+ * Used as a key set for constructing exclusive query types.
+ */
+interface BrowseWorksEntityParams {
+  artist: string;
+  collection: string;
+}
+export type IBrowseWorksQuery = IPagination & OneOf<BrowseWorksEntityParams>;
+
+/**
+ * Query for browsing areas by collection MBID.
  * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
  */
 export interface IBrowseAreasQuery extends IPagination {
@@ -568,48 +690,7 @@ export interface IBrowseAreasQuery extends IPagination {
 }
 
 /**
- * Browse artist query <entity>: <MBID>
- * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
- */
-export interface IBrowseArtistsQuery extends IPagination {
-  area?: string;
-  collection?: string;
-  recording?: string;
-  release?: string;
-  'release-group'?: string;
-  work?: string;
-}
-
-/**
- * Browse collection query <entity>: <MBID>
- * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
- */
-export interface IBrowseCollectionsQuery extends IPagination {
-  area?: string;
-  artist?: string;
-  editor?: string;
-  event?: string;
-  label?: string;
-  place?: string;
-  recording?: string;
-  release?: string;
-  'release-group'?: string;
-  work?: string;
-}
-
-/**
- * Browse events query <entity>: <MBID>
- * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
- */
-export interface IBrowseEventsQuery extends IPagination {
-  area?: string;
-  artist?: string;
-  collection?: string;
-  place?: string;
-}
-
-/**
- * Browse instruments query <entity>: <MBID>
+ * Query for browsing instruments by collection MBID.
  * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
  */
 export interface IBrowseInstrumentsQuery extends IPagination {
@@ -617,64 +698,7 @@ export interface IBrowseInstrumentsQuery extends IPagination {
 }
 
 /**
- * Browse labels query <entity>: <MBID>
- * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
- */
-export interface IBrowseLabelsQuery extends IPagination {
-  area?: string;
-  collection?: string;
-  release?: string;
-}
-
-/**
- * Browse places query <entity>: <MBID>
- * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
- */
-export interface IBrowsePlacesQuery extends IPagination {
-  area?: string;
-  collection?: string;
-}
-
-/**
- * Browse recordings query <entity>: <MBID>
- * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
- */
-export interface IBrowseRecordingsQuery extends IPagination {
-  artist?: string;
-  collection?: string;
-  release?: string;
-  work?: string;
-}
-
-/**
- * Browse releases query <entity>: <MBID>
- * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
- */
-export interface IBrowseReleasesQuery extends IPagination {
-  area?: string;
-  artist?: string;
-  editor?: string;
-  event?: string;
-  label?: string;
-  place?: string;
-  recording?: string;
-  release?: string;
-  'release-group'?: string;
-  track_artist?: string;
-  work?: string;
-}
-
-/**
- * Browse release-groups query <entity>: <MBID>
- */
-export interface IBrowseReleaseGroupsQuery extends IPagination {
-  artist?: string;
-  collection?: string;
-  release?: string;
-}
-
-/**
- * Browse release query <entity>: <MBID>
+ * Query for browsing series by collection MBID.
  * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
  */
 export interface IBrowseSeriesQuery extends IPagination {
@@ -682,22 +706,14 @@ export interface IBrowseSeriesQuery extends IPagination {
 }
 
 /**
- * Browse urls query <entity>: <MBID>
+ * Query for browsing URLs by resource URI.
  * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
  */
 export interface IBrowseUrlsQuery extends IPagination {
   resource?: string;
 }
 
-/**
- * Browse works query <entity>: <MBID>
- * https://wiki.musicbrainz.org/MusicBrainz_API#Linked_entities
- */
-export interface IBrowseWorksQuery extends IPagination {
-  artist?: string;
-  collection?: string;
-}
-
+// Results interfaces remain the same
 export interface IBrowseAreasResult {
   area: IArea;
   'area-count': number;
