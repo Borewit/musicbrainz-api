@@ -24,6 +24,13 @@ export interface LifeSpan {
   end: null | string
 }
 
+export interface IAnnotation {
+  entity: string;
+  name: string;
+  text: string;
+  type: string;
+}
+
 export interface IArea extends ITypedEntity {
   type: 'Country' | 'Subdivision' | 'Municipality' | 'City' | 'District' | 'Island'
   'iso-3166-1-codes'?: string[];
@@ -70,6 +77,14 @@ export interface IArtist extends ITypedEntity {
    */
   releases?: IRelease[];
   'release-groups'?: IReleaseGroup[];
+}
+
+export interface ICdStub {
+  id: string;
+  title: string;
+  artist: string;
+  barcode: string;
+  comment: string;
 }
 
 export interface IArtistCredit {
@@ -166,6 +181,7 @@ export interface IRelease extends IEntity {
   'release-group'?: IReleaseGroup; // Include: 'release-groups'
   collections?: ICollection[],
   'track-count'?: number;
+  count?: number;
 }
 
 export interface IReleaseEvent {
@@ -229,52 +245,87 @@ export interface IReleaseGroup extends IEntity {
   releases?: IRelease[]; // include 'releases'
 }
 
-export interface IAreaMatch extends IArea, IMatch {
-}
-
-export interface IArtistMatch extends IArtist, IMatch {
-}
-
-export interface IRecordingMatch extends IRecording, IMatch {
-}
-
-export interface IReleaseGroupMatch extends IReleaseGroup, IMatch {
-}
-
-export interface IReleaseMatch extends IRelease, IMatch {
-  count: number;
-}
-
 export interface ISearchResult {
   created: DateTimeFormat;
   count: number;
   offset: number;
 }
 
-export interface IArtistList extends ISearchResult {
-  artists: IArtistMatch[];
+export type IAnnotationMatch = IAnnotation & IMatch;
+export interface IAnnotationList extends ISearchResult {
+  annotations: IAnnotationMatch[];
 }
 
+export type IAreaMatch = IArea & IMatch;
 export interface IAreaList extends ISearchResult {
   areas: IAreaMatch[];
 }
 
+export type IArtistMatch = IArtist & IMatch;
+export interface IArtistList extends ISearchResult {
+  artists: IArtistMatch[];
+}
+
+export type ICdStubMatch = ICdStub & IMatch;
+export interface ICdStubList extends ISearchResult {
+  cdstubs: ICdStubMatch[];
+}
+
+export type IEventMatch = IEvent & IMatch;
+export interface IEventList extends ISearchResult {
+  events: IEventMatch[];
+}
+
+export type IInstrumentMatch = IInstrument & IMatch;
+export interface IInstrumentList extends ISearchResult {
+  instruments: IInstrumentMatch[];
+}
+
+export type ILabelMatch = ILabel & IMatch;
+export interface ILabelList extends ISearchResult {
+  labels: ILabelMatch[];
+}
+
+export type IPlacesMatch = IPlace & IMatch;
+export interface IPlaceList extends ISearchResult {
+  places: IPlacesMatch[];
+}
+
+export type IReleaseMatch = IRelease & IMatch;
 export interface IReleaseList extends ISearchResult {
   releases: IReleaseMatch[];
   'release-count': number;
 }
 
+export type IRecordingMatch = IRecording & IMatch;
 export interface IRecordingList extends ISearchResult {
   recordings: IRecordingMatch[];
   'recordings-count': number;
 }
 
+export type IReleaseGroupMatch = IReleaseGroup & IMatch;
 export interface IReleaseGroupList extends ISearchResult {
   'release-groups': IReleaseGroupMatch[];
 }
 
+export type ISeriesGroupMatch = ISeries & IMatch;
+export interface ISeriesList extends ISearchResult {
+  series: ISeriesGroupMatch[];
+}
+
+export type ITagMatch = ITag & IMatch;
+export interface ITagList extends ISearchResult {
+  tags: ITagMatch[];
+}
+
+export type IUrlMatch = IUrl & IMatch;
 export interface IUrlList extends ISearchResult {
   urls: IUrlMatch[];
+}
+
+export type IWorkMatch = IWork & IMatch;
+export interface IWorkList extends ISearchResult {
+  works: IWorkMatch[];
 }
 
 export type RelationDirection = 'backward' | 'forward';
@@ -327,22 +378,14 @@ export interface ISeries extends ITypedEntity {
   disambiguation: string;
 }
 
+export interface ITag {
+  name: string;
+}
+
 export interface IUrl extends IEntity {
   id: string,
   resource: string,
   relations?: IRelationList[];
-}
-
-export interface IUrlMatch extends IMatch, IUrl {
-}
-
-export interface IUrlSearchResult extends ISearchResult {
-  urls: IUrlMatch[];
-}
-
-export interface IIsrcSearchResult extends ISearchResult {
-  'isrc': string;
-  'recordings': IRecording[];
 }
 
 export interface IExernalIds {
@@ -354,9 +397,15 @@ export interface IReleaseSearchResult extends ISearchResult {
 }
 
 /**
+ * Entities without MBID
+ */
+export type OtherEntityTypes = 'annotation' | 'cdstub' | 'tag';
+
+/**
  * https://musicbrainz.org/doc/Development/XML_Web_Service/Version_2#Subqueries
  */
-export type EntityType = 'area' |
+export type EntityType = 'annotation' |
+  'area' |
   'artist' |
   'collection' |
   'event' |
@@ -487,6 +536,14 @@ export interface ILinkedEntitiesLabel {
   area?: string;
   collection?: string;
   release?: string;
+}
+
+/**
+ * https://musicbrainz.org/doc/MusicBrainz_API#Subqueries
+ * /ws/2/place             area, collection, release
+ */
+export interface ILinkedEntitiesPlace {
+  place?: string;
 }
 
 /**
