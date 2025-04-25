@@ -86,6 +86,9 @@ async function makeSearchApiConfig(
 }
 
 const mbid = {
+  annotation: {
+    PiedsNusSurLaBraise: "bdb24cb5-404b-4f60-bba4-7b730325ae47"
+  },
   area: {
     Belgium: '5b8a5ee5-0bb3-34cf-9a75-c27c44e341fc',
     IleDeFrance: 'd79e4501-8cba-431b-96e7-bb9976f0ae76',
@@ -817,91 +820,19 @@ describe('MusicBrainz-api', function () {
 
     });
 
-    describe('Query release', () => {
-
-      it('query: Release by barcode', async () => {
-        const query = "query=barcode:00888072456686";
-        const result = await mbApi.search('release', {query});
-        assert.isAtLeast(result.count, 1);
-        const release = result.releases[0];
-        assert.strictEqual(release.count, 1);
-        assert.strictEqual(release.score, 100);
-      });
-
-      it('query: Queen - Made In Heaven', async () => {
-        const query = 'query=artist:"Queen" AND release:"Made in Heaven"';
-        const result = await mbApi.search('release-group', {query});
-        assert.isAtLeast(result.count, 1);
-        assert.strictEqual(result["release-groups"][0].id, '780e6a16-9384-307d-ae65-02e1d6313753');
-      });
-
-      it('query: Queen - We Will Rock You', async () => {
-        const query = 'query="We Will Rock You" AND arid:0383dadf-2a4e-4d10-a46a-e9e041da8eb3';
-        const result = await mbApi.search('release-group', {query});
-        assert.isAtLeast(result.count, 1);
-        const releaseGroup = result["release-groups"][0];
-        assert.isNumber(releaseGroup.count, 'releaseGroup.count');
-        assert.strictEqual(releaseGroup.score, 100);
-      });
-
-      // Based on https://stackoverflow.com/a/79369493/28701779
-      it('Find all artist relations of Queen - Made in Heaven', async () => {
-
-        async function findReleaseGroup(artist: string, title: string) {
-          const result = await mbApi.search('release-group', {query: `artist:"${artist}" AND release:"${title}"`});
-          return result.count > 0 ? result["release-groups"][0] : undefined;
-        }
-
-        /**
-         * Find all artists for provided MBID (MusicBrainz ID)
-         * @param mbidReleaseGroup MBID (MusicBrainz ID) Release-group
-         */
-        async function findAllRelatedArtist(mbidReleaseGroup: string): Promise<MapIterator<IArtist>> {
-          const relInfoGrp = await mbApi.lookup('release-group', mbidReleaseGroup, ['releases']);
-          assert.exists(relInfoGrp.releases, 'relInfoGrp.releases');
-          assert.isAtLeast(relInfoGrp.releases.length, 1, 'relInfoGrp.releases.length');
-          let release = relInfoGrp.releases[0]; // Pick the first (some) release from the release-group
-          release = await mbApi.lookup('release', release.id, ['artists', 'recordings']);
-
-          const artistRelations = new Map<string, IArtist>(); // Set to track unique relations
-
-          for (const media of release.media) {
-            for (const track of media.tracks) {
-              const recording = await mbApi.lookup('recording', track.recording.id, ['artists', 'artist-rels']);
-              assert.exists(recording.relations, 'recording.relations');
-              for (const relation of recording.relations) {
-                if (relation.artist) {
-                  const relationKey = `${relation.type}/${relation.artist.name}`; // Create a unique key
-                  if (!artistRelations.has(relationKey)) {
-                    artistRelations.set(relationKey, relation.artist); // Add the key to the set
-                  }
-                }
-              }
-            }
-          }
-          return artistRelations.values();
-        }
-
-        const releaseGroup = await findReleaseGroup('Queen', 'Made in Heaven');
-        assert.isDefined(releaseGroup, 'Should be able to find the release-group for: Queen - Made in Heaven');
-        if (releaseGroup) {
-          const artists = Array.from(await findAllRelatedArtist(releaseGroup.id));
-          const artistNames = artists.map(artist => artist.name);
-          assert.include(artistNames, 'Queen');
-          assert.include(artistNames, 'Josh Macrae');
-          assert.include(artistNames, 'David Richards');
-          assert.include(artistNames, 'Justin Shirley‐Smith');
-          assert.include(artistNames, 'John Deacon');
-          assert.include(artistNames, 'Brian May');
-          assert.include(artistNames, 'Freddie Mercury');
-          assert.include(artistNames, 'Roger Taylor');
-        }
-      });
-    });
-
     describe('Search', () => {
 
-      describe('area', () => {
+      describe('search annotation', () => {
+
+        it('find annotation by name', async () => {
+          const result = await mbApi.search('annotation', {query: 'Pieds nus sur la braise'});
+          assert.isAtLeast(result.count, 1);
+          assert.isAtLeast(result.annotations.length, 1);
+          assert.strictEqual(result.annotations[0].entity, mbid.annotation.PiedsNusSurLaBraise);
+        });
+      });
+
+      describe('search areas', () => {
 
         it('find area by name', async () => {
           const result = await mbApi.search('area', {query: 'Île-de-France'});
@@ -911,33 +842,97 @@ describe('MusicBrainz-api', function () {
         });
       });
 
-      describe('artist', () => {
+      describe('search artists', () => {
 
         it('find artist: Stromae', async () => {
           const result = await mbApi.search('artist', {query: 'Stromae'});
           assert.isAtLeast(result.count, 1);
+          assert.isArray(result.artists, 'result.artists');
           assert.isAtLeast(result.artists.length, 1);
           assert.strictEqual(result.artists[0].id, mbid.artist.Stromae);
         });
 
       });
 
-      describe('recording', () => {
+      describe('search CD-Stub', () => {
+
+        it('find CD-Stub: title: "Doo"', async () => {
+          const result = await mbApi.search('cdstub', {query: {title: 'Doo'}});
+          assert.isAtLeast(result.count, 1);
+          assert.isArray(result.cdstubs, 'result.cdstubs');
+          assert.isAtLeast(result.cdstubs.length, 1);
+          assert.isDefined(result.cdstubs[0].id, 'result.cdstubs[0].id');
+        });
+
+      });
+
+      describe('search event', () => {
+
+        const eventName = "Dire Straits - Love Over Gold";
+
+        it(`find event \"${eventName}\"`, async () => {
+          const result = await mbApi.search('event', {query: eventName});
+          assert.isAtLeast(result.count, 1);
+          assert.isArray(result.events, 'result.events');
+          assert.isAtLeast(result.events.length, 1);
+          assert.strictEqual(result.events[0].name, eventName);
+        });
+
+      });
+
+      describe('search instrument', () => {
+
+        it('find instrument \"flamenco guitar\"', async () => {
+          const result = await mbApi.search('instrument', {query: 'flamenco guitar'});
+          assert.isAtLeast(result.count, 1);
+          assert.isArray(result.instruments, 'result.instruments');
+          assert.isAtLeast(result.instruments.length, 1);
+          assert.strictEqual(result.instruments[0].name, 'flamenco guitar');
+        });
+
+      });
+
+      describe('search label', () => {
+
+        it('find \"Grönland Records\"', async () => {
+          const result = await mbApi.search('label', {query: 'Grönland Records'});
+          assert.isAtLeast(result.count, 1);
+          assert.isArray(result.labels, 'result.labels');
+          assert.isAtLeast(result.labels.length, 1);
+          assert.strictEqual(result.labels[0].name, 'Grönland Records');
+        });
+
+      });
+
+      describe('search place', () => {
+
+        it('find Patronaat', async () => {
+          const result = await mbApi.search('place', {query: 'Patronaat'});
+          assert.isAtLeast(result.count, 1);
+          assert.isArray(result.places, 'result.places');
+          assert.isAtLeast(result.places.length, 1);
+          assert.strictEqual(result.places[0].name, 'Patronaat');
+        });
+
+      });
+
+      describe('search recordings', () => {
 
         it('find recording by artist and recoding name', async () => {
           const result = await mbApi.search('recording', {query: {name: 'Formidable', artist: 'Stromae'}});
           assert.isAtLeast(result.count, 2);
+          assert.isArray(result.recordings, 'result.recordings');
           assert.isAtLeast(result.recordings.length, 2);
           assert.includeMembers(result.recordings.map(recording => recording.id), [mbid.recording.Formidable]);
         });
       });
 
-
-      describe('release', () => {
+      describe('search release', () => {
 
         it('find release-group: Racine carrée', async () => {
           const result = await mbApi.search('release', {query: {release: 'Racine carrée'}});
           assert.isAtLeast(result.count, 2);
+          assert.isArray(result.releases, 'result.releases');
           assert.isAtLeast(result.releases.length, 2);
           assert.includeMembers(result.releases.map(release => release.id), mbid.release.RacineCarree);
         });
@@ -945,13 +940,7 @@ describe('MusicBrainz-api', function () {
         it('find release by barcode', async () => {
           const result = await mbApi.search('release', {query: {barcode: 602537479870}});
           assert.isAtLeast(result.count, 1);
-          assert.isAtLeast(result.releases.length, 1);
-          assert.equal(result.releases[0].id, mbid.release.RacineCarree[2]);
-        });
-
-        it('find release by barcode', async () => {
-          const result = await mbApi.search('release', {query: {barcode: 602537479870}});
-          assert.isAtLeast(result.count, 1);
+          assert.isArray(result.releases, 'result.releases');
           assert.isAtLeast(result.releases.length, 1);
           assert.equal(result.releases[0].id, mbid.release.RacineCarree[2]);
         });
@@ -960,12 +949,14 @@ describe('MusicBrainz-api', function () {
           const artist_mbid = 'eeb41a1e-4326-4d04-8c47-0f564ceecd68';
           const result = await mbApi.search('release', {query: {arid: artist_mbid}});
           assert.isAtLeast(result.count, 1);
+          assert.isArray(result.releases, 'result.releases');
           assert.isAtLeast(result.releases.length, 1);
         });
 
         it('find releases by artist use browse API', async () => {
           const artist_mbid = 'eeb41a1e-4326-4d04-8c47-0f564ceecd68';
           const result = await mbApi.search('release', {artist: artist_mbid});
+          assert.isArray(result.releases, 'result.releases');
           assert.isAtLeast(result['release-count'], 1);
           assert.isAtLeast(result.releases.length, 1);
         });
@@ -981,9 +972,91 @@ describe('MusicBrainz-api', function () {
           assert.isAtLeast(result.count, 1);
         });
 
+        describe('Query release', () => {
+
+          it('query: Release by barcode', async () => {
+            const query = "query=barcode:00888072456686";
+            const result = await mbApi.search('release', {query});
+            assert.isAtLeast(result.count, 1);
+            const release = result.releases[0];
+            assert.strictEqual(release.count, 1);
+            assert.strictEqual(release.score, 100);
+          });
+
+          it('query: Queen - Made In Heaven', async () => {
+            const query = 'query=artist:"Queen" AND release:"Made in Heaven"';
+            const result = await mbApi.search('release-group', {query});
+            assert.isAtLeast(result.count, 1);
+            assert.strictEqual(result["release-groups"][0].id, '780e6a16-9384-307d-ae65-02e1d6313753');
+          });
+
+          it('query: Queen - We Will Rock You', async () => {
+            const query = 'query="We Will Rock You" AND arid:0383dadf-2a4e-4d10-a46a-e9e041da8eb3';
+            const result = await mbApi.search('release-group', {query});
+            assert.isAtLeast(result.count, 1);
+            const releaseGroup = result["release-groups"][0];
+            assert.isNumber(releaseGroup.count, 'releaseGroup.count');
+            assert.strictEqual(releaseGroup.score, 100);
+          });
+
+          // Based on https://stackoverflow.com/a/79369493/28701779
+          it('Find all artist relations of Queen - Made in Heaven', async () => {
+
+            async function findReleaseGroup(artist: string, title: string) {
+              const result = await mbApi.search('release-group', {query: `artist:"${artist}" AND release:"${title}"`});
+              return result.count > 0 ? result["release-groups"][0] : undefined;
+            }
+
+            /**
+             * Find all artists for provided MBID (MusicBrainz ID)
+             * @param mbidReleaseGroup MBID (MusicBrainz ID) Release-group
+             */
+            async function findAllRelatedArtist(mbidReleaseGroup: string): Promise<MapIterator<IArtist>> {
+              const relInfoGrp = await mbApi.lookup('release-group', mbidReleaseGroup, ['releases']);
+              assert.exists(relInfoGrp.releases, 'relInfoGrp.releases');
+              assert.isAtLeast(relInfoGrp.releases.length, 1, 'relInfoGrp.releases.length');
+              let release = relInfoGrp.releases[0]; // Pick the first (some) release from the release-group
+              release = await mbApi.lookup('release', release.id, ['artists', 'recordings']);
+
+              const artistRelations = new Map<string, IArtist>(); // Set to track unique relations
+
+              for (const media of release.media) {
+                for (const track of media.tracks) {
+                  const recording = await mbApi.lookup('recording', track.recording.id, ['artists', 'artist-rels']);
+                  assert.exists(recording.relations, 'recording.relations');
+                  for (const relation of recording.relations) {
+                    if (relation.artist) {
+                      const relationKey = `${relation.type}/${relation.artist.name}`; // Create a unique key
+                      if (!artistRelations.has(relationKey)) {
+                        artistRelations.set(relationKey, relation.artist); // Add the key to the set
+                      }
+                    }
+                  }
+                }
+              }
+              return artistRelations.values();
+            }
+
+            const releaseGroup = await findReleaseGroup('Queen', 'Made in Heaven');
+            assert.isDefined(releaseGroup, 'Should be able to find the release-group for: Queen - Made in Heaven');
+            if (releaseGroup) {
+              const artists = Array.from(await findAllRelatedArtist(releaseGroup.id));
+              const artistNames = artists.map(artist => artist.name);
+              assert.include(artistNames, 'Queen');
+              assert.include(artistNames, 'Josh Macrae');
+              assert.include(artistNames, 'David Richards');
+              assert.include(artistNames, 'Justin Shirley‐Smith');
+              assert.include(artistNames, 'John Deacon');
+              assert.include(artistNames, 'Brian May');
+              assert.include(artistNames, 'Freddie Mercury');
+              assert.include(artistNames, 'Roger Taylor');
+            }
+          });
+        });
+
       });
 
-      describe('release-group', () => {
+      describe('search release-group', () => {
 
         it('find release-group: Racine carrée', async () => {
           const result = await mbApi.search('release-group', {query: 'Racine carrée'});
@@ -1000,7 +1073,34 @@ describe('MusicBrainz-api', function () {
         });
       });
 
-      describe('searchUrl', () => {
+      describe('search series', () => {
+
+        const seriesName = 'Studio Brussel: Life Is Music';
+
+        it('find series by name', async () => {
+          const result = await mbApi.search('series', {query: {name: seriesName}});
+          assert.isAtLeast(result.count, 2);
+          assert.isArray(result.series, 'result.series');
+          assert.isAtLeast(result.series.length, 2);
+        });
+
+      });
+
+      describe('search tags', () => {
+
+        const tagName = 'shoegaze';
+
+        it('find tag \"shoegaze\"', async () => {
+          const result = await mbApi.search('tag', {query: {name: tagName}});
+          assert.isAtLeast(result.count, 2);
+          assert.isArray(result.tags, 'result.tags');
+          assert.isAtLeast(result.tags.length, 2);
+          assert.isString(result.tags[0].name, 'result.tags[0].name');
+        });
+
+      });
+
+      describe('search url', () => {
 
         const spotifyUrl = `https://open.spotify.com/album/${spotify.album.RacineCarree.id}`;
 
@@ -1011,6 +1111,19 @@ describe('MusicBrainz-api', function () {
           assert.strictEqual(result.urls[0].resource, spotifyUrl);
         });
       });
+
+      describe('search work', () => {
+
+        const spotifyUrl = `https://open.spotify.com/album/${spotify.album.RacineCarree.id}`;
+
+        it('find work by url', async () => {
+          const result = await mbApi.search('work', {query: {url: spotifyUrl}});
+          assert.isAtLeast(result.count, 1);
+          assert.isAtLeast(result.works.length, 1);
+          assert.isDefined(result.works[0].title, 'works[0].title');
+        });
+      });
+
     });
 
   });

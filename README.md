@@ -340,14 +340,21 @@ Searches can be performed using the generic search function: `query(entity: mb.E
 
 Arguments:
 - Entity type, which can be one of:
-  - `artist`: [search fields](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2/Search#Artist)
-  - `label`: [search fields](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2/Search#Label)
-  - `recording`: [search fields](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2/Search#Recording)
-  - `release`: [search fields](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2/Search#Release)
-  - `release-group`: [search fields](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2/Search#Release_Group)
-  - `work`: [search fields](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2/Search#Work)
-  - `area`: [search fields](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2/Search#Area)
-  - `url`: [search fields](https://wiki.musicbrainz.org/Development/XML_Web_Service/Version_2/Search#URL)
+  - `annotation`: [search fields](https://wiki.musicbrainz.org/MusicBrainz_API/Search#Annotation)
+  - `area`: [search fields](https://wiki.musicbrainz.org/MusicBrainz_API/Search#Area)
+  - `artist`: [search fields](https://wiki.musicbrainz.org/MusicBrainz_API/Search#Artist)
+  - `cdstub`: [search fields](https://wiki.musicbrainz.org/MusicBrainz_API/Search#CDStubs)
+  - `event`: [search fields](https://wiki.musicbrainz.org/MusicBrainz_API/Search#Event)
+  - `instrument`: [search fields](https://wiki.musicbrainz.org/MusicBrainz_API/Search#Instrument)
+  - `label`: [search fields](https://wiki.musicbrainz.org/MusicBrainz_API/Search#Label)
+  - `place`: [search fields](https://wiki.musicbrainz.org/MusicBrainz_API/Search#Place)
+  - `recording`: [search fields](https://wiki.musicbrainz.org/MusicBrainz_API/Search#Recording)
+  - `release`: [search fields](https://wiki.musicbrainz.org/MusicBrainz_API/Search#Release)
+  - `release-group`: [search fields](https://wiki.musicbrainz.org/MusicBrainz_API/Search#Release_Group)
+  - `series`: [search fields](https://wiki.musicbrainz.org/MusicBrainz_API/Search#Series)
+  - `tag`: [search fields](https://wiki.musicbrainz.org/MusicBrainz_API/Search#Tag)
+  - `url`: [search fields](https://wiki.musicbrainz.org/MusicBrainz_API/Search#URL)
+  - `work`: [search fields](https://wiki.musicbrainz.org/MusicBrainz_API/Search#Work)
 - `query {query: string, offset: number, limit: number}`
   - `query.query`: supports the full Lucene Search syntax; you can find a detailed guide at [Lucene Search Syntax](https://lucene.apache.org/core/4_3_0/queryparser/org/apache/lucene/queryparser/classic/package-summary.html#package_description). For example, you can set conditions while searching for a name with the AND operator.
   - `query.offset`: optional, return search results starting at a given offset. Used for paging through more than one page of results.

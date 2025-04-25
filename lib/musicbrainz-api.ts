@@ -300,17 +300,25 @@ export class MusicBrainzApi {
 
   /**
    * Search an entity using a search query
-   * @param query e.g.: '" artist: Madonna, track: Like a virgin"' or object with search terms: {artist: Madonna}
    * @param entity e.g. 'recording'
-   * @param query Arguments
+   * @param query e.g.: '" artist: Madonna, track: Like a virgin"' or object with search terms: {artist: Madonna}
    */
+  public search(entity: 'annotation', query: mb.ISearchQuery<(MiscIncludes | RelationsIncludes)>): Promise<mb.IAnnotationList>;
   public search(entity: 'area', query: mb.ISearchQuery<AreaIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IAreaList>;
-  public search(artist: 'artist', query: mb.ISearchQuery<ArtistIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IArtistList>;
-  public search(artist: 'recording', query: mb.ISearchQuery<AreaIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IRecordingList>;
-  public search(artist: 'release', query: mb.ISearchQuery<ReleaseIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IReleaseList>;
-  public search(artist: 'release-group', query: mb.ISearchQuery<ReleaseGroupIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IReleaseGroupList>;
-  public search(artist: 'url', query: mb.ISearchQuery<UrlIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IUrlList>;
-  public search<T extends mb.ISearchResult, I extends string = never>(entity: mb.EntityType, query: mb.ISearchQuery<I>): Promise<T> {
+  public search(entity: 'artist', query: mb.ISearchQuery<ArtistIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IArtistList>;
+  public search(entity: 'cdstub', query: mb.ISearchQuery<(MiscIncludes | RelationsIncludes)>): Promise<mb.ICdStubList>;
+  public search(entity: 'event', query: mb.ISearchQuery<EventIncludes> & mb.ILinkedEntitiesEvent): Promise<mb.IEventList>;
+  public search(entity: 'instrument', query: mb.ISearchQuery<InstrumentIncludes> & mb.ILinkedEntitiesInstrument): Promise<mb.IInstrumentList>;
+  public search(entity: 'label', query: mb.ISearchQuery<LabelIncludes> & mb.ILinkedEntitiesLabel): Promise<mb.ILabelList>;
+  public search(entity: 'place', query: mb.ISearchQuery<PlaceIncludes> & mb.ILinkedEntitiesPlace): Promise<mb.IPlaceList>;
+  public search(entity: 'recording', query: mb.ISearchQuery<RecordingIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IRecordingList>;
+  public search(entity: 'release', query: mb.ISearchQuery<ReleaseIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IReleaseList>;
+  public search(entity: 'release-group', query: mb.ISearchQuery<ReleaseGroupIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IReleaseGroupList>;
+  public search(entity: 'series', query: mb.ISearchQuery<SeriesIncludes> & mb.ILinkedEntitiesSeries): Promise<mb.ISeriesList>;
+  public search(entity: 'tag', query: mb.ISearchQuery<MiscIncludes | RelationsIncludes>): Promise<mb.ITagList>;
+  public search(entity: 'url', query: mb.ISearchQuery<UrlIncludes> & mb.ILinkedEntitiesUrl): Promise<mb.IUrlList>;
+  public search(entity: 'work', query: mb.ISearchQuery<WorkIncludes> & mb.ILinkedEntitiesWork): Promise<mb.IWorkList>;
+  public search<T extends mb.ISearchResult, I extends string = never>(entity: mb.EntityType | mb.OtherEntityTypes, query: mb.ISearchQuery<I>): Promise<T> {
     const urlQuery: any = {...query};
     if (typeof query.query === 'object') {
       urlQuery.query = makeAndQueryString(query.query);
