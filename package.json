@@ -65,7 +65,7 @@
     "@types/chai": "^5.0.0",
     "@types/jsontoxml": "^1.0.5",
     "@types/mocha": "^10.0.4",
-    "@types/node": "^22.5.0",
+    "@types/node": "^24.0.3",
     "@types/sinon": "^17.0.3",
     "@types/source-map-support": "^0",
     "@types/spark-md5": "^3",
