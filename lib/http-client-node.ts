@@ -21,7 +21,7 @@ export class HttpClientNode extends HttpClient {
   }
 
   public getCookies(): Promise<string | null> {
-    return this.cookieJar.getCookieString(this.options.baseUrl); // Get cookies for the request
+    return this.cookieJar.getCookieString(this.httpOptions.baseUrl); // Get cookies for the request
   }
 
 }

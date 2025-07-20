@@ -1,5 +1,4 @@
 import { StatusCodes as HttpStatus } from 'http-status-codes';
-import Debug from 'debug';
 
 export { XmlMetadata } from './xml/xml-metadata.js';
 export { XmlIsrc } from './xml/xml-isrc.js';
@@ -15,14 +14,12 @@ export * from './http-client.js';
  * https://musicbrainz.org/doc/Development/XML_Web_Service/Version_2#Subqueries
  */
 
-const debug = Debug('musicbrainz-api-node');
-
 export class MusicBrainzApi extends MusicBrainzApiDefault {
 
   protected initHttpClient(): HttpClientNode {
     return new HttpClientNode({
       baseUrl: this.config.baseUrl,
-      timeout: 20 * 1000,
+      timeout: 500,
       userAgent: `${this.config.appName}/${this.config.appVersion} ( ${this.config.appContactInfo} )`
     });
   }
