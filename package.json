@@ -1,6 +1,6 @@
 {
   "name": "musicbrainz-api",
-  "version": "0.25.0",
+  "version": "0.25.1",
   "description": "MusicBrainz API client for reading and submitting metadata",
   "exports": {
     "node": {
