@@ -61,7 +61,7 @@
     "uuid": "^11.0.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.8.3",
+    "@biomejs/biome": "2.1.2",
     "@types/chai": "^5.0.0",
     "@types/jsontoxml": "^1.0.5",
     "@types/mocha": "^10.0.4",
@@ -96,7 +96,8 @@
     "start": "yarn run compile && yarn run lint && yarn run cover-test",
     "test-coverage": "c8 yarn run test",
     "send-codacy": "c8 report --reporter=text-lcov | codacy-coverage",
-    "prepublishOnly": "yarn run build"
+    "prepublishOnly": "yarn run build",
+    "update-biome": "yarn add -D --exact @biomejs/biome && npx @biomejs/biome migrate --write && npm run lint:fix"
   },
   "nyc": {
     "exclude": [
