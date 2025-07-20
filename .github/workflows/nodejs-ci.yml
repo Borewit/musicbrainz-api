@@ -1,14 +1,15 @@
 name: Node.js CI
-on: push
+
+on:
+  push:
+  pull_request:
 
 jobs:
 
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -42,19 +43,17 @@ jobs:
             lib/**/*.d.ts
             test/**/*.js
             test/**/*.js.map
+          if-no-files-found: error
 
   test:
-
     runs-on: ubuntu-latest
-
     needs: build
 
     strategy:
       matrix:
-        node-version: [20.x, 22.x]
+        node-version: [20.x, 22.x, 24.x]
 
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -73,9 +72,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build
+          path: .
 
       - name: Test with Node.js ${{ matrix.node-version }}
         env:
+          NODE_ENV: ci
           MBUSER: ${{ secrets.MBUSER }}
           MBPWD: ${{ secrets.MBPWD }}
         run: yarn run test-coverage
@@ -84,12 +85,13 @@ jobs:
         uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.github_token }}
-          flag-name: run-${{ matrix.test_number }}
+          flag-name: run-${{ matrix.node-version }}
           parallel: true
 
   finish:
     needs: test
     runs-on: ubuntu-latest
+
     steps:
       - name: Coveralls Finished
         uses: coverallsapp/github-action@v2
