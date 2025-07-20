@@ -207,7 +207,7 @@ export class MusicBrainzApi {
   protected initHttpClient(): HttpClient {
     return new HttpClient({
       baseUrl: this.config.baseUrl,
-      timeout: 20 * 1000,
+      timeout: 500,
       userAgent: `${this.config.appName}/${this.config.appVersion} ( ${this.config.appContactInfo} )`
     });
   }

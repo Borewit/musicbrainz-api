@@ -35,7 +35,7 @@ export interface ICoverInfo {
 
 export class CoverArtArchiveApi {
 
-  private httpClient = new HttpClient({baseUrl: 'https://coverartarchive.org', userAgent: 'Node.js musicbrains-api', timeout: 20000, followRedirects: false});
+  private httpClient = new HttpClient({baseUrl: 'https://coverartarchive.org', userAgent: 'Node.js musicbrains-api', timeout: 2000, followRedirects: false});
 
   private async getJson(path: string) {
     const response = await this.httpClient.get(path, {
