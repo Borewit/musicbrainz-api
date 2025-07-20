@@ -24,7 +24,6 @@ import {
 } from '../lib/entry-default.js';
 import { assert, expect } from 'chai';
 import type * as mb from '../lib/musicbrainz.types.js';
-// biome-ignore lint/correctness/noNodejsModules:
 import { readFile } from 'node:fs/promises';
 import sinon from 'sinon';
 import type { HttpClient } from "../lib/http-client.js";

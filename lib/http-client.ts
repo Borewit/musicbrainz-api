@@ -46,7 +46,6 @@ export class HttpClient {
     return this._fetch('post', path, {...options, body: encodedFormData, headers: {'Content-Type': 'application/x-www-form-urlencoded'}});
   }
 
-  // biome-ignore lint/complexity/noBannedTypes:
   public postJson(path: string, json: Object,  options?: IFetchOptions) {
     const encodedJson = JSON.stringify(json);
     return this._fetch('post', path, {...options, body: encodedJson, headers: {'Content-Type': 'application/json.'}});
@@ -117,7 +116,7 @@ export class HttpClient {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  protected registerCookies(response: Response): Promise<Cookie | undefined> {
+  protected registerCookies(_response: Response): Promise<Cookie | undefined> {
     return Promise.resolve(undefined);
   }
 
