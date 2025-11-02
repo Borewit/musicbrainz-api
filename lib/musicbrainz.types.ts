@@ -57,7 +57,7 @@ export interface IMatch {
 
 export type Gender = 'male' | 'female' | 'other' | 'not applicable';
 
-export interface IArtist extends ITypedEntity {
+export interface IArtist extends ITypedEntity, IMayHaveRelations {
   name: string;
   disambiguation: string;
   'sort-name': string;
@@ -71,7 +71,6 @@ export interface IArtist extends ITypedEntity {
   area?: IArea;
   begin_area?: IArea;
   end_area?: IArea;
-  relations?: IRelation[];
   /**
    * Only defined if 'releases' are includes
    */
@@ -160,7 +159,7 @@ export type ReleasePackaging =
   | 'Other'
   | 'None'
 
-export interface IRelease extends IEntity {
+export interface IRelease extends IEntity, IMayHaveRelations {
   title: string;
   'text-representation': { 'language': string, 'script': string },
   disambiguation: string;
@@ -176,7 +175,6 @@ export interface IRelease extends IEntity {
   country: string;
   quality: ReleaseQuality;
   barcode: string;
-  relations?: IRelation[];
   'artist-credit'?: IArtistCredit[]; // Include 'artist-credits '
   'release-group'?: IReleaseGroup; // Include: 'release-groups'
   collections?: ICollection[],
@@ -191,14 +189,13 @@ export interface IReleaseEvent {
 
 export type MediaFormatType = 'Digital Media'; // ToDo
 
-export interface IRecording extends IEntity {
+export interface IRecording extends IEntity, IMayHaveRelations {
   video: boolean;
   length: number;
   title: string;
   disambiguation: string;
   isrcs?: string[];
   releases?: IRelease[];
-  relations?: IRelation[];
   'artist-credit'?: IArtistCredit[];
   aliases?: IAlias[];
   'first-release-date': string;
@@ -348,7 +345,7 @@ export interface IRelation {
   release?: IRelease;
 }
 
-export interface IRelationList {
+export interface IMayHaveRelations {
   relations: IRelation[];
 }
 
@@ -382,10 +379,9 @@ export interface ITag {
   name: string;
 }
 
-export interface IUrl extends IEntity {
+export interface IUrl extends IEntity, IMayHaveRelations {
   id: string,
-  resource: string,
-  relations?: IRelationList[];
+  resource: string;
 }
 
 export interface IExernalIds {
