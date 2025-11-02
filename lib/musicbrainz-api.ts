@@ -291,6 +291,12 @@ export class MusicBrainzApi {
       // Serialize include parameter
       query.inc = inc.join(' ');
     }
+    for(const pipedFilter of ['type', 'status']) {
+      if (query[pipedFilter]) {
+        // Serialize type parameter
+        query[pipedFilter] = query[pipedFilter].join('|');
+      }
+    }
     return this.restGet<T>(`/${entity}`, query);
   }
 
