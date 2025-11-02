@@ -2486,7 +2486,7 @@ __metadata:
     sinon: "npm:^21.0.0"
     source-map-support: "npm:^0.5.21"
     spark-md5: "npm:^3.0.2"
-    tough-cookie: "npm:^5.0.0"
+    tough-cookie: "npm:^6.0.0"
     ts-node: "npm:^10.9.2"
     typescript: "npm:^5.5.4"
     uuid: "npm:^11.0.3"
@@ -3364,21 +3364,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tldts-core@npm:^6.1.43":
-  version: 6.1.43
-  resolution: "tldts-core@npm:6.1.43"
-  checksum: 10c0/c10121231519d87ed9ef9ba741f0a6b1157a30f78da39ec455f0c1641f01f2a42cbf90de29bdb3f81cc64b0757c7ff96af9d2ff551a32a62791f8d03cc9da9cf
+"tldts-core@npm:^7.0.11":
+  version: 7.0.11
+  resolution: "tldts-core@npm:7.0.11"
+  checksum: 10c0/6608e0ee2636d91106b6291fc2bde2c31ba0ed14913e784a9cabd25b69b639d08eea008f80b6df646460c4edf03b7c3fbc4eca92874e73d5bf3fd164a5e34d2a
   languageName: node
   linkType: hard
 
-"tldts@npm:^6.1.32":
-  version: 6.1.43
-  resolution: "tldts@npm:6.1.43"
+"tldts@npm:^7.0.5":
+  version: 7.0.11
+  resolution: "tldts@npm:7.0.11"
   dependencies:
-    tldts-core: "npm:^6.1.43"
+    tldts-core: "npm:^7.0.11"
   bin:
     tldts: bin/cli.js
-  checksum: 10c0/c1d741e5e68751ba1de637d2e2a40f24b570df29888524bd1a6ead2fb1aa4f1497963a26887f6b89bc731c7faa8c04c4887b5a7b8cd7cfe267df77a7fe7fda68
+  checksum: 10c0/de132fcc10755381e0224b79612c41933eed0133a02852a45d1d27dab5db18bbf665529309953433c3cc888fad476ebb40130825e6ee924b1026d252ecdbc710
   languageName: node
   linkType: hard
 
@@ -3391,12 +3391,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tough-cookie@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "tough-cookie@npm:5.0.0"
+"tough-cookie@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "tough-cookie@npm:6.0.0"
   dependencies:
-    tldts: "npm:^6.1.32"
-  checksum: 10c0/4a69c885bf6f45c5a64e60262af99e8c0d58a33bd3d0ce5da62121eeb9c00996d0128a72df8fc4614cbde59cc8b70aa3e21e4c3c98c2bbde137d7aba7fa00124
+    tldts: "npm:^7.0.5"
+  checksum: 10c0/7b17a461e9c2ac0d0bea13ab57b93b4346d0b8c00db174c963af1e46e4ea8d04148d2a55f2358fc857db0c0c65208a98e319d0c60693e32e0c559a9d9cf20cb5
   languageName: node
   linkType: hard
 
