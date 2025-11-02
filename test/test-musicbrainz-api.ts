@@ -757,6 +757,11 @@ describe('MusicBrainz-api', function () {
           areBunchOfReleases(releases);
         });
 
+        it('by release group type and status', async () => {
+          const releases = await mbApi.browse('release', {artist: mbid.artist.Stromae, limit: 3, type: ['single'], status: ['official']});
+          areBunchOfReleases(releases);
+        });
+
       });
 
       describe('release-group', () => {
@@ -778,6 +783,15 @@ describe('MusicBrainz-api', function () {
         it('by release', async () => {
           const releaseGroups = await mbApi.browse('release-group', {release: mbid.release.Formidable, limit: 3});
           areBunchOfReleaseGroups(releaseGroups);
+        });
+
+
+        it('for a release type', async () => {
+          const releaseGroups = await mbApi.browse('release-group', {artist: mbid.artist.Stromae, type: ['single'], limit: 3});
+          // Are singles
+          for(const releaseGroup of releaseGroups["release-groups"]) {
+            assert.strictEqual(releaseGroup["primary-type"], 'Single');
+          }
         });
 
       });

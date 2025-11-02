@@ -428,6 +428,35 @@ export type Relationships = 'area-rels' |
   'url-rels' |
   'work-rels';
 
+/**
+ * Ref: https://musicbrainz.org/doc/MusicBrainz_API#Release_.28Group.29_Type_and_Status
+ */
+export type ReleaseStatusQuery = 'official' | 'promotion' | 'bootleg' | 'pseudo-release' |  'withdrawn' | 'cancelled';
+
+/**
+ * Ref: https://musicbrainz.org/doc/MusicBrainz_API#Release_.28Group.29_Type_and_Status
+ */
+export type ReleaseTypeQuery = 'album'
+  | 'single'
+  | 'ep'
+  | 'broadcast'
+  | 'other'
+  | 'audiobook'
+  | 'compilation'
+  | 'demo'
+  | 'dj-mix'
+  | 'field recording'
+  | 'interview'
+  | 'live'
+  | 'mixtape/street'
+  | 'remix'
+  | 'soundtrack'
+  | 'spokenword';
+
+
+
+
+
 export enum LinkType {
   license = 302,
   production = 256,
@@ -453,6 +482,14 @@ export interface IPagination {
    * An integer value defining how many entries should be returned. Only values between 1 and 100 (both inclusive) are allowed. If not given, this defaults to 25.
    */
   limit?: number;
+}
+
+/**
+ * Release and release-group types
+ */
+export interface IReleaseTypeAndStatus {
+  status?: ReleaseStatusQuery[];
+  type?: ReleaseTypeQuery[];
 }
 
 /**
@@ -634,7 +671,7 @@ interface BrowseReleasesEntityParams {
   track_artist: string;
   work: string;
 }
-export type IBrowseReleasesQuery = IPagination & OneOf<BrowseReleasesEntityParams>;
+export type IBrowseReleasesQuery = IPagination & IReleaseTypeAndStatus & OneOf<BrowseReleasesEntityParams>;
 
 /**
  * List of entity names allowed for browsing artists by a single MBID.
@@ -722,7 +759,7 @@ interface BrowseReleaseGroupsEntityParams {
   collection: string;
   release: string;
 }
-export type IBrowseReleaseGroupsQuery = IPagination & OneOf<BrowseReleaseGroupsEntityParams>;
+export type IBrowseReleaseGroupsQuery = IPagination & IReleaseTypeAndStatus & OneOf<BrowseReleaseGroupsEntityParams>;
 
 /**
  * List of entity names allowed for browsing works by a single MBID.
