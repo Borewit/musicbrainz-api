@@ -1,76 +1,74 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.1.2/schema.json",
-  "assist": {
-    "actions": {
-      "source": {
-        "organizeImports": "off"
-      }
-    }
-  },
-  "formatter": {
-    "enabled": false
-  },
-  "linter": {
-    "enabled": true,
-    "rules": {
-      "correctness": {
-        "noConstantCondition": "warn",
-        "noUnusedImports": "error",
-        "noNodejsModules": "error"
-      },
-      "style": {
-        "noParameterAssign": "off",
-        "useConst": "error",
-        "useConsistentBuiltinInstantiation": "error",
-        "useThrowNewError": "error",
-        "useThrowOnlyError": "error",
-        "noRestrictedImports": {
-          "level": "error",
-          "options": {
-            "paths": {
-              "node:buffer": "Use Uint8Array instead of Buffer"
-            }
-          }
-        }
-      },
-      "recommended": true,
-      "complexity": {
-        "noForEach": "off"
-      },
-      "suspicious": {
-        "noEmptyBlockStatements": "error",
-        "noExplicitAny": "off"
-        // ToDo
-      },
-      "nursery": {}
-    }
-  },
-  "files": {
-    "ignoreUnknown": true,
-    "includes": [
-      "**",
-      "!.pnp.*",
-      "!coverage",
-      "!yarn",
-      "!.pnp.*",
-      "!lib/**/*.d.ts",
-      "!lib/**/*.js",
-      "!test/**/*.d.ts",
-      "!test/**/*.js"
-    ]
-  },
-  "overrides": [
-    {
-      "includes": [
-        "test/**/*"
-      ],
-      "linter": {
-        "rules": {
-          "correctness": {
-            "noNodejsModules": "off"
-          }
-        }
-      }
-    }
-  ]
+	"$schema": "https://biomejs.dev/schemas/2.3.2/schema.json",
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "off"
+			}
+		}
+	},
+	"formatter": {
+		"enabled": false
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"correctness": {
+				"noConstantCondition": "warn",
+				"noUnusedImports": "error",
+				"noNodejsModules": "error"
+			},
+			"style": {
+				"noParameterAssign": "off",
+				"useConst": "error",
+				"useConsistentBuiltinInstantiation": "error",
+				"useThrowNewError": "error",
+				"useThrowOnlyError": "error",
+				"noRestrictedImports": {
+					"level": "error",
+					"options": {
+						"paths": {
+							"node:buffer": "Use Uint8Array instead of Buffer"
+						}
+					}
+				}
+			},
+			"recommended": true,
+			"complexity": {
+				"noForEach": "off"
+			},
+			"suspicious": {
+				"noEmptyBlockStatements": "error",
+				"noExplicitAny": "off"
+				// ToDo
+			},
+			"nursery": {}
+		}
+	},
+	"files": {
+		"ignoreUnknown": true,
+		"includes": [
+			"**",
+			"!.pnp.*",
+			"!coverage",
+			"!yarn",
+			"!.pnp.*",
+			"!lib/**/*.d.ts",
+			"!lib/**/*.js",
+			"!test/**/*.d.ts",
+			"!test/**/*.js"
+		]
+	},
+	"overrides": [
+		{
+			"includes": ["test/**/*"],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noNodejsModules": "off"
+					}
+				}
+			}
+		}
+	]
 }

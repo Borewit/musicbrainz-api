@@ -869,7 +869,7 @@ describe('MusicBrainz-api', function () {
 
         const eventName = "Dire Straits - Love Over Gold";
 
-        it(`find event \"${eventName}\"`, async () => {
+        it(`find event "${eventName}"`, async () => {
           const result = await mbApi.search('event', {query: eventName});
           assert.isAtLeast(result.count, 1);
           assert.isArray(result.events, 'result.events');
@@ -881,7 +881,7 @@ describe('MusicBrainz-api', function () {
 
       describe('search instrument', () => {
 
-        it('find instrument \"flamenco guitar\"', async () => {
+        it('find instrument "flamenco guitar"', async () => {
           const result = await mbApi.search('instrument', {query: 'flamenco guitar'});
           assert.isAtLeast(result.count, 1);
           assert.isArray(result.instruments, 'result.instruments');
@@ -893,7 +893,7 @@ describe('MusicBrainz-api', function () {
 
       describe('search label', () => {
 
-        it('find \"Grönland Records\"', async () => {
+        it('find "Grönland Records"', async () => {
           const result = await mbApi.search('label', {query: 'Grönland Records'});
           assert.isAtLeast(result.count, 1);
           assert.isArray(result.labels, 'result.labels');
@@ -1089,7 +1089,7 @@ describe('MusicBrainz-api', function () {
 
         const tagName = 'shoegaze';
 
-        it('find tag \"shoegaze\"', async () => {
+        it('find tag "shoegaze"', async () => {
           const result = await mbApi.search('tag', {query: {name: tagName}});
           assert.isAtLeast(result.count, 2);
           assert.isArray(result.tags, 'result.tags');

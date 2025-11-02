@@ -61,7 +61,7 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.1.2",
+    "@biomejs/biome": "2.3.2",
     "@types/chai": "^5.0.0",
     "@types/jsontoxml": "^1.0.5",
     "@types/mocha": "^10.0.4",
@@ -89,7 +89,7 @@
     "compile": "yarn run compile-lib && yarn run compile-test",
     "lint:md": "remark -u preset-lint-recommended .",
     "lint:ts": "biome check",
-    "lint:fix": "biome check --fix",
+    "lint:fix": "biome check --write",
     "lint": "yarn run lint:md && yarn run lint:ts",
     "test": "mocha",
     "build": "yarn run clean && yarn run compile",
