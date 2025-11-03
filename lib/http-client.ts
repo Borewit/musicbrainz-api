@@ -28,6 +28,13 @@ export interface IFetchOptions {
     followRedirects?: boolean;
 }
 
+function isConnectionReset(err: unknown): boolean {
+  // Undici puts the OS error on .cause, with .code like 'ECONNRESET'
+  const code = (err as any)?.cause?.code ?? (err as any)?.code;
+  // Add other transient codes you consider safe to retry:
+  return typeof code === "string" && code === 'ECONNRESET';
+}
+
 export class HttpClient {
 
   public constructor(protected httpOptions: IHttpClientOptions) {
@@ -66,13 +73,23 @@ export class HttpClient {
     }
 
     while (retryLimit > 0) {
-      const response = await fetch(url, {
-        method,
-        ...options,
-        headers,
-        body: options.body,
-        redirect: options.followRedirects === false ? 'manual' : 'follow'
-      });
+      let response: Response;
+      try {
+        response = await fetch(url, {
+          method,
+          ...options,
+          headers,
+          body: options.body,
+          redirect: options.followRedirects === false ? 'manual' : 'follow'
+        })}
+      catch(err) {
+        if(isConnectionReset(err)) {
+          // Retry on TCP connection resets
+          await this._delay(retryTimeout); // wait 200ms before retry
+          continue;
+        }
+        throw err;
+      }
 
       if (response.status === 429 || response.status === 503) {
         debug(`Received status=${response.status}, assume reached rate limit, retry in ${retryTimeout} ms`);
