@@ -376,6 +376,7 @@ describe('MusicBrainz-api', function () {
           assert.isDefined(recording.isrcs);
           assert.isDefined(recording['artist-credit']);
         });
+
       });
 
       describe('release-group', () => {
@@ -938,6 +939,16 @@ describe('MusicBrainz-api', function () {
           assert.isAtLeast(result.recordings.length, 2);
           assert.includeMembers(result.recordings.map(recording => recording.id), [mbid.recording.Formidable]);
         });
+
+
+        it('search recording by ISRC', async () => {
+          const result = await mbApi.search('recording', {query: {isrc: 'BET671300161'}});
+          assert.strictEqual(result.count, 1);
+          assert.isArray(result.recordings, 'result.recordings');
+          assert.strictEqual(result.recordings.length, 1);
+          assert.strictEqual(result.recordings[0].id, mbid.recording.Formidable, "ISRC should match Formidable MBID");
+        });
+
       });
 
       describe('search release', () => {
