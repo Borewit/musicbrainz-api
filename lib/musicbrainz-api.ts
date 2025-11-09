@@ -106,7 +106,8 @@ export type ReleaseIncludes =
   | 'collections'
   | 'labels'
   | 'recordings'
-  | 'release-groups';
+  | 'release-groups'
+  | 'recording-level-rels';
 
 export type ReleaseGroupIncludes =
   MiscIncludes
