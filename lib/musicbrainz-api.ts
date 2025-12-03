@@ -147,6 +147,7 @@ export interface IMusicBrainzConfig {
   appContactInfo?: string,
 
   disableRateLimiting?: boolean
+  rateLimit?: [number, number]
 }
 
 interface IInternalConfig extends IMusicBrainzConfig {
@@ -201,7 +202,8 @@ export class MusicBrainzApi {
 
     this.httpClient = this.initHttpClient();
 
-    this.rateLimiter = new RateLimitThreshold(15, 18);
+    const limits = this.config.rateLimit ?? [15,18];
+    this.rateLimiter = new RateLimitThreshold(limits[0], limits[1]);
   }
 
   protected initHttpClient(): HttpClient {
