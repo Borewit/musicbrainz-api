@@ -100,6 +100,10 @@ const config = {
 
     // Optional: Disable rate limiting (default: false)
     disableRateLimiting: false,
+
+    // Optional: Set max number of request with X seconds
+    //           (default: 15 requests every 18 seconds)
+    rateLimit: [15, 18]
 };
 
 const mbApi = new MusicBrainzApi(config);
