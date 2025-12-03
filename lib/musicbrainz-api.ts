@@ -147,6 +147,17 @@ export interface IMusicBrainzConfig {
   appContactInfo?: string,
 
   disableRateLimiting?: boolean
+ /**
+  * Optional rate limit configuration.
+  * 
+  * [maxRequests, periodSeconds]
+  * 
+  * maxRequests     The maximum number of allowed requests within the period
+  * periodSeconds   The time window in seconds during which requests are counted
+  * 
+  * Default is [15, 18], which allows up to 15 requests every 18 seconds
+  */
+  rateLimit?: [number, number]
 }
 
 interface IInternalConfig extends IMusicBrainzConfig {
@@ -201,7 +212,8 @@ export class MusicBrainzApi {
 
     this.httpClient = this.initHttpClient();
 
-    this.rateLimiter = new RateLimitThreshold(15, 18);
+    const limits = this.config.rateLimit ?? [15,18];
+    this.rateLimiter = new RateLimitThreshold(limits[0], limits[1]);
   }
 
   protected initHttpClient(): HttpClient {
