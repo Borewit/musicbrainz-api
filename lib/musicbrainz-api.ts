@@ -147,6 +147,16 @@ export interface IMusicBrainzConfig {
   appContactInfo?: string,
 
   disableRateLimiting?: boolean
+ /**
+  * Optional rate limit configuration.
+  * 
+  * [maxRequests, periodSeconds]
+  * 
+  * maxRequests     The maximum number of allowed requests within the period
+  * periodSeconds   The time window in seconds during which requests are counted
+  * 
+  * Default is [15, 18], which allows up to 15 requests every 18 seconds
+  */
   rateLimit?: [number, number]
 }
 
