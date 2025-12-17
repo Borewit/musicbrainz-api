@@ -346,7 +346,7 @@ export interface IRelation {
 }
 
 export interface IMayHaveRelations {
-  relations: IRelation[];
+  relations?: IRelation[];
 }
 
 export interface IWork extends IEntity {
