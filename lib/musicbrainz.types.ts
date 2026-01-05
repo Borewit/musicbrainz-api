@@ -71,6 +71,9 @@ export interface IArtist extends ITypedEntity, IMayHaveRelations {
   area?: IArea;
   begin_area?: IArea;
   end_area?: IArea;
+  genres?: IGenre[];
+  tags?: IArtistTag[];
+  rating?: IRating;
   /**
    * Only defined if 'releases' are includes
    */
@@ -377,6 +380,21 @@ export interface ISeries extends ITypedEntity {
 
 export interface ITag {
   name: string;
+}
+
+export interface IUserVote {
+  count: number;
+}
+
+export type IArtistTag = ITag & IUserVote;
+export interface IGenre extends IEntity, IUserVote{
+  name: string;
+  disambiguation: string;
+}
+
+export interface IRating {
+  value: number | null;
+  'votes-count': number;
 }
 
 export interface IUrl extends IEntity, IMayHaveRelations {
