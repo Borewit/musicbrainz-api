@@ -96,7 +96,7 @@ const mbid = {
   },
   artist: {
     Stromae: 'ab2528d9-719f-4261-8098-21849222a0f2',
-    DeadCombo: '092ae9e2-60bf-4b66-aa33-9e31754d1924'
+    DeadCombo: '092ae9e2-60bf-4b66-aa33-9e31754d1924',
   },
   collection: {
     Ringtone: 'de4fdfc4-53aa-458a-b463-8761cc7f5af8'
@@ -141,6 +141,9 @@ const mbid = {
     SpotifyLisboaMulata: 'c69556a6-7ded-4c54-809c-afb45a1abe7d',
     Formidable: '9b30672a-5f1f-492b-ae82-529c9aa9d4c7',
     BigInJapan: 'e46c4635-a038-4d18-801c-8dcf67423b7c'
+  },
+  genre : {
+    DancePop: 'b739a895-85ed-4ad3-8717-4e9ef5387dd8'
   }
 };
 
@@ -225,13 +228,19 @@ describe('MusicBrainz-api', function () {
       });
 
       it('artist', async () => {
-        const artist = await mbApi.lookup('artist', mbid.artist.Stromae);
+        const artist = await mbApi.lookup('artist', mbid.artist.Stromae, ['tags', 'genres', 'ratings']);
         assert.strictEqual(artist.id, mbid.artist.Stromae);
         assert.strictEqual(artist.name, 'Stromae');
         assert.strictEqual(artist.country, 'BE');
         assert.strictEqual(artist.gender, 'Male');
         // Ref: https://musicbrainz.org/doc/IPI
         expect(artist.ipis).include('00497406811', 'Contain an Interested Parties Information Code (IPI)');
+        // Ref: https://musicbrainz.org/doc/MusicBrainz_API/Examples#Genres,_tags_and_ratings
+        expect(artist.tags?.map(tag => tag.name)).include('dance-pop', 'Should contain tag "dance-pop"');
+        expect(artist.genres?.map(genre => genre.name)).include('dance-pop', 'Should contain genre "dance-pop"');
+        expect(artist.genres?.map(genre => genre.id)).include(mbid.genre.DancePop, `Should contain genre id for "dance-pop"`);
+        expect(artist.rating?.value).to.be.greaterThan(0, 'Should have a rating');
+        expect(artist.rating?.['votes-count']).to.be.greaterThan(0, 'Should have rating votes');
       });
 
       it('collection', async () => {
