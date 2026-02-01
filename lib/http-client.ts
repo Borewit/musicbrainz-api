@@ -1,9 +1,9 @@
-import type {Cookie} from "tough-cookie";
+import type { Cookie } from "tough-cookie";
 import Debug from "debug";
 
 export type HttpFormData = { [key: string]: string; }
 
-const debug = Debug('musicbrainz-api-node');
+const debug = Debug('musicbrainz-api:http-client');
 
 /**
  * Allows multiple entries for the same key
@@ -21,11 +21,11 @@ export interface IHttpClientOptions {
 }
 
 export interface IFetchOptions {
-    query?: MultiQueryFormData;
-    retryLimit?: number;
-    body?: string;
-    headers?: HeadersInit;
-    followRedirects?: boolean;
+  query?: MultiQueryFormData;
+  retryLimit?: number;
+  body?: string;
+  headers?: HeadersInit;
+  followRedirects?: boolean;
 }
 
 function isConnectionReset(err: unknown): boolean {
@@ -48,12 +48,16 @@ export class HttpClient {
     return this._fetch('post', path, options);
   }
 
-  public postForm(path: string, formData: HttpFormData,  options?: IFetchOptions) {
+  public postForm(path: string, formData: HttpFormData, options?: IFetchOptions) {
     const encodedFormData = new URLSearchParams(formData).toString();
-    return this._fetch('post', path, {...options, body: encodedFormData, headers: {'Content-Type': 'application/x-www-form-urlencoded'}});
+    return this._fetch('post', path, {
+      ...options,
+      body: encodedFormData,
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+    });
   }
 
-  public postJson(path: string, json: Object,  options?: IFetchOptions) {
+  public postJson(path: string, json: Object, options?: IFetchOptions) {
     const encodedJson = JSON.stringify(json);
     return this._fetch('post', path, {...options, body: encodedJson, headers: {'Content-Type': 'application/json.'}});
   }
@@ -81,9 +85,9 @@ export class HttpClient {
           headers,
           body: options.body,
           redirect: options.followRedirects === false ? 'manual' : 'follow'
-        })}
-      catch(err) {
-        if(isConnectionReset(err)) {
+        })
+      } catch (err) {
+        if (isConnectionReset(err)) {
           // Retry on TCP connection resets
           await this._delay(retryTimeout); // wait 200ms before retry
           continue;
@@ -100,6 +104,8 @@ export class HttpClient {
           continue;
         }
       }
+
+      debug(`Received status=${response.status}`);
 
       await this.registerCookies(response);
       return response;
