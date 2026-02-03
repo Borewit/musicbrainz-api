@@ -1132,6 +1132,14 @@ describe('MusicBrainz-api', function () {
           assert.isAtLeast(result.urls.length, 1);
           assert.strictEqual(result.urls[0].resource, spotifyUrl);
         });
+
+        it('find url by url with relations', async () => {
+          const result = await mbApi.search('url', {query: {url: spotifyUrl}, inc: ["release-rels"]});
+          assert.isAtLeast(result.count, 1);
+          assert.isAtLeast(result.urls.length, 1);
+          assert.strictEqual(result.urls[0].resource, spotifyUrl);
+          assert.isArray(result.urls[0].relations, 'result.urls[0].relations');
+        });
       });
 
       describe('search work', () => {

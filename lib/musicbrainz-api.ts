@@ -322,22 +322,22 @@ export class MusicBrainzApi {
    * @param entity e.g. 'recording'
    * @param query e.g.: '" artist: Madonna, track: Like a virgin"' or object with search terms: {artist: Madonna}
    */
-  public search(entity: 'annotation', query: mb.ISearchQuery<(MiscIncludes | RelationsIncludes)>): Promise<mb.IAnnotationList>;
-  public search(entity: 'area', query: mb.ISearchQuery<AreaIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IAreaList>;
-  public search(entity: 'artist', query: mb.ISearchQuery<ArtistIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IArtistList>;
-  public search(entity: 'cdstub', query: mb.ISearchQuery<(MiscIncludes | RelationsIncludes)>): Promise<mb.ICdStubList>;
-  public search(entity: 'event', query: mb.ISearchQuery<EventIncludes> & mb.ILinkedEntitiesEvent): Promise<mb.IEventList>;
-  public search(entity: 'instrument', query: mb.ISearchQuery<InstrumentIncludes> & mb.ILinkedEntitiesInstrument): Promise<mb.IInstrumentList>;
-  public search(entity: 'label', query: mb.ISearchQuery<LabelIncludes> & mb.ILinkedEntitiesLabel): Promise<mb.ILabelList>;
-  public search(entity: 'place', query: mb.ISearchQuery<PlaceIncludes> & mb.ILinkedEntitiesPlace): Promise<mb.IPlaceList>;
-  public search(entity: 'recording', query: mb.ISearchQuery<RecordingIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IRecordingList>;
-  public search(entity: 'release', query: mb.ISearchQuery<ReleaseIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IReleaseList>;
-  public search(entity: 'release-group', query: mb.ISearchQuery<ReleaseGroupIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IReleaseGroupList>;
-  public search(entity: 'series', query: mb.ISearchQuery<SeriesIncludes> & mb.ILinkedEntitiesSeries): Promise<mb.ISeriesList>;
-  public search(entity: 'tag', query: mb.ISearchQuery<MiscIncludes | RelationsIncludes>): Promise<mb.ITagList>;
-  public search(entity: 'url', query: mb.ISearchQuery<UrlIncludes> & mb.ILinkedEntitiesUrl): Promise<mb.IUrlList>;
-  public search(entity: 'work', query: mb.ISearchQuery<WorkIncludes> & mb.ILinkedEntitiesWork): Promise<mb.IWorkList>;
-  public search<T extends mb.ISearchResult, I extends string = never>(entity: mb.EntityType | mb.OtherEntityTypes, query: mb.ISearchQuery<I>): Promise<T> {
+  public async search(entity: 'annotation', query: mb.ISearchQuery<(MiscIncludes | RelationsIncludes)>): Promise<mb.IAnnotationList>;
+  public async search(entity: 'area', query: mb.ISearchQuery<AreaIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IAreaList>;
+  public async search(entity: 'artist', query: mb.ISearchQuery<ArtistIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IArtistList>;
+  public async search(entity: 'cdstub', query: mb.ISearchQuery<(MiscIncludes | RelationsIncludes)>): Promise<mb.ICdStubList>;
+  public async search(entity: 'event', query: mb.ISearchQuery<EventIncludes> & mb.ILinkedEntitiesEvent): Promise<mb.IEventList>;
+  public async search(entity: 'instrument', query: mb.ISearchQuery<InstrumentIncludes> & mb.ILinkedEntitiesInstrument): Promise<mb.IInstrumentList>;
+  public async search(entity: 'label', query: mb.ISearchQuery<LabelIncludes> & mb.ILinkedEntitiesLabel): Promise<mb.ILabelList>;
+  public async search(entity: 'place', query: mb.ISearchQuery<PlaceIncludes> & mb.ILinkedEntitiesPlace): Promise<mb.IPlaceList>;
+  public async search(entity: 'recording', query: mb.ISearchQuery<RecordingIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IRecordingList>;
+  public async search(entity: 'release', query: mb.ISearchQuery<ReleaseIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IReleaseList>;
+  public async search(entity: 'release-group', query: mb.ISearchQuery<ReleaseGroupIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IReleaseGroupList>;
+  public async search(entity: 'series', query: mb.ISearchQuery<SeriesIncludes> & mb.ILinkedEntitiesSeries): Promise<mb.ISeriesList>;
+  public async search(entity: 'tag', query: mb.ISearchQuery<MiscIncludes | RelationsIncludes>): Promise<mb.ITagList>;
+  public async search(entity: 'url', query: mb.ISearchQuery<UrlIncludes> & mb.ILinkedEntitiesUrl): Promise<mb.IUrlList>;
+  public async search(entity: 'work', query: mb.ISearchQuery<WorkIncludes> & mb.ILinkedEntitiesWork): Promise<mb.IWorkList>;
+  public async search<T extends mb.ISearchResult, I extends string = never>(entity: mb.EntityType | mb.OtherEntityTypes, query: mb.ISearchQuery<I>): Promise<T> {
     const urlQuery: any = {...query};
     if (typeof query.query === 'object') {
       urlQuery.query = makeAndQueryString(query.query);
@@ -345,7 +345,22 @@ export class MusicBrainzApi {
     if (Array.isArray(query.inc)) {
       urlQuery.inc = urlQuery.inc.join(' ');
     }
-    return this.restGet<T>(`/${entity}/`, urlQuery);
+    const result = await this.restGet<T>(`/${entity}/`, urlQuery);
+
+    // Temporary workaround for https://tickets.metabrainz.org/browse/SEARCH-444
+    // Should be resolved by https://github.com/metabrainz/mb-solr/pull/69
+    if (entity === 'url') {
+      // @ts-ignore
+      (result as mb.IUrlList).urls.forEach(url => {
+        // @ts-ignore
+        if (!url.relations && url['relation-list']) {
+          // @ts-ignore
+          url.relations = url['relation-list'];
+        }
+      });
+    }
+
+    return result;
   }
 
   // ---------------------------------------------------------------------------
