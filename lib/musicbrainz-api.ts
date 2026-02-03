@@ -175,6 +175,36 @@ export interface ISessionInformation {
   loggedIn?: boolean;
 }
 
+type MusicBrainzErrorBody = {
+  error?: string;
+  help?: string;
+};
+
+async function safeJson(res: any): Promise<unknown | undefined> {
+  // Some responses might not be JSON, or the client may have already consumed the body.
+  try {
+    return await res.json();
+  } catch {
+    return undefined;
+  }
+}
+
+export class MusicBrainzApiError extends Error {
+  public readonly status: number;
+  public readonly statusText: string;
+  public readonly body?: unknown;
+  public readonly url?: string;
+
+  constructor(message: string, opts: { status: number; statusText: string; body?: unknown; url?: string }) {
+    super(message);
+    this.name = "MusicBrainzApiError";
+    this.status = opts.status;
+    this.statusText = opts.statusText;
+    this.body = opts.body;
+    this.url = opts.url;
+  }
+}
+
 export class MusicBrainzApi {
 
   public readonly config: IInternalConfig;
@@ -235,6 +265,26 @@ export class MusicBrainzApi {
       query,
       retryLimit: 10
     });
+
+    if(response.status === 400) {
+
+      const body = await safeJson(response);
+      const mb = (body ?? {}) as MusicBrainzErrorBody;
+
+      // Prefer the API-provided message when available.
+      const message =
+        mb.error
+          ? `MusicBrainz request failed (${response.status}): ${mb.error}`
+          : `MusicBrainz request failed (${response.status}): ${response.statusText}`;
+
+      throw new MusicBrainzApiError(message, {
+        status: response.status,
+        statusText: response.statusText,
+        body,
+        url: response.url,
+      });
+    }
+
     return response.json();
   }
 
