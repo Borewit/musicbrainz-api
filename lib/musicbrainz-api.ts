@@ -400,11 +400,11 @@ export class MusicBrainzApi {
     // Temporary workaround for https://tickets.metabrainz.org/browse/SEARCH-444
     // Should be resolved by https://github.com/metabrainz/mb-solr/pull/69
     if (entity === 'url') {
-      // @ts-ignore
+      // @ts-expect-error
       (result as mb.IUrlList).urls.forEach(url => {
-        // @ts-ignore
+        // @ts-expect-error
         if (!url.relations && url['relation-list']) {
-          // @ts-ignore
+          // @ts-expect-error
           url.relations = url['relation-list'];
         }
       });
