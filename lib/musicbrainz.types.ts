@@ -346,6 +346,16 @@ export interface IRelation {
   'type-id': string;
   url?: IUrl;
   release?: IRelease;
+  area?: IArea;
+  event?: IEvent;
+  genre?: IGenre;
+  instrument?: IInstrument
+  label?: ILabel
+  place?: IPlace
+  recording?: IRecording
+  release_group?: IReleaseGroup
+  series?: ISeries
+  work?: IWork
 }
 
 export interface IMayHaveRelations {
