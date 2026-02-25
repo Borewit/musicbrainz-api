@@ -22,6 +22,7 @@ export type RelationsIncludes =
   'area-rels'
   | 'artist-rels'
   | 'event-rels'
+  | 'genre-rels'
   | 'instrument-rels'
   | 'label-rels'
   | 'place-rels'
