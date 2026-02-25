@@ -147,6 +147,48 @@ const mbid = {
   }
 };
 
+const url = {
+  area: {
+    UnitedStates: "https://www.wikidata.org/wiki/Q30"
+  },
+  artist: {
+    Mozart: "https://www.wikidata.org/wiki/Q254"
+  },
+  event: {
+    MolsonCanadianRocksForToronto: "https://www.wikidata.org/wiki/Q3510009"
+  },
+  genre: {
+    Classical: "https://www.wikidata.org/wiki/Q1583807"
+  },
+  instrument: {
+    Violin: "https://www.wikidata.org/wiki/Q8355"
+  },
+  label: {
+    CapitolRecords: "https://www.wikidata.org/wiki/Q193023"
+  },
+  place: {
+    MadisonSquareGarden: "https://www.wikidata.org/wiki/Q186125"
+  },
+  recording: {// STYLE-2661 Wikidata links are not supported on recordings or releases
+    BlindingLights: "https://www.youtube.com/watch?v=fHI8X4OXluQ"
+  },
+  release: {// STYLE-2661 Wikidata links are not supported on recordings or releases
+    ShapeOfYou: "https://www.discogs.com/release/9882982" 
+  },
+  release_group: {
+    DontStopMeNow: "https://www.wikidata.org/wiki/Q70203020"
+  },
+  series: {
+    StarTrek: "https://www.wikidata.org/wiki/Q1092"
+  },
+  url: {
+    // Can't test for a URL relation on a URL
+  },
+  work: {
+    CountingStars: "https://www.wikidata.org/wiki/Q13422120"
+  }
+}
+
 const spotify = {
   album: {
     RacineCarree: {
@@ -308,6 +350,12 @@ describe('MusicBrainz-api', function () {
           });
         });
 
+        it('get release, include: url-rels', async() => {
+            const release = await mbApi.lookup('release', mbid.release.Formidable, ['url-rels']);
+            assert.isDefined(release, 'Should get release')
+            assert.isDefined(release.relations, 'Should have relations')
+            assert.isTrue(release.relations.some(r => r.url), 'Should have url relation')
+        })
       });
 
       describe('Release-group', () => {
@@ -507,6 +555,85 @@ describe('MusicBrainz-api', function () {
         assert.isArray(urlsResult.relations, 'relations');
       });
 
+      describe('include relation types', async () => {
+        it('area-rels', async () => {
+          const urlResult = await mbApi.lookupUrl(url.artist.Mozart, ["artist-rels"]);
+          
+          assert.isDefined(urlResult, 'Expect a result')
+          assert.isArray(urlResult.relations, 'Has relations')
+          assert.isTrue(urlResult.relations?.some(r => r.artist), 'Has artist relation')
+        })
+        it('event-rels', async () => {
+          const urlResult = await mbApi.lookupUrl(url.event.MolsonCanadianRocksForToronto, ["event-rels"]);
+          
+          assert.isDefined(urlResult, 'Expect a result')
+          assert.isArray(urlResult.relations, 'Has relations')
+          assert.isTrue(urlResult.relations?.some(r => r.event), 'Has event relation')
+        })
+        it('genre-rels', async () => {
+          const urlResult = await mbApi.lookupUrl(url.genre.Classical, ["genre-rels"]);
+          
+          assert.isDefined(urlResult, 'Expect a result')
+          assert.isArray(urlResult.relations, 'Has relations')
+          assert.isTrue(urlResult.relations?.some(r => r.genre), 'Has genre relation')
+        })
+        it('instrument-rels', async () => {
+          const urlResult = await mbApi.lookupUrl(url.instrument.Violin, ["instrument-rels"]);
+          
+          assert.isDefined(urlResult, 'Expect a result')
+          assert.isArray(urlResult.relations, 'Has relations')
+          assert.isTrue(urlResult.relations?.some(r => r.instrument), 'Has instrument relation')
+        })
+        it('label-rels', async () => {
+          const urlResult = await mbApi.lookupUrl(url.label.CapitolRecords, ["label-rels"]);
+          
+          assert.isDefined(urlResult, 'Expect a result')
+          assert.isArray(urlResult.relations, 'Has relations')
+          assert.isTrue(urlResult.relations?.some(r => r.label), 'Has label relation')
+        })
+        it('area-rels', async () => {
+          const urlResult = await mbApi.lookupUrl(url.artist.Mozart, ["artist-rels"]);
+          
+          assert.isDefined(urlResult, 'Expect a result')
+          assert.isArray(urlResult.relations, 'Has relations')
+          assert.isTrue(urlResult.relations?.some(r => r.artist), 'Has artist relation')
+        })
+        it('place-rels', async () => {
+          const urlResult = await mbApi.lookupUrl(url.place.MadisonSquareGarden, ["place-rels"]);
+          
+          assert.isDefined(urlResult, 'Expect a result')
+          assert.isArray(urlResult.relations, 'Has relations')
+          assert.isTrue(urlResult.relations?.some(r => r.place), 'Has place relation')
+        })
+        it('recording-rels', async () => {
+          const urlResult = await mbApi.lookupUrl(url.recording.BlindingLights, ["recording-rels"]);
+          
+          assert.isDefined(urlResult, 'Expect a result')
+          assert.isArray(urlResult.relations, 'Has relations')
+          assert.isTrue(urlResult.relations?.some(r => r.recording), 'Has recording relation')
+        })
+        it('release-group-rels', async () => {
+          const urlResult = await mbApi.lookupUrl(url.release_group.DontStopMeNow, ["release-group-rels"]);
+          
+          assert.isDefined(urlResult, 'Expect a result')
+          assert.isArray(urlResult.relations, 'Has relations')
+          assert.isTrue(urlResult.relations?.some(r => r.release_group), 'Has release-group relation')
+        })
+        it('series-rels', async () => {
+          const urlResult = await mbApi.lookupUrl(url.series.StarTrek, ["series-rels"]);
+          
+          assert.isDefined(urlResult, 'Expect a result')
+          assert.isArray(urlResult.relations, 'Has relations')
+          assert.isTrue(urlResult.relations?.some(r => r.series), 'Has series relation')
+        })
+        it('work-rels', async () => {
+          const urlResult = await mbApi.lookupUrl(url.work.CountingStars, ["work-rels"]);
+          
+          assert.isDefined(urlResult, 'Expect a result')
+          assert.isArray(urlResult.relations, 'Has relations')
+          assert.isTrue(urlResult.relations?.some(r => r.work), 'Has work relation')
+        })
+      })
     });
 
 
