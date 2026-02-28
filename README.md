@@ -7,7 +7,6 @@
 [![Known Vulnerabilities](https://snyk.io/test/github/Borewit/musicbrainz-api/badge.svg?targetFile=package.json)](https://snyk.io/test/github/Borewit/musicbrainz-api?targetFile=package.json)
 [![DeepScan grade](https://deepscan.io/api/teams/5165/projects/6991/branches/63373/badge/grade.svg)](https://deepscan.io/dashboard#view=project&tid=5165&pid=6991&bid=63373)
 [![Discord](https://img.shields.io/discord/460524735235883049.svg)](https://discord.gg/958xT5X)
-[![bundlejs.com badge](https://deno.bundlejs.com/?q=musicbrainz-api&badge)](https://bundlejs.com/?q=musicbrainz-api)
 
 # musicbrainz-api
 
