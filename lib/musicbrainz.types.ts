@@ -410,7 +410,7 @@ export interface IRating {
 }
 
 export interface IMayHaveRating {
-  ratings?: IRating
+  rating?: IRating
 }
 
 export interface IUrl extends IEntity, IMayHaveRelations {
