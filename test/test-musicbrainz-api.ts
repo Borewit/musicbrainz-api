@@ -28,7 +28,7 @@ import { readFile } from 'node:fs/promises';
 import sinon from 'sinon';
 import type { HttpClient } from "../lib/http-client.js";
 import { RateLimitThreshold } from 'rate-limit-threshold';
-import { AreaIncludes, IArea, IInstrument, InstrumentIncludes, ISeries, IWork, LabelIncludes, MusicBrainzApi as MusicBrainzApiDefault, SeriesIncludes as WorkIncludes } from "../lib/musicbrainz-api.js";
+import { AreaIncludes, IArea, IInstrument, InstrumentIncludes, ISeries, IWork, LabelIncludes, MusicBrainzApi as MusicBrainzApiDefault, SeriesIncludes, SeriesIncludes as WorkIncludes } from "../lib/musicbrainz-api.js";
 import { MusicBrainzApi as MusicBrainzApiNode } from "../lib/musicbrainz-api-node.js";
 
 const appUrl = 'https://github.com/Borewit/musicbrainz-api';
@@ -271,14 +271,13 @@ describe('MusicBrainz-api', function () {
           {inc: 'tags', key: 'tags'},
           {inc: 'genres', key: 'genres'},
         ];
-
-        includes.forEach(inc => {
-          it(`get area, include: '${inc.inc}'`, async () => {
-            const area = await mbApi.lookup('area', mbid.area.Queens, [inc.inc]);
+        it(`get area, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
+            const area = await mbApi.lookup('area', mbid.area.Queens, includes.map(inc => inc.inc));
             assert.strictEqual(area.id, mbid.area.Queens);
             assert.strictEqual(area.name, 'Queens');
-            assert.isDefined(area[inc.key], `Should include '${inc.key}'`);
-          });
+            includes.forEach(inc => {
+              assert.isDefined(area[inc.key], `Should include '${inc.key}'`);
+            });
         });
       });
 
@@ -318,13 +317,13 @@ describe('MusicBrainz-api', function () {
           {inc: 'genres', key: 'genres'},
         ];
 
-        includes.forEach(inc => {
-          it(`get instrument, include: '${inc.inc}'`, async () => {
-            const instrument = await mbApi.lookup('instrument', mbid.instrument.spanishAcousticGuitar, [inc.inc]);
+        it(`get instrument, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
+            const instrument = await mbApi.lookup('instrument', mbid.instrument.spanishAcousticGuitar, includes.map(inc => inc.inc));
             assert.strictEqual(instrument.id, mbid.instrument.spanishAcousticGuitar);
             assert.strictEqual(instrument.name, 'classical guitar');
-            assert.isDefined(instrument[inc.key], `Should include '${inc.key}'`);
-          });
+            includes.forEach(inc => {
+              assert.isDefined(instrument[inc.key], `Should include '${inc.key}'`);
+            });
         });
       });
 
@@ -342,13 +341,13 @@ describe('MusicBrainz-api', function () {
           {inc: 'ratings', key: 'rating'}
         ];
 
-        includes.forEach(inc => {
-          it(`get label, include: '${inc.inc}'`, async () => {
-            const label = await mbApi.lookup('label', mbid.label.Mosaert, [inc.inc]);
+        it(`get label, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
+            const label = await mbApi.lookup('label', mbid.label.Mosaert, includes.map(inc => inc.inc));
             assert.strictEqual(label.id, mbid.label.Mosaert);
             assert.strictEqual(label.name, 'Mosaert');
-            assert.isDefined(label[inc.key], `Should include '${inc.key}'`);
-          });
+            includes.forEach(inc => {
+              assert.isDefined(label[inc.key], `Should include '${inc.key}'`);
+            });
         });
       });
 
@@ -386,13 +385,13 @@ describe('MusicBrainz-api', function () {
           {inc: 'genres', key: 'genres'}
         ];
 
-        includes.forEach(inc => {
-          it(`get release, include: '${inc.inc}'`, async () => {
-            const release = await mbApi.lookup('release', mbid.release.Formidable, [inc.inc]);
+        it(`get release, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
+            const release = await mbApi.lookup('release', mbid.release.Formidable, includes.map(inc => inc.inc));
             assert.strictEqual(release.id, mbid.release.Formidable);
             assert.strictEqual(release.title, 'Formidable');
-            assert.isDefined(release[inc.key], `Should include '${inc.key}'`);
-          });
+            includes.forEach(inc => {
+              assert.isDefined(release[inc.key], `Should include '${inc.key}'`);
+            });
         });
 
         it('get release, include: url-rels', async() => {
@@ -418,16 +417,14 @@ describe('MusicBrainz-api', function () {
           {inc: 'ratings', key: 'rating'}
         ];
 
-        includes.forEach(inc => {
-
-          it(`get release-group, include: '${inc.inc}'`, async () => {
-            const group = await mbApi.lookup('release-group', mbid.releaseGroup.Formidable, [inc.inc]);
-            assert.strictEqual(group.id, mbid.releaseGroup.Formidable);
-            assert.strictEqual(group.title, 'Formidable');
-            assert.isDefined(group[inc.key], `Should include '${inc.key}'`);
-          });
+        it(`get release-group, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
+            const release_group = await mbApi.lookup('release-group', mbid.releaseGroup.Formidable, includes.map(inc => inc.inc));
+            assert.strictEqual(release_group.id, mbid.releaseGroup.Formidable);
+            assert.strictEqual(release_group.title, 'Formidable');
+            includes.forEach(inc => {
+              assert.isDefined(release_group[inc.key], `Should include '${inc.key}'`);
+            });
         });
-
       });
 
       describe('series', async () => {
@@ -438,18 +435,18 @@ describe('MusicBrainz-api', function () {
         assert.strictEqual(series.disambiguation, '', 'series.disambiguation');
         assert.strictEqual(series['type-id'], '52b90f1e-ff62-3bd0-b254-5d91ced5d757', 'series[\'type-id\']');
         })
-        const includes: { inc: WorkIncludes, key: keyof ISeries }[] = [
+        const includes: { inc: SeriesIncludes, key: keyof ISeries }[] = [
           {inc: 'tags', key: 'tags'},
           {inc: 'genres', key: 'genres'},
         ];
 
-        includes.forEach(inc => {
-          it(`get label, include: '${inc.inc}'`, async () => {
-            const series = await mbApi.lookup('series', mbid.series.DireStraitsRemastered, [inc.inc]);
+        it(`get series, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
+            const series = await mbApi.lookup('series', mbid.series.DireStraitsRemastered, includes.map(inc => inc.inc));
             assert.strictEqual(series.id, mbid.series.DireStraitsRemastered);
             assert.strictEqual(series.name, 'Dire Straits Remastered');
-            assert.isDefined(series[inc.key], `Should include '${inc.key}'`);
-          });
+            includes.forEach(inc => {
+              assert.isDefined(series[inc.key], `Should include '${inc.key}'`);
+            });
         });
       });
 
@@ -465,13 +462,13 @@ describe('MusicBrainz-api', function () {
           {inc: 'ratings', key: 'rating'}
         ];
 
-        includes.forEach(inc => {
-          it(`get work, include: '${inc.inc}'`, async () => {
-            const work = await mbApi.lookup('work', mbid.work.Formidable, [inc.inc]);
+        it(`get work, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
+            const work = await mbApi.lookup('work', mbid.work.Formidable, includes.map(inc => inc.inc));
             assert.strictEqual(work.id, mbid.work.Formidable);
             assert.strictEqual(work.title, 'Formidable');
-            assert.isDefined(work[inc.key], `Should include '${inc.key}'`);
-          });
+            includes.forEach(inc => {
+              assert.isDefined(work[inc.key], `Should include '${inc.key}'`);
+            });
         });
       });
 
@@ -498,14 +495,13 @@ describe('MusicBrainz-api', function () {
           {inc: 'ratings', key: 'rating'}
         ];
 
-        includes.forEach(inc => {
-
-          it(`recording, include: '${inc.inc}'`, async () => {
-            const recording = await mbApi.lookup('recording', mbid.recording.Formidable, [inc.inc]);
+        it(`get recording, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
+            const recording = await mbApi.lookup('recording', mbid.recording.Formidable, includes.map(inc => inc.inc));
             assert.strictEqual(recording.id, mbid.recording.Formidable);
             assert.strictEqual(recording.title, 'Formidable');
-            assert.isDefined(recording[inc.key], `Should include '${inc.key}'`);
-          });
+            includes.forEach(inc => {
+              assert.isDefined(recording[inc.key], `Should include '${inc.key}'`);
+            });
         });
 
         it('extended recording', async () => {
@@ -542,14 +538,13 @@ describe('MusicBrainz-api', function () {
           {inc: 'artist-rels', key: 'relations'},
           {inc: 'ratings', key: 'rating'}
         ]
-        includes.forEach(inc => {
-
-          it(`event, include: '${inc.inc}'`, async () => {
-            const event = await mbApi.lookup('event', mbid.event.DireStraitsAlchemyLoveOverGold, [inc.inc]);
+        it(`get event, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
+            const event = await mbApi.lookup('event', mbid.event.DireStraitsAlchemyLoveOverGold, includes.map(inc => inc.inc));
             assert.strictEqual(event.id, mbid.event.DireStraitsAlchemyLoveOverGold);
-            assert.strictEqual(event.name, "Dire Straits - Love Over Gold");
-            assert.isDefined(event[inc.key], `Should include '${inc.key}'`);
-          });
+            assert.strictEqual(event.name, 'Dire Straits - Love Over Gold');
+            includes.forEach(inc => {
+              assert.isDefined(event[inc.key], `Should include '${inc.key}'`);
+            });
         });
 
       });
