@@ -28,7 +28,7 @@ import { readFile } from 'node:fs/promises';
 import sinon from 'sinon';
 import type { HttpClient } from "../lib/http-client.js";
 import { RateLimitThreshold } from 'rate-limit-threshold';
-import { AreaIncludes, IArea, IInstrument, InstrumentIncludes, ISeries, IWork, LabelIncludes, MusicBrainzApi as MusicBrainzApiDefault, SeriesIncludes, SeriesIncludes as WorkIncludes } from "../lib/musicbrainz-api.js";
+import { AreaIncludes, IArea, IInstrument, InstrumentIncludes, IRelation, ISeries, IWork, LabelIncludes, MusicBrainzApi as MusicBrainzApiDefault, SeriesIncludes, UrlIncludes, SeriesIncludes as WorkIncludes } from "../lib/musicbrainz-api.js";
 import { MusicBrainzApi as MusicBrainzApiNode } from "../lib/musicbrainz-api-node.js";
 
 const appUrl = 'https://github.com/Borewit/musicbrainz-api';
@@ -595,97 +595,30 @@ describe('MusicBrainz-api', function () {
         }, 'BigInJapan');
       });
 
-      it('include relations', async () => {
-
-        const urlsResult = await mbApi.lookupUrl(spotify.track.BigInJapan.url, ["recording-rels"]);
-
-        assert.isDefined(urlsResult, 'Expect a result');
-        assert.strictEqual(urlsResult.id, mbid.url.BigInJapan, 'id');
-        assert.strictEqual(urlsResult.resource, spotify.track.BigInJapan.url, 'resource');
-        assert.isArray(urlsResult.relations, 'relations');
-      });
+      const relations: { inc: UrlIncludes; key: keyof IRelation; mbid: string }[] = [
+        { inc: "artist-rels",        key: "artist",        mbid: url.artist.Mozart },
+        { inc: "event-rels",         key: "event",         mbid: url.event.MolsonCanadianRocksForToronto },
+        { inc: "genre-rels",         key: "genre",         mbid: url.genre.Classical },
+        { inc: "instrument-rels",    key: "instrument",    mbid: url.instrument.Violin },
+        { inc: "label-rels",         key: "label",         mbid: url.label.CapitolRecords },
+        { inc: "place-rels",         key: "place",         mbid: url.place.MadisonSquareGarden },
+        { inc: "recording-rels",     key: "recording",     mbid: url.recording.BlindingLights },
+        { inc: "release-group-rels", key: "release_group", mbid: url.release_group.DontStopMeNow },
+        { inc: "series-rels",        key: "series",        mbid: url.series.StarTrek },
+        { inc: "work-rels",          key: "work",          mbid: url.work.CountingStars },
+      ];
 
       describe('include relation types', async () => {
-        it('area-rels', async () => {
-          const urlResult = await mbApi.lookupUrl(url.artist.Mozart, ["artist-rels"]);
-          
-          assert.isDefined(urlResult, 'Expect a result')
-          assert.isArray(urlResult.relations, 'Has relations')
-          assert.isTrue(urlResult.relations?.some(r => r.artist), 'Has artist relation')
+        relations.forEach((relation) => {
+          it(relation.inc, async () => {
+            const urlResult = await mbApi.lookupUrl(relation.mbid, [relation.inc]);
+            assert.isDefined(urlResult, 'Expect a result')
+            assert.isArray(urlResult.relations, 'Has relations')
+            assert.isTrue(urlResult.relations?.some(r => r[relation.key]), `Has ${relation.key} relation`)
+          })
         })
-        it('event-rels', async () => {
-          const urlResult = await mbApi.lookupUrl(url.event.MolsonCanadianRocksForToronto, ["event-rels"]);
-          
-          assert.isDefined(urlResult, 'Expect a result')
-          assert.isArray(urlResult.relations, 'Has relations')
-          assert.isTrue(urlResult.relations?.some(r => r.event), 'Has event relation')
-        })
-        it('genre-rels', async () => {
-          const urlResult = await mbApi.lookupUrl(url.genre.Classical, ["genre-rels"]);
-          
-          assert.isDefined(urlResult, 'Expect a result')
-          assert.isArray(urlResult.relations, 'Has relations')
-          assert.isTrue(urlResult.relations?.some(r => r.genre), 'Has genre relation')
-        })
-        it('instrument-rels', async () => {
-          const urlResult = await mbApi.lookupUrl(url.instrument.Violin, ["instrument-rels"]);
-          
-          assert.isDefined(urlResult, 'Expect a result')
-          assert.isArray(urlResult.relations, 'Has relations')
-          assert.isTrue(urlResult.relations?.some(r => r.instrument), 'Has instrument relation')
-        })
-        it('label-rels', async () => {
-          const urlResult = await mbApi.lookupUrl(url.label.CapitolRecords, ["label-rels"]);
-          
-          assert.isDefined(urlResult, 'Expect a result')
-          assert.isArray(urlResult.relations, 'Has relations')
-          assert.isTrue(urlResult.relations?.some(r => r.label), 'Has label relation')
-        })
-        it('area-rels', async () => {
-          const urlResult = await mbApi.lookupUrl(url.artist.Mozart, ["artist-rels"]);
-          
-          assert.isDefined(urlResult, 'Expect a result')
-          assert.isArray(urlResult.relations, 'Has relations')
-          assert.isTrue(urlResult.relations?.some(r => r.artist), 'Has artist relation')
-        })
-        it('place-rels', async () => {
-          const urlResult = await mbApi.lookupUrl(url.place.MadisonSquareGarden, ["place-rels"]);
-          
-          assert.isDefined(urlResult, 'Expect a result')
-          assert.isArray(urlResult.relations, 'Has relations')
-          assert.isTrue(urlResult.relations?.some(r => r.place), 'Has place relation')
-        })
-        it('recording-rels', async () => {
-          const urlResult = await mbApi.lookupUrl(url.recording.BlindingLights, ["recording-rels"]);
-          
-          assert.isDefined(urlResult, 'Expect a result')
-          assert.isArray(urlResult.relations, 'Has relations')
-          assert.isTrue(urlResult.relations?.some(r => r.recording), 'Has recording relation')
-        })
-        it('release-group-rels', async () => {
-          const urlResult = await mbApi.lookupUrl(url.release_group.DontStopMeNow, ["release-group-rels"]);
-          
-          assert.isDefined(urlResult, 'Expect a result')
-          assert.isArray(urlResult.relations, 'Has relations')
-          assert.isTrue(urlResult.relations?.some(r => r.release_group), 'Has release-group relation')
-        })
-        it('series-rels', async () => {
-          const urlResult = await mbApi.lookupUrl(url.series.StarTrek, ["series-rels"]);
-          
-          assert.isDefined(urlResult, 'Expect a result')
-          assert.isArray(urlResult.relations, 'Has relations')
-          assert.isTrue(urlResult.relations?.some(r => r.series), 'Has series relation')
-        })
-        it('work-rels', async () => {
-          const urlResult = await mbApi.lookupUrl(url.work.CountingStars, ["work-rels"]);
-          
-          assert.isDefined(urlResult, 'Expect a result')
-          assert.isArray(urlResult.relations, 'Has relations')
-          assert.isTrue(urlResult.relations?.some(r => r.work), 'Has work relation')
-        })
-      })
+      });
     });
-
 
     describe('Browse', () => {
 
