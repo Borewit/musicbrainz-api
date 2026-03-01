@@ -270,6 +270,7 @@ describe('MusicBrainz-api', function () {
         const includes: { inc: AreaIncludes, key: keyof IArea }[] = [
           {inc: 'tags', key: 'tags'},
           {inc: 'genres', key: 'genres'},
+          {inc: 'url-rels', key: 'relations'}
         ];
         it(`get area, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
             const area = await mbApi.lookup('area', mbid.area.Queens, includes.map(inc => inc.inc));
@@ -279,6 +280,7 @@ describe('MusicBrainz-api', function () {
               assert.isDefined(area[inc.key], `Should include '${inc.key}'`);
             });
         });
+        
       });
 
       it('artist', async () => {
@@ -315,6 +317,7 @@ describe('MusicBrainz-api', function () {
         const includes: { inc: InstrumentIncludes, key: keyof IInstrument }[] = [
           {inc: 'tags', key: 'tags'},
           {inc: 'genres', key: 'genres'},
+          {inc: 'url-rels', key: 'relations'}
         ];
 
         it(`get instrument, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
@@ -338,7 +341,8 @@ describe('MusicBrainz-api', function () {
         const includes: { inc: LabelIncludes, key: keyof mb.ILabel }[] = [
           {inc: 'tags', key: 'tags'},
           {inc: 'genres', key: 'genres'},
-          {inc: 'ratings', key: 'rating'}
+          {inc: 'ratings', key: 'rating'},
+          {inc: 'url-rels', key: 'relations'}
         ];
 
         it(`get label, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
@@ -382,7 +386,8 @@ describe('MusicBrainz-api', function () {
           // {inc: 'recordings', key: 'recordings'},
           {inc: 'release-groups', key: 'release-group'},
           {inc: 'tags', key: 'tags'},
-          {inc: 'genres', key: 'genres'}
+          {inc: 'genres', key: 'genres'},
+          {inc: 'url-rels', key: 'relations'}
         ];
 
         it(`get release, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
@@ -414,7 +419,8 @@ describe('MusicBrainz-api', function () {
           {inc: 'artist-credits', key: 'artist-credit'},
           {inc: 'tags', key: 'tags'},
           {inc: 'genres', key: 'genres'},
-          {inc: 'ratings', key: 'rating'}
+          {inc: 'ratings', key: 'rating'},
+          {inc: 'url-rels', key: 'relations'}
         ];
 
         it(`get release-group, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
@@ -438,6 +444,7 @@ describe('MusicBrainz-api', function () {
         const includes: { inc: SeriesIncludes, key: keyof ISeries }[] = [
           {inc: 'tags', key: 'tags'},
           {inc: 'genres', key: 'genres'},
+          {inc: 'url-rels', key: 'relations'}
         ];
 
         it(`get series, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
@@ -459,7 +466,8 @@ describe('MusicBrainz-api', function () {
         const includes: { inc: WorkIncludes, key: keyof IWork }[] = [
           {inc: 'tags', key: 'tags'},
           {inc: 'genres', key: 'genres'},
-          {inc: 'ratings', key: 'rating'}
+          {inc: 'ratings', key: 'rating'},
+          {inc: 'url-rels', key: 'relations'}
         ];
 
         it(`get work, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
@@ -492,7 +500,8 @@ describe('MusicBrainz-api', function () {
           {inc: 'releases', key: 'releases'},
           {inc: 'tags', key: 'tags'},
           {inc: 'genres', key: 'genres'},
-          {inc: 'ratings', key: 'rating'}
+          {inc: 'ratings', key: 'rating'},
+          {inc: 'url-rels', key: 'relations'}
         ];
 
         it(`get recording, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
@@ -502,14 +511,6 @@ describe('MusicBrainz-api', function () {
             includes.forEach(inc => {
               assert.isDefined(recording[inc.key], `Should include '${inc.key}'`);
             });
-        });
-
-        it('extended recording', async () => {
-          const recording = await mbApi.lookup('recording', mbid.recording.Formidable, ['isrcs', 'artists', 'releases', 'url-rels']);
-          assert.strictEqual(recording.id, mbid.recording.Formidable);
-          assert.strictEqual(recording.title, 'Formidable');
-          assert.isDefined(recording.isrcs);
-          assert.isDefined(recording['artist-credit']);
         });
       });
 
@@ -530,7 +531,8 @@ describe('MusicBrainz-api', function () {
           {inc: 'tags', key: 'tags'},
           {inc: 'genres', key: 'genres'},
           {inc: 'artist-rels', key: 'relations'},
-          {inc: 'ratings', key: 'rating'}
+          {inc: 'ratings', key: 'rating'},
+          {inc: 'url-rels', key: 'relations'}
         ]
         it(`get event, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
             const event = await mbApi.lookup('event', mbid.event.DireStraitsAlchemyLoveOverGold, includes.map(inc => inc.inc));
