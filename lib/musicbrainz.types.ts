@@ -359,8 +359,17 @@ export interface IMayHaveRelations {
   relations?: IRelation[];
 }
 
-export interface IWork extends IEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
+export interface IWork extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
   title: string;
+  disambiguation: string;
+  language: string
+  languages: string[]
+  iswcs: string[]
+  attributes: IWorkAttribute[]
+}
+
+export interface IWorkAttribute extends ITypedEntity {
+  value: string
 }
 
 export interface ILabel extends IEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
