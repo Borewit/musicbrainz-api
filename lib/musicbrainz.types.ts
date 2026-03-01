@@ -31,7 +31,7 @@ export interface IAnnotation {
   type: string;
 }
 
-export interface IArea extends ITypedEntity, IMayHaveTagsAndGenres {
+export interface IArea extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres {
   type: 'Country' | 'Subdivision' | 'Municipality' | 'City' | 'District' | 'Island'
   'iso-3166-1-codes'?: string[];
   primary: boolean,
@@ -100,7 +100,7 @@ export interface ICollection extends ITypedEntity {
   'entity-type': string;
 }
 
-export interface IEvent extends ITypedEntity, IMayHaveTagsAndGenres {
+export interface IEvent extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
   cancelled: boolean;
   'life-span': IPeriod;
   disambiguation: string;
@@ -118,7 +118,7 @@ export type InstrumentType =
   | 'Ensemble'
   | 'Other instrument'
 
-export interface IInstrument extends ITypedEntity, IMayHaveTagsAndGenres {
+export interface IInstrument extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres {
   disambiguation: string;
   name: string;
   type: InstrumentType;
@@ -228,7 +228,7 @@ export interface ICoverArtArchive {
   back: boolean;
 }
 
-export interface IReleaseGroup extends IEntity, IMayHaveTagsAndGenres, IMayHaveRating {
+export interface IReleaseGroup extends IEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
   count: number;
   disambiguation?: string;
   title: string;
@@ -359,11 +359,11 @@ export interface IMayHaveRelations {
   relations?: IRelation[];
 }
 
-export interface IWork extends IEntity, IMayHaveTagsAndGenres, IMayHaveRating {
+export interface IWork extends IEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
   title: string;
 }
 
-export interface ILabel extends IEntity, IMayHaveTagsAndGenres, IMayHaveRating {
+export interface ILabel extends IEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
   asin: null | string;
   barcode: null | string;
   country: null | string;
@@ -376,11 +376,11 @@ export interface ILabel extends IEntity, IMayHaveTagsAndGenres, IMayHaveRating {
   area: IArea;
 }
 
-export interface IPlace extends IEntity, IMayHaveTagsAndGenres, IMayHaveRating {
+export interface IPlace extends IEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
   name: string;
 }
 
-export interface ISeries extends ITypedEntity, IMayHaveTagsAndGenres {
+export interface ISeries extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres {
   name: string;
   disambiguation: string;
 }
