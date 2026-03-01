@@ -31,7 +31,7 @@ export interface IAnnotation {
   type: string;
 }
 
-export interface IArea extends ITypedEntity {
+export interface IArea extends ITypedEntity, IMayHaveTagsAndGenres {
   type: 'Country' | 'Subdivision' | 'Municipality' | 'City' | 'District' | 'Island'
   'iso-3166-1-codes'?: string[];
   primary: boolean,
@@ -57,7 +57,7 @@ export interface IMatch {
 
 export type Gender = 'male' | 'female' | 'other' | 'not applicable';
 
-export interface IArtist extends ITypedEntity, IMayHaveRelations {
+export interface IArtist extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
   name: string;
   disambiguation: string;
   'sort-name': string;
@@ -71,9 +71,6 @@ export interface IArtist extends ITypedEntity, IMayHaveRelations {
   area?: IArea;
   begin_area?: IArea;
   end_area?: IArea;
-  genres?: IGenre[];
-  tags?: IArtistTag[];
-  rating?: IRating;
   /**
    * Only defined if 'releases' are includes
    */
@@ -103,7 +100,7 @@ export interface ICollection extends ITypedEntity {
   'entity-type': string;
 }
 
-export interface IEvent extends ITypedEntity {
+export interface IEvent extends ITypedEntity, IMayHaveTagsAndGenres {
   cancelled: boolean;
   'life-span': IPeriod;
   disambiguation: string;
@@ -121,7 +118,7 @@ export type InstrumentType =
   | 'Ensemble'
   | 'Other instrument'
 
-export interface IInstrument extends ITypedEntity {
+export interface IInstrument extends ITypedEntity, IMayHaveTagsAndGenres {
   disambiguation: string;
   name: string;
   type: InstrumentType;
@@ -162,7 +159,7 @@ export type ReleasePackaging =
   | 'Other'
   | 'None'
 
-export interface IRelease extends IEntity, IMayHaveRelations {
+export interface IRelease extends IEntity, IMayHaveRelations, IMayHaveTagsAndGenres {
   title: string;
   'text-representation': { 'language': string, 'script': string },
   disambiguation: string;
@@ -192,7 +189,7 @@ export interface IReleaseEvent {
 
 export type MediaFormatType = 'Digital Media'; // ToDo
 
-export interface IRecording extends IEntity, IMayHaveRelations {
+export interface IRecording extends IEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
   video: boolean;
   length: number;
   title: string;
@@ -231,7 +228,7 @@ export interface ICoverArtArchive {
   back: boolean;
 }
 
-export interface IReleaseGroup extends IEntity {
+export interface IReleaseGroup extends IEntity, IMayHaveTagsAndGenres, IMayHaveRating {
   count: number;
   disambiguation?: string;
   title: string;
@@ -362,11 +359,11 @@ export interface IMayHaveRelations {
   relations?: IRelation[];
 }
 
-export interface IWork extends IEntity {
+export interface IWork extends IEntity, IMayHaveTagsAndGenres, IMayHaveRating {
   title: string;
 }
 
-export interface ILabel extends IEntity {
+export interface ILabel extends IEntity, IMayHaveTagsAndGenres, IMayHaveRating {
   asin: null | string;
   barcode: null | string;
   country: null | string;
@@ -379,11 +376,11 @@ export interface ILabel extends IEntity {
   area: IArea;
 }
 
-export interface IPlace extends IEntity {
+export interface IPlace extends IEntity, IMayHaveTagsAndGenres, IMayHaveRating {
   name: string;
 }
 
-export interface ISeries extends ITypedEntity {
+export interface ISeries extends ITypedEntity, IMayHaveTagsAndGenres {
   name: string;
   disambiguation: string;
 }
@@ -396,15 +393,24 @@ export interface IUserVote {
   count: number;
 }
 
-export type IArtistTag = ITag & IUserVote;
+export type IUserTag = ITag & IUserVote;
 export interface IGenre extends IEntity, IUserVote{
   name: string;
   disambiguation: string;
 }
 
+export interface IMayHaveTagsAndGenres {
+  tags?: IUserTag[];
+  genres?: IGenre[];
+}
+
 export interface IRating {
   value: number | null;
   'votes-count': number;
+}
+
+export interface IMayHaveRating {
+  ratings?: IRating
 }
 
 export interface IUrl extends IEntity, IMayHaveRelations {
