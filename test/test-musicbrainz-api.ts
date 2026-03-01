@@ -462,6 +462,12 @@ describe('MusicBrainz-api', function () {
         const work = await mbApi.lookup('work', mbid.work.Formidable);
         assert.strictEqual(work.id, mbid.work.Formidable);
         assert.strictEqual(work.title, 'Formidable');
+        assert.isDefined(work.disambiguation, 'work.disambiguation');
+        assert.isDefined(work.language, 'work.language');
+        assert.isDefined(work.languages, 'work.languages');
+        assert.isDefined(work.iswcs, 'work.iswcs');
+        assert.isDefined(work.attributes, 'work.attributes');
+        assert.isDefined(work.attributes?.[0].value, 'work attribute has value')
         })
         const includes: { inc: WorkIncludes, key: keyof IWork }[] = [
           {inc: 'tags', key: 'tags'},
