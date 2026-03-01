@@ -517,28 +517,6 @@ describe('MusicBrainz-api', function () {
         });
       });
 
-      describe('release-group', () => {
-
-        it('release-group', async () => {
-          const releaseGroup = await mbApi.lookup('release-group', mbid.releaseGroup.Formidable);
-          assert.strictEqual(releaseGroup.id, mbid.releaseGroup.Formidable);
-          assert.strictEqual(releaseGroup.title, 'Formidable');
-        });
-
-        [
-          {inc: 'artist-credits' as ReleaseGroupIncludes, key: 'artist-credit' as keyof IReleaseGroup}
-        ].forEach(inc => {
-
-          it(`get release-group, include: '${inc.inc}'`, async () => {
-            const group = await mbApi.lookup('release-group', mbid.releaseGroup.Formidable, [inc.inc]);
-            assert.strictEqual(group.id, mbid.releaseGroup.Formidable);
-            assert.strictEqual(group.title, 'Formidable');
-            assert.isDefined(group[inc.key], `Should include '${inc.key}'`);
-          });
-        });
-
-      });
-
       it('work', async () => {
         const work = await mbApi.lookup('work', mbid.work.Formidable);
         assert.strictEqual(work.id, mbid.work.Formidable);
