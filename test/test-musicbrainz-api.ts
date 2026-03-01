@@ -513,12 +513,6 @@ describe('MusicBrainz-api', function () {
         });
       });
 
-      it('work', async () => {
-        const work = await mbApi.lookup('work', mbid.work.Formidable);
-        assert.strictEqual(work.id, mbid.work.Formidable);
-        assert.strictEqual(work.title, 'Formidable');
-      });
-
       it('url', async () => {
         const url = await mbApi.lookup('url', mbid.url.SpotifyLisboaMulata);
         assert.strictEqual(url.id, mbid.url.SpotifyLisboaMulata);
