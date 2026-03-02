@@ -180,6 +180,7 @@ export interface IRelease extends IEntity, IMayHaveRelations, IMayHaveTagsAndGen
   collections?: ICollection[],
   'track-count'?: number;
   count?: number;
+  'label-info'?: ILabelInfo[] // Include: 'labels'
 }
 
 export interface IReleaseEvent {
@@ -283,6 +284,11 @@ export interface ILabelList extends ISearchResult {
   labels: ILabelMatch[];
 }
 
+export interface ILabelInfo {
+  label: ILabel | null,
+  'catalog-number': string | null
+}
+
 export type IPlacesMatch = IPlace & IMatch;
 export interface IPlaceList extends ISearchResult {
   places: IPlacesMatch[];
@@ -372,17 +378,16 @@ export interface IWorkAttribute extends ITypedEntity {
   value: string
 }
 
-export interface ILabel extends IEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
-  asin: null | string;
-  barcode: null | string;
-  country: null | string;
+export interface ILabel extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
+  country?: null | string;
   name: string;
   'sort-name': string;
-  'life-span': LifeSpan;
+  'life-span'?: LifeSpan;
   disambiguation?: string;
   'label-code': null | string;
-  ipis: string[];
-  area: IArea;
+  ipis?: string[];
+  isnis?: string[]
+  area?: IArea;
 }
 
 export interface IPlace extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
