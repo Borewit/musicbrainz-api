@@ -336,8 +336,15 @@ describe('MusicBrainz-api', function () {
         assert.strictEqual(label.id, mbid.label.Mosaert);
         assert.strictEqual(label.name, 'Mosaert');
         assert.strictEqual(label['sort-name'], 'Mosaert');
+        assert.isDefined(label.disambiguation, 'label.disambiguation')
         expect(label.ipis).include('00367549320', 'Contain an Interested Parties Information Code (IPI)');
+        assert.isDefined(label.isnis, 'label.isnis');
+        assert.isDefined(label['label-code'], 'label.label-code');
+        assert.isDefined(label.area, 'label.area');
+        assert.isDefined(label.area?.name, 'label.area.name')
+        assert.isDefined(label.country, 'label.country')
         })
+
         const includes: { inc: LabelIncludes, key: keyof mb.ILabel }[] = [
           {inc: 'tags', key: 'tags'},
           {inc: 'genres', key: 'genres'},
@@ -422,7 +429,8 @@ describe('MusicBrainz-api', function () {
           {inc: 'release-groups', key: 'release-group'},
           {inc: 'tags', key: 'tags'},
           {inc: 'genres', key: 'genres'},
-          {inc: 'url-rels', key: 'relations'}
+          {inc: 'url-rels', key: 'relations'},
+          {inc: 'labels', key: 'label-info'}
         ];
 
         it(`get release, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
@@ -439,6 +447,20 @@ describe('MusicBrainz-api', function () {
             assert.isDefined(release, 'Should get release')
             assert.isDefined(release.relations, 'Should have relations')
             assert.isTrue(release.relations.some(r => r.url), 'Should have url relation')
+        })
+
+        it('check release label info', async() => {
+            const release = await mbApi.lookup('release', mbid.release.Formidable, ['labels']);
+            assert.isDefined(release, 'Should get release')
+            assert.isDefined(release['label-info'], 'Should have labels')
+            assert.isAtLeast(release['label-info'].length, 1, 'Should have at least 1 label')
+            assert.isDefined(release['label-info']?.[0].label?.name, 'Label should have name')
+            assert.isDefined(release['label-info']?.[0].label?.['label-code'], 'Should have label code')
+            assert.isUndefined(release['label-info']?.[0].label?.country, 'Should not have country')
+            assert.isUndefined(release['label-info']?.[0].label?.area, 'Should not have area')
+            assert.isUndefined(release['label-info']?.[0].label?.ipis, 'Should not have ipis')
+            assert.isUndefined(release['label-info']?.[0].label?.isnis, 'Should not have isnis')
+            assert.isUndefined(release['label-info']?.[0].label?.['life-span'], 'Should not have life span')
         })
       });
 
