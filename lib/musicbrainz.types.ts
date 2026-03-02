@@ -385,7 +385,7 @@ export interface ILabel extends IEntity, IMayHaveRelations, IMayHaveTagsAndGenre
   area: IArea;
 }
 
-export interface IPlace extends IEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
+export interface IPlace extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
   name: string;
   disambiguation: string;
   address: string;
