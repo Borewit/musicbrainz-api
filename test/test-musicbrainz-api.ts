@@ -28,7 +28,7 @@ import { readFile } from 'node:fs/promises';
 import sinon from 'sinon';
 import type { HttpClient } from "../lib/http-client.js";
 import { RateLimitThreshold } from 'rate-limit-threshold';
-import { AreaIncludes, IArea, IInstrument, InstrumentIncludes, IRelation, ISeries, IWork, LabelIncludes, MusicBrainzApi as MusicBrainzApiDefault, SeriesIncludes, UrlIncludes, SeriesIncludes as WorkIncludes } from "../lib/musicbrainz-api.js";
+import { AreaIncludes, IArea, IInstrument, InstrumentIncludes, IPlace, IRelation, ISeries, IWork, LabelIncludes, MusicBrainzApi as MusicBrainzApiDefault, PlaceIncludes, SeriesIncludes, UrlIncludes, SeriesIncludes as WorkIncludes } from "../lib/musicbrainz-api.js";
 import { MusicBrainzApi as MusicBrainzApiNode } from "../lib/musicbrainz-api-node.js";
 
 const appUrl = 'https://github.com/Borewit/musicbrainz-api';
@@ -353,6 +353,41 @@ describe('MusicBrainz-api', function () {
               assert.isDefined(label[inc.key], `Should include '${inc.key}'`);
             });
         });
+      });
+
+      describe('place', () => {
+
+        it('Paradiso', async () => {
+          const place = await mbApi.lookup('place', mbid.place.Paradiso);
+          assert.strictEqual(place.type, 'Venue', 'area.type');
+          assert.strictEqual(place.id, mbid.place.Paradiso, 'area.id');
+          assert.strictEqual(place.name, 'Paradiso', 'area.name');
+          assert.isAtLeast(place.address.length, 1, 'length of area.address');
+          assert.isNotNull(place.coordinates, 'area.coordinates');
+          assert.isNumber(place.coordinates?.latitude, 'area.coordinates.latitude');
+          assert.isNumber(place.coordinates?.longitude, 'area.coordinates.longitude');
+          assert.isDefined(place['life-span'], 'area.life-span');
+          assert.isDefined(place['life-span'], 'area.life-span');
+          assert.isNotNull(place['life-span'].begin, 'area.life-span.begin');
+          assert.strictEqual(place['life-span'].end, null, 'area.life-span.end');
+          assert.strictEqual(place['life-span'].ended, false, 'area.life-span.ended');
+        });
+
+        const includes: { inc: PlaceIncludes, key: keyof IPlace }[] = [
+          {inc: 'tags', key: 'tags'},
+          {inc: 'genres', key: 'genres'},
+          {inc: 'ratings', key: 'rating'},
+          {inc: 'url-rels', key: 'relations'}
+        ];
+        it(`get place, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
+            const place = await mbApi.lookup('place', mbid.place.Paradiso, includes.map(inc => inc.inc));
+            assert.strictEqual(place.id, mbid.place.Paradiso);
+            assert.strictEqual(place.name, 'Paradiso');
+            includes.forEach(inc => {
+              assert.isDefined(place[inc.key], `Should include '${inc.key}'`);
+            });
+        });
+        
       });
 
       describe('release', () => {
