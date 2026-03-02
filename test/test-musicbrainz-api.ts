@@ -453,7 +453,7 @@ describe('MusicBrainz-api', function () {
             const release = await mbApi.lookup('release', mbid.release.Formidable, ['labels']);
             assert.isDefined(release, 'Should get release')
             assert.isDefined(release['label-info'], 'Should have labels')
-            assert.isAtLeast(release['label-info'].length, 1, 'Should have at least 1 label')
+            assert.isAtLeast(release['label-info']?.length, 1, 'Should have at least 1 label')
             assert.isDefined(release['label-info']?.[0].label?.name, 'Label should have name')
             assert.isDefined(release['label-info']?.[0].label?.['label-code'], 'Should have label code')
             assert.isUndefined(release['label-info']?.[0].label?.country, 'Should not have country')
