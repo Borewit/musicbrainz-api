@@ -387,6 +387,16 @@ export interface ILabel extends IEntity, IMayHaveRelations, IMayHaveTagsAndGenre
 
 export interface IPlace extends IEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
   name: string;
+  disambiguation: string;
+  address: string;
+  coordinates: ICoordinates | null;
+  'life-span': LifeSpan;
+  area: IArea | null;
+}
+
+export interface ICoordinates {
+  latitude: number,
+  longitude: number
 }
 
 export interface ISeries extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres {
