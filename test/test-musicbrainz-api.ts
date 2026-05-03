@@ -28,7 +28,8 @@ import { readFile } from 'node:fs/promises';
 import sinon from 'sinon';
 import type { HttpClient } from "../lib/http-client.js";
 import { RateLimitThreshold } from 'rate-limit-threshold';
-import { AreaIncludes, IArea, IInstrument, InstrumentIncludes, IPlace, IRelation, ISeries, IWork, LabelIncludes, MusicBrainzApi as MusicBrainzApiDefault, PlaceIncludes, SeriesIncludes, UrlIncludes, SeriesIncludes as WorkIncludes } from "../lib/musicbrainz-api.js";
+import type { AreaIncludes, IArea, IInstrument, InstrumentIncludes, IPlace, IRelation, ISeries, IWork, LabelIncludes, PlaceIncludes, SeriesIncludes, UrlIncludes, SeriesIncludes as WorkIncludes } from "../lib/musicbrainz-api.js";
+import { MusicBrainzApi as MusicBrainzApiDefault } from "../lib/musicbrainz-api.js";
 import { MusicBrainzApi as MusicBrainzApiNode } from "../lib/musicbrainz-api-node.js";
 
 const appUrl = 'https://github.com/Borewit/musicbrainz-api';
