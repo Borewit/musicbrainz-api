@@ -28,7 +28,7 @@ import { readFile } from 'node:fs/promises';
 import sinon from 'sinon';
 import type { HttpClient } from "../lib/http-client.js";
 import { RateLimitThreshold } from 'rate-limit-threshold';
-import { MusicBrainzApi as MusicBrainzApiDefault } from "../lib/musicbrainz-api.js";
+import { AreaIncludes, IArea, IInstrument, InstrumentIncludes, IPlace, IRelation, ISeries, IWork, LabelIncludes, MusicBrainzApi as MusicBrainzApiDefault, PlaceIncludes, SeriesIncludes, UrlIncludes, SeriesIncludes as WorkIncludes } from "../lib/musicbrainz-api.js";
 import { MusicBrainzApi as MusicBrainzApiNode } from "../lib/musicbrainz-api-node.js";
 
 const appUrl = 'https://github.com/Borewit/musicbrainz-api';
@@ -267,6 +267,20 @@ describe('MusicBrainz-api', function () {
           assert.strictEqual(area['life-span'].ended, false, 'area.life-span.ended');
         });
 
+        const includes: { inc: AreaIncludes, key: keyof IArea }[] = [
+          {inc: 'tags', key: 'tags'},
+          {inc: 'genres', key: 'genres'},
+          {inc: 'url-rels', key: 'relations'}
+        ];
+        it(`get area, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
+            const area = await mbApi.lookup('area', mbid.area.Queens, includes.map(inc => inc.inc));
+            assert.strictEqual(area.id, mbid.area.Queens);
+            assert.strictEqual(area.name, 'Queens');
+            includes.forEach(inc => {
+              assert.isDefined(area[inc.key], `Should include '${inc.key}'`);
+            });
+        });
+        
       });
 
       it('artist', async () => {
@@ -291,22 +305,96 @@ describe('MusicBrainz-api', function () {
         assert.strictEqual(collection.name, 'Ringtone');
       });
 
-      it('instrument', async () => {
+      describe('instrument', async () => {
+        it('Get instrument', async() => {
         const instrument = await mbApi.lookup('instrument', mbid.instrument.spanishAcousticGuitar);
         assert.strictEqual(instrument.id, mbid.instrument.spanishAcousticGuitar);
         assert.strictEqual(instrument.name, 'classical guitar');
         assert.strictEqual(instrument.disambiguation, 'Modern acoustic gut/nylon string guitar');
         assert.strictEqual(instrument.type, 'String instrument');
         assert.strictEqual(instrument.description, 'Also known as Spanish guitar, it is used in classical, folk and other styles, the strings are nylon or gut.');
+        })
+        const includes: { inc: InstrumentIncludes, key: keyof IInstrument }[] = [
+          {inc: 'tags', key: 'tags'},
+          {inc: 'genres', key: 'genres'},
+          {inc: 'url-rels', key: 'relations'}
+        ];
+
+        it(`get instrument, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
+            const instrument = await mbApi.lookup('instrument', mbid.instrument.spanishAcousticGuitar, includes.map(inc => inc.inc));
+            assert.strictEqual(instrument.id, mbid.instrument.spanishAcousticGuitar);
+            assert.strictEqual(instrument.name, 'classical guitar');
+            includes.forEach(inc => {
+              assert.isDefined(instrument[inc.key], `Should include '${inc.key}'`);
+            });
+        });
       });
 
-      it('label', async () => {
+      describe('label', async () => {
+        it('Get label', async() =>{
         const label = await mbApi.lookup('label', mbid.label.Mosaert);
         assert.strictEqual(label.id, mbid.label.Mosaert);
         assert.strictEqual(label.name, 'Mosaert');
         assert.strictEqual(label['sort-name'], 'Mosaert');
+        assert.isDefined(label.disambiguation, 'label.disambiguation')
         expect(label.ipis).include('00367549320', 'Contain an Interested Parties Information Code (IPI)');
+        assert.isDefined(label.isnis, 'label.isnis');
+        assert.isDefined(label['label-code'], 'label.label-code');
+        assert.isDefined(label.area, 'label.area');
+        assert.isDefined(label.area?.name, 'label.area.name')
+        assert.isDefined(label.country, 'label.country')
+        })
 
+        const includes: { inc: LabelIncludes, key: keyof mb.ILabel }[] = [
+          {inc: 'tags', key: 'tags'},
+          {inc: 'genres', key: 'genres'},
+          {inc: 'ratings', key: 'rating'},
+          {inc: 'url-rels', key: 'relations'}
+        ];
+
+        it(`get label, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
+            const label = await mbApi.lookup('label', mbid.label.Mosaert, includes.map(inc => inc.inc));
+            assert.strictEqual(label.id, mbid.label.Mosaert);
+            assert.strictEqual(label.name, 'Mosaert');
+            includes.forEach(inc => {
+              assert.isDefined(label[inc.key], `Should include '${inc.key}'`);
+            });
+        });
+      });
+
+      describe('place', () => {
+
+        it('Paradiso', async () => {
+          const place = await mbApi.lookup('place', mbid.place.Paradiso);
+          assert.strictEqual(place.type, 'Venue', 'area.type');
+          assert.strictEqual(place.id, mbid.place.Paradiso, 'area.id');
+          assert.strictEqual(place.name, 'Paradiso', 'area.name');
+          assert.isAtLeast(place.address.length, 1, 'length of area.address');
+          assert.isNotNull(place.coordinates, 'area.coordinates');
+          assert.isNumber(place.coordinates?.latitude, 'area.coordinates.latitude');
+          assert.isNumber(place.coordinates?.longitude, 'area.coordinates.longitude');
+          assert.isDefined(place['life-span'], 'area.life-span');
+          assert.isDefined(place['life-span'], 'area.life-span');
+          assert.isNotNull(place['life-span'].begin, 'area.life-span.begin');
+          assert.strictEqual(place['life-span'].end, null, 'area.life-span.end');
+          assert.strictEqual(place['life-span'].ended, false, 'area.life-span.ended');
+        });
+
+        const includes: { inc: PlaceIncludes, key: keyof IPlace }[] = [
+          {inc: 'tags', key: 'tags'},
+          {inc: 'genres', key: 'genres'},
+          {inc: 'ratings', key: 'rating'},
+          {inc: 'url-rels', key: 'relations'}
+        ];
+        it(`get place, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
+            const place = await mbApi.lookup('place', mbid.place.Paradiso, includes.map(inc => inc.inc));
+            assert.strictEqual(place.id, mbid.place.Paradiso);
+            assert.strictEqual(place.name, 'Paradiso');
+            includes.forEach(inc => {
+              assert.isDefined(place[inc.key], `Should include '${inc.key}'`);
+            });
+        });
+        
       });
 
       describe('release', () => {
@@ -338,16 +426,20 @@ describe('MusicBrainz-api', function () {
           {inc: 'labels', key: 'release-events'},
           {inc: 'media', key: 'media'},
           // {inc: 'recordings', key: 'recordings'},
-          {inc: 'release-groups', key: 'release-group'}
+          {inc: 'release-groups', key: 'release-group'},
+          {inc: 'tags', key: 'tags'},
+          {inc: 'genres', key: 'genres'},
+          {inc: 'url-rels', key: 'relations'},
+          {inc: 'labels', key: 'label-info'}
         ];
 
-        includes.forEach(inc => {
-          it(`get release, include: '${inc.inc}'`, async () => {
-            const release = await mbApi.lookup('release', mbid.release.Formidable, [inc.inc]);
+        it(`get release, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
+            const release = await mbApi.lookup('release', mbid.release.Formidable, includes.map(inc => inc.inc));
             assert.strictEqual(release.id, mbid.release.Formidable);
             assert.strictEqual(release.title, 'Formidable');
-            assert.isDefined(release[inc.key], `Should include '${inc.key}'`);
-          });
+            includes.forEach(inc => {
+              assert.isDefined(release[inc.key], `Should include '${inc.key}'`);
+            });
         });
 
         it('get release, include: url-rels', async() => {
@@ -355,6 +447,20 @@ describe('MusicBrainz-api', function () {
             assert.isDefined(release, 'Should get release')
             assert.isDefined(release.relations, 'Should have relations')
             assert.isTrue(release.relations.some(r => r.url), 'Should have url relation')
+        })
+
+        it('check release label info', async() => {
+            const release = await mbApi.lookup('release', mbid.release.Formidable, ['labels']);
+            assert.isDefined(release, 'Should get release')
+            assert.isDefined(release['label-info'], 'Should have labels')
+            assert.isAtLeast(release['label-info']?.length, 1, 'Should have at least 1 label')
+            assert.isDefined(release['label-info']?.[0].label?.name, 'Label should have name')
+            assert.isDefined(release['label-info']?.[0].label?.['label-code'], 'Should have label code')
+            assert.isUndefined(release['label-info']?.[0].label?.country, 'Should not have country')
+            assert.isUndefined(release['label-info']?.[0].label?.area, 'Should not have area')
+            assert.isUndefined(release['label-info']?.[0].label?.ipis, 'Should not have ipis')
+            assert.isUndefined(release['label-info']?.[0].label?.isnis, 'Should not have isnis')
+            assert.isUndefined(release['label-info']?.[0].label?.['life-span'], 'Should not have life span')
         })
       });
 
@@ -367,33 +473,74 @@ describe('MusicBrainz-api', function () {
         });
 
         const includes: { inc: ReleaseGroupIncludes, key: keyof IReleaseGroup }[] = [
-          {inc: 'artist-credits', key: 'artist-credit'}
+          {inc: 'artist-credits', key: 'artist-credit'},
+          {inc: 'tags', key: 'tags'},
+          {inc: 'genres', key: 'genres'},
+          {inc: 'ratings', key: 'rating'},
+          {inc: 'url-rels', key: 'relations'}
         ];
 
-        includes.forEach(inc => {
-
-          it(`get release-group, include: '${inc.inc}'`, async () => {
-            const group = await mbApi.lookup('release-group', mbid.releaseGroup.Formidable, [inc.inc]);
-            assert.strictEqual(group.id, mbid.releaseGroup.Formidable);
-            assert.strictEqual(group.title, 'Formidable');
-            assert.isDefined(group[inc.key], `Should include '${inc.key}'`);
-          });
+        it(`get release-group, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
+            const release_group = await mbApi.lookup('release-group', mbid.releaseGroup.Formidable, includes.map(inc => inc.inc));
+            assert.strictEqual(release_group.id, mbid.releaseGroup.Formidable);
+            assert.strictEqual(release_group.title, 'Formidable');
+            includes.forEach(inc => {
+              assert.isDefined(release_group[inc.key], `Should include '${inc.key}'`);
+            });
         });
-
       });
 
-      it('series', async () => {
+      describe('series', async () => {
+        it('get series', async() => {
         const series = await mbApi.lookup('series', mbid.series.DireStraitsRemastered);
         assert.strictEqual(series.id, mbid.series.DireStraitsRemastered, 'series.id');
         assert.strictEqual(series.name, 'Dire Straits Remastered', 'series.name');
         assert.strictEqual(series.disambiguation, '', 'series.disambiguation');
         assert.strictEqual(series['type-id'], '52b90f1e-ff62-3bd0-b254-5d91ced5d757', 'series[\'type-id\']');
+        })
+        const includes: { inc: SeriesIncludes, key: keyof ISeries }[] = [
+          {inc: 'tags', key: 'tags'},
+          {inc: 'genres', key: 'genres'},
+          {inc: 'url-rels', key: 'relations'}
+        ];
+
+        it(`get series, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
+            const series = await mbApi.lookup('series', mbid.series.DireStraitsRemastered, includes.map(inc => inc.inc));
+            assert.strictEqual(series.id, mbid.series.DireStraitsRemastered);
+            assert.strictEqual(series.name, 'Dire Straits Remastered');
+            includes.forEach(inc => {
+              assert.isDefined(series[inc.key], `Should include '${inc.key}'`);
+            });
+        });
       });
 
-      it('work', async () => {
+      describe('work', async () => {
+        it('get work', async() => {
         const work = await mbApi.lookup('work', mbid.work.Formidable);
         assert.strictEqual(work.id, mbid.work.Formidable);
         assert.strictEqual(work.title, 'Formidable');
+        assert.isDefined(work.disambiguation, 'work.disambiguation');
+        assert.isDefined(work.language, 'work.language');
+        assert.isDefined(work.languages, 'work.languages');
+        assert.isDefined(work.iswcs, 'work.iswcs');
+        assert.isDefined(work.attributes, 'work.attributes');
+        assert.isDefined(work.attributes?.[0].value, 'work attribute has value')
+        })
+        const includes: { inc: WorkIncludes, key: keyof IWork }[] = [
+          {inc: 'tags', key: 'tags'},
+          {inc: 'genres', key: 'genres'},
+          {inc: 'ratings', key: 'rating'},
+          {inc: 'url-rels', key: 'relations'}
+        ];
+
+        it(`get work, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
+            const work = await mbApi.lookup('work', mbid.work.Formidable, includes.map(inc => inc.inc));
+            assert.strictEqual(work.id, mbid.work.Formidable);
+            assert.strictEqual(work.title, 'Formidable');
+            includes.forEach(inc => {
+              assert.isDefined(work[inc.key], `Should include '${inc.key}'`);
+            });
+        });
       });
 
       describe('Recording', () => {
@@ -413,54 +560,21 @@ describe('MusicBrainz-api', function () {
           {inc: 'isrcs', key: 'isrcs'},
           {inc: 'artist-credits', key: 'artist-credit'},
           {inc: 'artists', key: 'artist-credit'},
-          {inc: 'releases', key: 'releases'}
+          {inc: 'releases', key: 'releases'},
+          {inc: 'tags', key: 'tags'},
+          {inc: 'genres', key: 'genres'},
+          {inc: 'ratings', key: 'rating'},
+          {inc: 'url-rels', key: 'relations'}
         ];
 
-        includes.forEach(inc => {
-
-          it(`recording, include: '${inc.inc}'`, async () => {
-            const recording = await mbApi.lookup('recording', mbid.recording.Formidable, [inc.inc]);
+        it(`get recording, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
+            const recording = await mbApi.lookup('recording', mbid.recording.Formidable, includes.map(inc => inc.inc));
             assert.strictEqual(recording.id, mbid.recording.Formidable);
             assert.strictEqual(recording.title, 'Formidable');
-            assert.isDefined(recording[inc.key], `Should include '${inc.key}'`);
-          });
+            includes.forEach(inc => {
+              assert.isDefined(recording[inc.key], `Should include '${inc.key}'`);
+            });
         });
-
-        it('extended recording', async () => {
-          const recording = await mbApi.lookup('recording', mbid.recording.Formidable, ['isrcs', 'artists', 'releases', 'url-rels']);
-          assert.strictEqual(recording.id, mbid.recording.Formidable);
-          assert.strictEqual(recording.title, 'Formidable');
-          assert.isDefined(recording.isrcs);
-          assert.isDefined(recording['artist-credit']);
-        });
-      });
-
-      describe('release-group', () => {
-
-        it('release-group', async () => {
-          const releaseGroup = await mbApi.lookup('release-group', mbid.releaseGroup.Formidable);
-          assert.strictEqual(releaseGroup.id, mbid.releaseGroup.Formidable);
-          assert.strictEqual(releaseGroup.title, 'Formidable');
-        });
-
-        [
-          {inc: 'artist-credits' as ReleaseGroupIncludes, key: 'artist-credit' as keyof IReleaseGroup}
-        ].forEach(inc => {
-
-          it(`get release-group, include: '${inc.inc}'`, async () => {
-            const group = await mbApi.lookup('release-group', mbid.releaseGroup.Formidable, [inc.inc]);
-            assert.strictEqual(group.id, mbid.releaseGroup.Formidable);
-            assert.strictEqual(group.title, 'Formidable');
-            assert.isDefined(group[inc.key], `Should include '${inc.key}'`);
-          });
-        });
-
-      });
-
-      it('work', async () => {
-        const work = await mbApi.lookup('work', mbid.work.Formidable);
-        assert.strictEqual(work.id, mbid.work.Formidable);
-        assert.strictEqual(work.title, 'Formidable');
       });
 
       it('url', async () => {
@@ -476,19 +590,20 @@ describe('MusicBrainz-api', function () {
           assert.strictEqual(event.name, "Dire Straits - Love Over Gold");
           assert.strictEqual(event.type, "Concert");
         });
-
-        [
-          {inc: 'tags' as EventIncludes, key: 'tags' as keyof IEvent},
-          {inc: 'artist-rels' as EventIncludes, key: 'relations' as keyof IEvent},
-          {inc: 'ratings' as EventIncludes, key: 'rating' as keyof IEvent}
-        ].forEach(inc => {
-
-          it(`event, include: '${inc.inc}'`, async () => {
-            const event = await mbApi.lookup('event', mbid.event.DireStraitsAlchemyLoveOverGold, [inc.inc]);
+        const includes: {inc: EventIncludes, key: keyof IEvent}[] = [
+          {inc: 'tags', key: 'tags'},
+          {inc: 'genres', key: 'genres'},
+          {inc: 'artist-rels', key: 'relations'},
+          {inc: 'ratings', key: 'rating'},
+          {inc: 'url-rels', key: 'relations'}
+        ]
+        it(`get event, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
+            const event = await mbApi.lookup('event', mbid.event.DireStraitsAlchemyLoveOverGold, includes.map(inc => inc.inc));
             assert.strictEqual(event.id, mbid.event.DireStraitsAlchemyLoveOverGold);
-            assert.strictEqual(event.name, "Dire Straits - Love Over Gold");
-            assert.isDefined(event[inc.key], `Should include '${inc.key}'`);
-          });
+            assert.strictEqual(event.name, 'Dire Straits - Love Over Gold');
+            includes.forEach(inc => {
+              assert.isDefined(event[inc.key], `Should include '${inc.key}'`);
+            });
         });
 
       });
@@ -545,97 +660,30 @@ describe('MusicBrainz-api', function () {
         }, 'BigInJapan');
       });
 
-      it('include relations', async () => {
-
-        const urlsResult = await mbApi.lookupUrl(spotify.track.BigInJapan.url, ["recording-rels"]);
-
-        assert.isDefined(urlsResult, 'Expect a result');
-        assert.strictEqual(urlsResult.id, mbid.url.BigInJapan, 'id');
-        assert.strictEqual(urlsResult.resource, spotify.track.BigInJapan.url, 'resource');
-        assert.isArray(urlsResult.relations, 'relations');
-      });
+      const relations: { inc: UrlIncludes; key: keyof IRelation; mbid: string }[] = [
+        { inc: "artist-rels",        key: "artist",        mbid: url.artist.Mozart },
+        { inc: "event-rels",         key: "event",         mbid: url.event.MolsonCanadianRocksForToronto },
+        { inc: "genre-rels",         key: "genre",         mbid: url.genre.Classical },
+        { inc: "instrument-rels",    key: "instrument",    mbid: url.instrument.Violin },
+        { inc: "label-rels",         key: "label",         mbid: url.label.CapitolRecords },
+        { inc: "place-rels",         key: "place",         mbid: url.place.MadisonSquareGarden },
+        { inc: "recording-rels",     key: "recording",     mbid: url.recording.BlindingLights },
+        { inc: "release-group-rels", key: "release_group", mbid: url.release_group.DontStopMeNow },
+        { inc: "series-rels",        key: "series",        mbid: url.series.StarTrek },
+        { inc: "work-rels",          key: "work",          mbid: url.work.CountingStars },
+      ];
 
       describe('include relation types', async () => {
-        it('area-rels', async () => {
-          const urlResult = await mbApi.lookupUrl(url.artist.Mozart, ["artist-rels"]);
-          
-          assert.isDefined(urlResult, 'Expect a result')
-          assert.isArray(urlResult.relations, 'Has relations')
-          assert.isTrue(urlResult.relations?.some(r => r.artist), 'Has artist relation')
+        relations.forEach((relation) => {
+          it(relation.inc, async () => {
+            const urlResult = await mbApi.lookupUrl(relation.mbid, [relation.inc]);
+            assert.isDefined(urlResult, 'Expect a result')
+            assert.isArray(urlResult.relations, 'Has relations')
+            assert.isTrue(urlResult.relations?.some(r => r[relation.key]), `Has ${relation.key} relation`)
+          })
         })
-        it('event-rels', async () => {
-          const urlResult = await mbApi.lookupUrl(url.event.MolsonCanadianRocksForToronto, ["event-rels"]);
-          
-          assert.isDefined(urlResult, 'Expect a result')
-          assert.isArray(urlResult.relations, 'Has relations')
-          assert.isTrue(urlResult.relations?.some(r => r.event), 'Has event relation')
-        })
-        it('genre-rels', async () => {
-          const urlResult = await mbApi.lookupUrl(url.genre.Classical, ["genre-rels"]);
-          
-          assert.isDefined(urlResult, 'Expect a result')
-          assert.isArray(urlResult.relations, 'Has relations')
-          assert.isTrue(urlResult.relations?.some(r => r.genre), 'Has genre relation')
-        })
-        it('instrument-rels', async () => {
-          const urlResult = await mbApi.lookupUrl(url.instrument.Violin, ["instrument-rels"]);
-          
-          assert.isDefined(urlResult, 'Expect a result')
-          assert.isArray(urlResult.relations, 'Has relations')
-          assert.isTrue(urlResult.relations?.some(r => r.instrument), 'Has instrument relation')
-        })
-        it('label-rels', async () => {
-          const urlResult = await mbApi.lookupUrl(url.label.CapitolRecords, ["label-rels"]);
-          
-          assert.isDefined(urlResult, 'Expect a result')
-          assert.isArray(urlResult.relations, 'Has relations')
-          assert.isTrue(urlResult.relations?.some(r => r.label), 'Has label relation')
-        })
-        it('area-rels', async () => {
-          const urlResult = await mbApi.lookupUrl(url.artist.Mozart, ["artist-rels"]);
-          
-          assert.isDefined(urlResult, 'Expect a result')
-          assert.isArray(urlResult.relations, 'Has relations')
-          assert.isTrue(urlResult.relations?.some(r => r.artist), 'Has artist relation')
-        })
-        it('place-rels', async () => {
-          const urlResult = await mbApi.lookupUrl(url.place.MadisonSquareGarden, ["place-rels"]);
-          
-          assert.isDefined(urlResult, 'Expect a result')
-          assert.isArray(urlResult.relations, 'Has relations')
-          assert.isTrue(urlResult.relations?.some(r => r.place), 'Has place relation')
-        })
-        it('recording-rels', async () => {
-          const urlResult = await mbApi.lookupUrl(url.recording.BlindingLights, ["recording-rels"]);
-          
-          assert.isDefined(urlResult, 'Expect a result')
-          assert.isArray(urlResult.relations, 'Has relations')
-          assert.isTrue(urlResult.relations?.some(r => r.recording), 'Has recording relation')
-        })
-        it('release-group-rels', async () => {
-          const urlResult = await mbApi.lookupUrl(url.release_group.DontStopMeNow, ["release-group-rels"]);
-          
-          assert.isDefined(urlResult, 'Expect a result')
-          assert.isArray(urlResult.relations, 'Has relations')
-          assert.isTrue(urlResult.relations?.some(r => r.release_group), 'Has release-group relation')
-        })
-        it('series-rels', async () => {
-          const urlResult = await mbApi.lookupUrl(url.series.StarTrek, ["series-rels"]);
-          
-          assert.isDefined(urlResult, 'Expect a result')
-          assert.isArray(urlResult.relations, 'Has relations')
-          assert.isTrue(urlResult.relations?.some(r => r.series), 'Has series relation')
-        })
-        it('work-rels', async () => {
-          const urlResult = await mbApi.lookupUrl(url.work.CountingStars, ["work-rels"]);
-          
-          assert.isDefined(urlResult, 'Expect a result')
-          assert.isArray(urlResult.relations, 'Has relations')
-          assert.isTrue(urlResult.relations?.some(r => r.work), 'Has work relation')
-        })
-      })
+      });
     });
-
 
     describe('Browse', () => {
 
