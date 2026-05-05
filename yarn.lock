@@ -76,59 +76,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@biomejs/biome@npm:^1.8.3":
-  version: 1.9.4
-  resolution: "@biomejs/biome@npm:1.9.4"
-  dependencies:
-    "@biomejs/cli-darwin-arm64": "npm:1.9.4"
-    "@biomejs/cli-darwin-x64": "npm:1.9.4"
-    "@biomejs/cli-linux-arm64": "npm:1.9.4"
-    "@biomejs/cli-linux-arm64-musl": "npm:1.9.4"
-    "@biomejs/cli-linux-x64": "npm:1.9.4"
-    "@biomejs/cli-linux-x64-musl": "npm:1.9.4"
-    "@biomejs/cli-win32-arm64": "npm:1.9.4"
-    "@biomejs/cli-win32-x64": "npm:1.9.4"
-  dependenciesMeta:
-    "@biomejs/cli-darwin-arm64":
-      optional: true
-    "@biomejs/cli-darwin-x64":
-      optional: true
-    "@biomejs/cli-linux-arm64":
-      optional: true
-    "@biomejs/cli-linux-arm64-musl":
-      optional: true
-    "@biomejs/cli-linux-x64":
-      optional: true
-    "@biomejs/cli-linux-x64-musl":
-      optional: true
-    "@biomejs/cli-win32-arm64":
-      optional: true
-    "@biomejs/cli-win32-x64":
-      optional: true
-  bin:
-    biome: bin/biome
-  checksum: 10c0/b5655c5aed9a6fffe24f7d04f15ba4444389d0e891c9ed9106fab7388ac9b4be63185852cc2a937b22940dac3e550b71032a4afd306925cfea436c33e5646b3e
-  languageName: node
-  linkType: hard
-
-"@biomejs/cli-darwin-arm64@npm:1.9.4":
-  version: 1.9.4
-  resolution: "@biomejs/cli-darwin-arm64@npm:1.9.4"
-  conditions: os=darwin & cpu=arm64
-  languageName: node
-  linkType: hard
-
 "@biomejs/cli-darwin-arm64@npm:2.3.14":
   version: 2.3.14
   resolution: "@biomejs/cli-darwin-arm64@npm:2.3.14"
   conditions: os=darwin & cpu=arm64
-  languageName: node
-  linkType: hard
-
-"@biomejs/cli-darwin-x64@npm:1.9.4":
-  version: 1.9.4
-  resolution: "@biomejs/cli-darwin-x64@npm:1.9.4"
-  conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
@@ -139,24 +90,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@biomejs/cli-linux-arm64-musl@npm:1.9.4":
-  version: 1.9.4
-  resolution: "@biomejs/cli-linux-arm64-musl@npm:1.9.4"
-  conditions: os=linux & cpu=arm64 & libc=musl
-  languageName: node
-  linkType: hard
-
 "@biomejs/cli-linux-arm64-musl@npm:2.3.14":
   version: 2.3.14
   resolution: "@biomejs/cli-linux-arm64-musl@npm:2.3.14"
   conditions: os=linux & cpu=arm64 & libc=musl
-  languageName: node
-  linkType: hard
-
-"@biomejs/cli-linux-arm64@npm:1.9.4":
-  version: 1.9.4
-  resolution: "@biomejs/cli-linux-arm64@npm:1.9.4"
-  conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
 
@@ -167,24 +104,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@biomejs/cli-linux-x64-musl@npm:1.9.4":
-  version: 1.9.4
-  resolution: "@biomejs/cli-linux-x64-musl@npm:1.9.4"
-  conditions: os=linux & cpu=x64 & libc=musl
-  languageName: node
-  linkType: hard
-
 "@biomejs/cli-linux-x64-musl@npm:2.3.14":
   version: 2.3.14
   resolution: "@biomejs/cli-linux-x64-musl@npm:2.3.14"
   conditions: os=linux & cpu=x64 & libc=musl
-  languageName: node
-  linkType: hard
-
-"@biomejs/cli-linux-x64@npm:1.9.4":
-  version: 1.9.4
-  resolution: "@biomejs/cli-linux-x64@npm:1.9.4"
-  conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
@@ -195,24 +118,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@biomejs/cli-win32-arm64@npm:1.9.4":
-  version: 1.9.4
-  resolution: "@biomejs/cli-win32-arm64@npm:1.9.4"
-  conditions: os=win32 & cpu=arm64
-  languageName: node
-  linkType: hard
-
 "@biomejs/cli-win32-arm64@npm:2.3.14":
   version: 2.3.14
   resolution: "@biomejs/cli-win32-arm64@npm:2.3.14"
   conditions: os=win32 & cpu=arm64
-  languageName: node
-  linkType: hard
-
-"@biomejs/cli-win32-x64@npm:1.9.4":
-  version: 1.9.4
-  resolution: "@biomejs/cli-win32-x64@npm:1.9.4"
-  conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
@@ -2692,11 +2601,9 @@ __metadata:
   linkType: hard
 
 "rate-limit-threshold@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "rate-limit-threshold@npm:0.2.0"
-  dependencies:
-    "@biomejs/biome": "npm:^1.8.3"
-  checksum: 10c0/480309027c7d5a2ed86095ad7eb8748572cfe27dae7e009e82e03ecd315f8aef65450cea1ec2d88fa1f5373be620c4a8a7b977f50ee7d22e979a642f9fa77aed
+  version: 0.2.1
+  resolution: "rate-limit-threshold@npm:0.2.1"
+  checksum: 10c0/0316ec8b8c4331143e0a3221acce2b565571ba80a10045c3ec0b601f2a8ab6e2862e88ec3379180089e47ea8a64daed584ae1b3fa1b1d317833a6cf8f0e81df4
   languageName: node
   linkType: hard
 
