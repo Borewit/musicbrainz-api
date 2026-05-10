@@ -90,6 +90,9 @@ const config = {
     appVersion: '0.1.0',
     appContactInfo: 'user@mail.org',
 
+    // Optional: OAuth Bearer access token for authenticated requests
+    accessToken: 'eyJ...',
+
     // Optional: Proxy settings (default: no proxy server)
     proxy: {
         host: 'localhost',

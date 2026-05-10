@@ -139,6 +139,11 @@ export interface IMusicBrainzConfig {
   appVersion?: string,
 
   /**
+   * OAuth Bearer access token for authenticated requests.
+   */
+  accessToken?: string,
+
+  /**
    * HTTP Proxy
    */
   proxy?: string,
@@ -252,7 +257,8 @@ export class MusicBrainzApi {
     return new HttpClient({
       baseUrl: this.config.baseUrl,
       timeout: 500,
-      userAgent: `${this.config.appName}/${this.config.appVersion} ( ${this.config.appContactInfo} )`
+      userAgent: `${this.config.appName}/${this.config.appVersion} ( ${this.config.appContactInfo} )`,
+      accessToken: this.config.accessToken
     });
   }
 

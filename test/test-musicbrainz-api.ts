@@ -1356,6 +1356,44 @@ describe('MusicBrainz-api', function () {
 
   });
 
+
+  describe('OAuth Bearer token', () => {
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it('sends configured accessToken as Authorization Bearer header', async () => {
+      const accessToken = 'test-access-token';
+      const mbApi = new MusicBrainzApi(await makeSearchApiConfig({
+        accessToken,
+        disableRateLimiting: true
+      }));
+      const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('{}'));
+
+      await mbApi.restGet<IArtist>(`/artist/${mbid.artist.Stromae}`);
+
+      assert.isTrue(fetchStub.calledOnce);
+      const requestInit = fetchStub.firstCall.args[1] as RequestInit;
+      const headers = requestInit.headers as Headers;
+      assert.strictEqual(headers.get('Authorization'), `Bearer ${accessToken}`);
+    });
+
+    it('does not send Authorization header when accessToken is not configured', async () => {
+      const mbApi = new MusicBrainzApi(await makeSearchApiConfig({
+        disableRateLimiting: true
+      }));
+      const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('{}'));
+
+      await mbApi.restGet<IArtist>(`/artist/${mbid.artist.Stromae}`);
+
+      assert.isTrue(fetchStub.calledOnce);
+      const requestInit = fetchStub.firstCall.args[1] as RequestInit;
+      const headers = requestInit.headers as Headers;
+      assert.isFalse(headers.has('Authorization'));
+    });
+  });
+
   describe("Rate limiting", () => {
     let mbTestApiNoLimit: MusicBrainzApi;
     let mbTestApiLimit: MusicBrainzApi;
