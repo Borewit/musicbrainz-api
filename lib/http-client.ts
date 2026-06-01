@@ -74,9 +74,11 @@ export class HttpClient {
     const url = this._buildUrl(path, options.query);
     const cookies = await this.getCookies();
 
-    const headers: HeadersInit = new Headers(options.headers);
+    const headers = new Headers(options.headers);
     headers.set('User-Agent', this.httpOptions.userAgent);
-    if (this.httpOptions.accessToken && !headers.has('Authorization')) {
+
+    const existingAuth = headers.get('Authorization');
+    if (this.httpOptions.accessToken && (!existingAuth || existingAuth.trim() === '')) {
       headers.set('Authorization', `Bearer ${this.httpOptions.accessToken}`);
     }
     if (cookies !== null) {
