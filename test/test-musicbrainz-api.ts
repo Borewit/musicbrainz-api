@@ -1363,7 +1363,7 @@ describe('MusicBrainz-api', function () {
       sinon.restore();
     });
 
-    it('sends configured accessToken as Authorization Bearer header', async () => {
+    it('sends configured accessToken as Authorization Bearer header (default entrypoint)', async () => {
       const accessToken = 'test-access-token';
       const mbApi = new MusicBrainzApi(await makeSearchApiConfig({
         accessToken,
@@ -1378,6 +1378,22 @@ describe('MusicBrainz-api', function () {
       const headers = requestInit.headers as Headers;
       assert.strictEqual(headers.get('Authorization'), `Bearer ${accessToken}`);
     });
+
+
+    it('sends configured accessToken as Authorization Bearer header (node entrypoint)', async () => {
+      const accessToken = 'test-access-token';
+      const mbApi = new MusicBrainzApiNode(await makeSearchApiConfig({
+        accessToken,
+        disableRateLimiting: true
+      }));
+      const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('{}'));
+      await mbApi.restGet<IArtist>(`/artist/${mbid.artist.Stromae}`);
+      assert.isTrue(fetchStub.calledOnce);
+      const requestInit = fetchStub.firstCall.args[1] as RequestInit;
+      const headers = requestInit.headers as Headers;
+      assert.strictEqual(headers.get('Authorization'), `Bearer ${accessToken}`);
+    });
+
 
     it('does not send Authorization header when accessToken is not configured', async () => {
       const mbApi = new MusicBrainzApi(await makeSearchApiConfig({
