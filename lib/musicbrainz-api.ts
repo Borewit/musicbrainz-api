@@ -5,7 +5,7 @@ import { DigestAuth } from './digest-auth.js';
 
 import { RateLimitThreshold } from 'rate-limit-threshold';
 import * as mb from './musicbrainz.types.js';
-import { HttpClient, type MultiQueryFormData } from "./http-client.js";
+import {HttpClient, IHttpClientOptions, type MultiQueryFormData} from "./http-client.js";
 
 export { XmlMetadata } from './xml/xml-metadata.js';
 export { XmlIsrc } from './xml/xml-isrc.js';
@@ -253,13 +253,17 @@ export class MusicBrainzApi {
     this.rateLimiter = new RateLimitThreshold(limits[0], limits[1]);
   }
 
-  protected initHttpClient(): HttpClient {
-    return new HttpClient({
+  protected getHttpClientOptions(): IHttpClientOptions {
+    return {
       baseUrl: this.config.baseUrl,
       timeout: 500,
       userAgent: `${this.config.appName}/${this.config.appVersion} ( ${this.config.appContactInfo} )`,
-      accessToken: this.config.accessToken
-    });
+      accessToken: this.config.accessToken,
+    };
+  }
+
+  protected initHttpClient(): HttpClient {
+    return new HttpClient(this.getHttpClientOptions());
   }
 
   public async restGet<T>(relUrl: string, query: MultiQueryFormData = {}): Promise<T> {
