@@ -17,11 +17,7 @@ export * from './http-client.js';
 export class MusicBrainzApi extends MusicBrainzApiDefault {
 
   protected initHttpClient(): HttpClientNode {
-    return new HttpClientNode({
-      baseUrl: this.config.baseUrl,
-      timeout: 500,
-      userAgent: `${this.config.appName}/${this.config.appVersion} ( ${this.config.appContactInfo} )`
-    });
+    return new HttpClientNode(this.getHttpClientOptions());
   }
 
   public async login(): Promise<boolean> {
