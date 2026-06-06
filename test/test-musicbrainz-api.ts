@@ -1706,6 +1706,54 @@ describe('Cover Art Archive API', function () {
 
 });
 
+/**
+ * OAuth-authenticated submissions via the XML web service through the Node
+ * entrypoint.
+ *
+ * The endpoints under `/ws/2/...` accept `Authorization: Bearer <token>`
+ */
+describe('Node specific API (OAuth)', () => {
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  describe('ISRC submission via XML web service', () => {
+
+    it('uses Bearer token for post() (no botAccount required)', async () => {
+      const accessToken = 'submit-isrc-token';
+      const mbTestApi = new MusicBrainzApiNode(await makeTestApiConfig({
+        accessToken,
+        disableRateLimiting: true,
+        botAccount: undefined
+      }));
+      const fetchStub = sinon.stub(globalThis, 'fetch').resolves(
+        new Response('', { status: 200 })
+      );
+
+      const xmlMetadata = new XmlMetadata();
+      const xmlRecording = xmlMetadata.pushRecording('94fb868b-9233-4f9e-966b-e8036bf7461e');
+      xmlRecording.isrcList.pushIsrc('GB5EM1801762');
+
+      await mbTestApi.post('recording', xmlMetadata);
+
+      assert.isTrue(fetchStub.calledOnce, 'fetch should be called exactly once (no Digest retry)');
+      const [, requestInit] = fetchStub.firstCall.args;
+      const headers = (requestInit as RequestInit).headers as Headers;
+      assert.strictEqual(headers.get('Authorization'), `Bearer ${accessToken}`);
+      assert.strictEqual(headers.get('Content-Type'), 'application/xml');
+    });
+
+  });
+
+});
+
+/**
+ * Skipped: this suite drives the MusicBrainz website form flow
+ * (/login, /logout, /<entity>/<mbid>/edit), which authenticates with
+ * CSRF tokens, session cookies, and form-encoded username/password.
+ * These endpoints do not accept OAuth Bearer tokens.
+ */
 describe.skip('Node specific API', function () {
 
   let mbTestApi: MusicBrainzApiNode;
