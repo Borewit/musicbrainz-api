@@ -5,7 +5,7 @@ import { DigestAuth } from './digest-auth.js';
 
 import { RateLimitThreshold } from 'rate-limit-threshold';
 import * as mb from './musicbrainz.types.js';
-import {HttpClient, IHttpClientOptions, type MultiQueryFormData} from "./http-client.js";
+import { HttpClient, type IHttpClientOptions, type MultiQueryFormData } from './http-client.js';
 
 export { XmlMetadata } from './xml/xml-metadata.js';
 export { XmlIsrc } from './xml/xml-isrc.js';
@@ -247,6 +247,14 @@ export class MusicBrainzApi {
       ..._config
     }
 
+    // RFC 6750 §5.3: Bearer tokens require TLS. Reject non-HTTPS baseUrl when
+    // an accessToken is configured to prevent token leakage over plain HTTP.
+    if (this.config.accessToken && !/^https:\/\//i.test(this.config.baseUrl)) {
+      throw new Error(
+        `MusicBrainzApi: 'accessToken' requires an HTTPS baseUrl (RFC 6750). Received baseUrl="${this.config.baseUrl}".`
+      );
+    }
+
     this.httpClient = this.initHttpClient();
 
     const limits = this.config.rateLimit ?? [15,18];
@@ -436,14 +444,31 @@ export class MusicBrainzApi {
       throw new Error("XML-Post requires the appName & appVersion to be defined");
     }
 
+    // Require credentials before serializing XML or making a network request.
+    if (!this.config.accessToken && (!this.config.botAccount?.username || !this.config.botAccount?.password)) {
+      throw new Error("XML-Post requires either 'accessToken' or 'botAccount' credentials to be configured");
+    }
+
     const clientId = `${this.config.appName.replace(/-/g, '.')}-${this.config.appVersion}`;
 
     const path = `/ws/2/${entity}/`;
-    // Get digest challenge
+    const postData = xmlMetadata.toXml();
 
+    // With an OAuth Bearer token, HttpClient sets the Authorization header.
+    // Submit the body once; no digest-challenge retry is needed.
+    if (this.config.accessToken) {
+      await this.applyRateLimiter();
+      await this.httpClient.post(path, {
+        query: { client: clientId },
+        headers: { 'Content-Type': 'application/xml' },
+        body: postData
+      });
+      return;
+    }
+
+    // Get digest challenge
     let digest = '';
     let n = 1;
-    const postData = xmlMetadata.toXml();
 
     do {
       await this.applyRateLimiter();
