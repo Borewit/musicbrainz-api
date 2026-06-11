@@ -445,7 +445,7 @@ export class MusicBrainzApi {
     }
 
     // Require credentials before serializing XML or making a network request.
-    if (!this.config.accessToken && (!this.config.botAccount?.username || !this.config.botAccount?.password)) {
+    if (!this.config.accessToken && !this.config.botAccount) {
       throw new Error("XML-Post requires either 'accessToken' or 'botAccount' credentials to be configured");
     }
 
