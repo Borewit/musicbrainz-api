@@ -160,6 +160,10 @@ export interface IMusicBrainzConfig {
   * Default is [15, 18], which allows up to 15 requests every 18 seconds
   */
   rateLimit?: [number, number]
+  /**
+   * Optional milliseconds to timeout request after
+   */
+  requestTimeout?: number
 }
 
 interface IInternalConfig extends IMusicBrainzConfig {
