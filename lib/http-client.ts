@@ -18,6 +18,8 @@ export interface IHttpClientOptions {
   timeout: number;
   userAgent: string;
   followRedirects?: boolean;
+  /** milliseconds after which to timeout request */
+  requestTimeout?: number;
 }
 
 export interface IFetchOptions {
@@ -75,12 +77,13 @@ export class HttpClient {
     if (cookies !== null) {
       headers.set('Cookie', cookies);
     }
-
+    const signal = this.httpOptions.requestTimeout !== undefined ? AbortSignal.timeout(this.httpOptions.requestTimeout) : undefined;  
     while (retryLimit > 0) {
       let response: Response;
       try {
         response = await fetch(url, {
           method,
+          signal,
           ...options,
           headers,
           body: options.body,

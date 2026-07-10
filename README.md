@@ -106,6 +106,9 @@ const config = {
     // Optional: Set number of request retries for GET and POST requests
     // Default 10 for GET, 1 for POST
     retryLimit: 10
+
+    // Optional: Number of milliseconds to timeout a request after (default: none)
+    requestTimeout: 5000
 };
 
 const mbApi = new MusicBrainzApi(config);

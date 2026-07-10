@@ -20,7 +20,8 @@ export class MusicBrainzApi extends MusicBrainzApiDefault {
     return new HttpClientNode({
       baseUrl: this.config.baseUrl,
       timeout: 500,
-      userAgent: `${this.config.appName}/${this.config.appVersion} ( ${this.config.appContactInfo} )`
+      userAgent: `${this.config.appName}/${this.config.appVersion} ( ${this.config.appContactInfo} )`,
+      requestTimeout: this.config.requestTimeout
     });
   }
 

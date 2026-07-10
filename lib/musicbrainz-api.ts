@@ -160,12 +160,18 @@ export interface IMusicBrainzConfig {
   * Default is [15, 18], which allows up to 15 requests every 18 seconds
   */
   rateLimit?: [number, number]
+  
   /**
    * Number of times to retry a request
    * 
    * Default is 10 for GET, 1 for all other verbs
    */
   retryLimit?: number
+
+  /**
+   * Optional milliseconds to timeout request after
+   */
+  requestTimeout?: number
 }
 
 interface IInternalConfig extends IMusicBrainzConfig {
