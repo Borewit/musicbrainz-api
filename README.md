@@ -101,7 +101,11 @@ const config = {
 
     // Optional: Set max number of request with X seconds
     //           (default: 15 requests every 18 seconds)
-    rateLimit: [15, 18]
+    rateLimit: [15, 18],
+    
+    // Optional: Set number of request retries for GET and POST requests
+    // Default 10 for GET, 1 for POST
+    retryLimit: 10
 };
 
 const mbApi = new MusicBrainzApi(config);

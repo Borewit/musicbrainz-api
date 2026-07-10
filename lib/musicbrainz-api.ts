@@ -160,6 +160,12 @@ export interface IMusicBrainzConfig {
   * Default is [15, 18], which allows up to 15 requests every 18 seconds
   */
   rateLimit?: [number, number]
+  /**
+   * Number of times to retry a request
+   * 
+   * Default is 10 for GET, 1 for all other verbs
+   */
+  retryLimit?: number
 }
 
 interface IInternalConfig extends IMusicBrainzConfig {
@@ -264,7 +270,7 @@ export class MusicBrainzApi {
 
     const response = await this.httpClient.get(`/ws/2${relUrl}`, {
       query,
-      retryLimit: 10
+      retryLimit: this.config.retryLimit ?? 10
     });
 
     if(response.status === 400) {
@@ -443,7 +449,8 @@ export class MusicBrainzApi {
           authorization: digest,
           'Content-Type': 'application/xml'
         },
-        body: postData
+        body: postData,
+        retryLimit: this.config.retryLimit
       });
 
       if (response.statusCode === HttpStatus.UNAUTHORIZED) {
@@ -477,7 +484,8 @@ export class MusicBrainzApi {
     formData.remember_me = 1;
 
     const response = await this.httpClient.postForm(`/${entity}/${mbid}/edit`, formData, {
-      followRedirects: false
+      followRedirects: false,
+      retryLimit: this.config.retryLimit
     });
     if (response.status === HttpStatus.OK)
       throw new Error("Failed to submit form data");
