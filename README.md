@@ -109,6 +109,13 @@ const config = {
 
     // Optional: Number of milliseconds to timeout a request after (default: none)
     requestTimeout: 5000
+
+    // Optional: A function to access and/or modify url/headers before the request is sent
+    preRequest: (method, url, headers) => {
+        console.log(url);
+        headers.set('My-Header-X', '123');
+        return [method, url, headers];
+    }
 };
 
 const mbApi = new MusicBrainzApi(config);
