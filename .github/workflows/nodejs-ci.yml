@@ -81,22 +81,44 @@ jobs:
           MBPWD: ${{ secrets.MBPWD }}
           TEST_TIMEOUT_SEC: ${{ vars.TEST_TIMEOUT_SEC }}
           DEBUG: ${{ vars.DEBUG }}
-        run: yarn run test-coverage
+        run: yarn run test
 
-      - name: Coveralls Parallel
-        uses: coverallsapp/github-action@v2
-        with:
-          github-token: ${{ secrets.github_token }}
-          flag-name: run-${{ matrix.node-version }}
-          parallel: true
-
-  finish:
-    needs: test
+  coverage:
+    name: Test coverage
     runs-on: ubuntu-latest
 
+    needs: build
+
+    permissions:
+      contents: read
+      id-token: write
+
     steps:
-      - name: Coveralls Finished
-        uses: coverallsapp/github-action@v2
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
         with:
-          github-token: ${{ secrets.github_token }}
-          parallel-finished: true
+          node-version: 22.x
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Generate coverage from TypeScript sources
+        env:
+          NODE_ENV: ci
+          MBUSER: ${{ secrets.MBUSER }}
+          MBPWD: ${{ secrets.MBPWD }}
+        run: yarn run test-coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage/lcov.info
+          disable_search: true
+          fail_ci_if_error: true
+          use_oidc: true
