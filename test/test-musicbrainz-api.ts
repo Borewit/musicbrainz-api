@@ -1233,7 +1233,7 @@ describe('MusicBrainz-api', function () {
               const artistRelations = new Map<string, IArtist>(); // Set to track unique relations
 
               for (const media of release.media) {
-                for (const track of media.tracks) {
+                for (const track of (media.tracks as mb.ITrack[])) {
                   const recording = await mbApi.lookup('recording', track.recording.id, ['artists', 'artist-rels']);
                   assert.exists(recording.relations, 'recording.relations');
                   for (const relation of recording.relations) {

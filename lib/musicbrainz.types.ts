@@ -215,7 +215,8 @@ export interface IMedium {
   title: string;
   format?: string; // optional, type doesn't work
   'format-id': string;
-  tracks: ITrack[];
+  tracks?: ITrack[];
+  track?: ITrack[];
   'track-count': number;
   'track-offset': number;
   position: number;
