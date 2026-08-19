@@ -222,7 +222,12 @@ describe('MusicBrainz-api', function () {
     (mbApi as any).rateLimiter = (mbTestApi as any).rateLimiter;
   });
 
-  this.timeout(40000); // MusicBrainz has a rate limiter
+  const timeoutInSec = Number(process.env.TEST_TIMEOUT_SEC || 40);
+  if (!Number.isFinite(timeoutInSec) || timeoutInSec <= 0) {
+    throw new Error('TEST_TIMEOUT_SEC must be a positive number');
+  }
+  this.timeout(timeoutInSec * 1000); // MusicBrainz has a rate limiter
+  console.log(`Mocha unit test timeout is set to ${timeoutInSec} seconds`);
 
   it('Required environment variable', () => {
     assert.isDefined(process.env.MBUSER, 'process.env.MBUSER');

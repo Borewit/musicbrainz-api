@@ -79,6 +79,7 @@ jobs:
           NODE_ENV: ci
           MBUSER: ${{ secrets.MBUSER }}
           MBPWD: ${{ secrets.MBPWD }}
+          TEST_TIMEOUT_SEC: ${{ vars.TEST_TIMEOUT_SEC }}
         run: yarn run test-coverage
 
       - name: Coveralls Parallel
