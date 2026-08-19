@@ -160,6 +160,10 @@ export interface IMusicBrainzConfig {
   * Default is [15, 18], which allows up to 15 requests every 18 seconds
   */
   rateLimit?: [number, number]
+  /**
+   * Milliseconds after which a request times out; defaults to 15000
+   */
+  requestTimeout?: number
 }
 
 interface IInternalConfig extends IMusicBrainzConfig {
@@ -237,7 +241,8 @@ export class MusicBrainzApi {
 
     this.config = {
       ...{
-        baseUrl: 'https://musicbrainz.org'
+        baseUrl: 'https://musicbrainz.org',
+        requestTimeout: 15000
       },
       ..._config
     }
@@ -252,7 +257,8 @@ export class MusicBrainzApi {
     return new HttpClient({
       baseUrl: this.config.baseUrl,
       timeout: 500,
-      userAgent: `${this.config.appName}/${this.config.appVersion} ( ${this.config.appContactInfo} )`
+      userAgent: `${this.config.appName}/${this.config.appVersion} ( ${this.config.appContactInfo} )`,
+      requestTimeout: this.config.requestTimeout
     });
   }
 
