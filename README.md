@@ -101,10 +101,10 @@ const config = {
 
     // Optional: Set max number of request with X seconds
     //           (default: 15 requests every 18 seconds)
-    rateLimit: [15, 18]
+    rateLimit: [15, 18],
 
-    // Optional: Number of milliseconds to timeout a request after (default: none)
-    requestTimeout: 5000
+    // Optional: Number of milliseconds to timeout a request after (default: 15000)
+    requestTimeout: 15000
 };
 
 const mbApi = new MusicBrainzApi(config);
