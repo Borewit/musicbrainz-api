@@ -102,6 +102,13 @@ const config = {
     // Optional: Set max number of request with X seconds
     //           (default: 15 requests every 18 seconds)
     rateLimit: [15, 18]
+
+    // Optional: A function to access and/or modify url/headers before the request is sent
+    preRequest: (method, url, headers) => {
+        console.log(url);
+        headers.set('My-Header-X', '123');
+        return [method, url, headers];
+    }
 };
 
 const mbApi = new MusicBrainzApi(config);

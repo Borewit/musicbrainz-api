@@ -18,6 +18,7 @@ export interface IHttpClientOptions {
   timeout: number;
   userAgent: string;
   followRedirects?: boolean;
+  preRequest?: (method: string, url: string, headers: Headers) => [string, string, Headers]
 }
 
 export interface IFetchOptions {
@@ -67,15 +68,20 @@ export class HttpClient {
 
     let retryLimit = options.retryLimit && options.retryLimit > 1 ? options.retryLimit : 1;
     const retryTimeout = this.httpOptions.timeout ? this.httpOptions.timeout : 500;
-    const url = this._buildUrl(path, options.query);
+    let url = this._buildUrl(path, options.query);
     const cookies = await this.getCookies();
 
-    const headers: HeadersInit = new Headers(options.headers);
+    let headers: HeadersInit = new Headers(options.headers);
     headers.set('User-Agent', this.httpOptions.userAgent);
     if (cookies !== null) {
       headers.set('Cookie', cookies);
     }
 
+    if(this.httpOptions.preRequest !== undefined) {
+        const [m, u, h] = this.httpOptions.preRequest(method, url, headers);
+        url = u;
+        headers = h;
+    }
     while (retryLimit > 0) {
       let response: Response;
       try {
