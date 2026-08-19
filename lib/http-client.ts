@@ -22,17 +22,39 @@ export interface IHttpClientOptions {
 
 export interface IFetchOptions {
   query?: MultiQueryFormData;
+  /** Maximum number of attempts, including the initial request. */
   retryLimit?: number;
   body?: string;
   headers?: HeadersInit;
   followRedirects?: boolean;
 }
 
-function isConnectionReset(err: unknown): boolean {
-  // Undici puts the OS error on .cause, with .code like 'ECONNRESET'
-  const code = (err as any)?.cause?.code ?? (err as any)?.code;
-  // Add other transient codes you consider safe to retry:
-  return typeof code === "string" && code === 'ECONNRESET';
+const retryableStatusCodes = new Set([429, 502, 503, 504]);
+
+const retryableErrorCodes = new Set([
+  'ECONNRESET',
+  'ETIMEDOUT',
+  'UND_ERR_SOCKET',
+  'UND_ERR_CONNECT_TIMEOUT',
+  'UND_ERR_HEADERS_TIMEOUT',
+  'UND_ERR_BODY_TIMEOUT'
+]);
+
+function isRetryableError(err: unknown): boolean {
+  let current = err;
+
+  while (current && typeof current === 'object') {
+    const {code, name, cause} = current as {code?: unknown; name?: unknown; cause?: unknown};
+    if (typeof code === 'string' && retryableErrorCodes.has(code)) {
+      return true;
+    }
+    if (name === 'TimeoutError') {
+      return true;
+    }
+    current = cause;
+  }
+
+  return false;
 }
 
 export class HttpClient {
@@ -65,7 +87,7 @@ export class HttpClient {
   private async _fetch(method: string, path: string, options?: IFetchOptions): Promise<Response> {
     if (!options) options = {};
 
-    let retryLimit = options.retryLimit && options.retryLimit > 1 ? options.retryLimit : 1;
+    const maxAttempts = options.retryLimit && options.retryLimit > 1 ? options.retryLimit : 1;
     const retryTimeout = this.httpOptions.timeout ? this.httpOptions.timeout : 500;
     const url = this._buildUrl(path, options.query);
     const cookies = await this.getCookies();
@@ -76,7 +98,7 @@ export class HttpClient {
       headers.set('Cookie', cookies);
     }
 
-    while (retryLimit > 0) {
+    for (let attempt = 1; attempt <= maxAttempts; ++attempt) {
       let response: Response;
       try {
         response = await fetch(url, {
@@ -87,22 +109,19 @@ export class HttpClient {
           redirect: options.followRedirects === false ? 'manual' : 'follow'
         })
       } catch (err) {
-        if (isConnectionReset(err)) {
-          // Retry on TCP connection resets
-          await this._delay(retryTimeout); // wait 200ms before retry
-          continue;
+        if (!isRetryableError(err) || attempt === maxAttempts) {
+          throw err;
         }
-        throw err;
+
+        debug(`Transient request failure on attempt ${attempt}/${maxAttempts}, retry in ${retryTimeout} ms`);
+        await this._delay(retryTimeout);
+        continue;
       }
 
-      if (response.status === 429 || response.status === 503) {
-        debug(`Received status=${response.status}, assume reached rate limit, retry in ${retryTimeout} ms`);
-        retryLimit--;
-
-        if (retryLimit > 0) {
-          await this._delay(retryTimeout); // wait 200ms before retry
-          continue;
-        }
+      if (retryableStatusCodes.has(response.status) && attempt < maxAttempts) {
+        debug(`Received status=${response.status} on attempt ${attempt}/${maxAttempts}, retry in ${retryTimeout} ms`);
+        await this._delay(retryTimeout);
+        continue;
       }
 
       debug(`Received status=${response.status}`);
@@ -111,7 +130,7 @@ export class HttpClient {
       return response;
     }
 
-    throw new Error(`Failed to fetch ${url} after retries`);
+    throw new Error(`Failed to fetch ${url} after ${maxAttempts} attempts`);
   }
 
 // Helper: Builds URL with query string

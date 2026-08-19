@@ -267,7 +267,7 @@ export class MusicBrainzApi {
       retryLimit: 10
     });
 
-    if(response.status === 400) {
+    if(!response.ok) {
 
       const body = await safeJson(response);
       const mb = (body ?? {}) as MusicBrainzErrorBody;
