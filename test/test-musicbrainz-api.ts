@@ -210,6 +210,8 @@ const spotify = {
   }
 };
 
+const timeoutInSec = Number(process.env.TEST_TIMEOUT_SEC || 40);
+
 describe('MusicBrainz-api', function () {
 
   let mbTestApi: MusicBrainzApiDefault;
@@ -222,7 +224,6 @@ describe('MusicBrainz-api', function () {
     (mbApi as any).rateLimiter = (mbTestApi as any).rateLimiter;
   });
 
-  const timeoutInSec = Number(process.env.TEST_TIMEOUT_SEC || 40);
   if (!Number.isFinite(timeoutInSec) || timeoutInSec <= 0) {
     throw new Error('TEST_TIMEOUT_SEC must be a positive number');
   }
@@ -1485,7 +1486,8 @@ describe('Cover Art Archive API', function () {
   // The addresses are normalized to https by `CoverArtArchiveApi`
   const releaseMusicBrainzBaseUrl = 'https://musicbrainz.org/release/';
 
-  this.timeout(10000);
+  const coverArtTimeoutInSec = Number(process.env.TEST_TIMEOUT_SEC || 10);
+  this.timeout(coverArtTimeoutInSec * 1000);
 
   it('Get all cover-art for release Formidable', async () => {
     const coverArtArchiveApiClient = new CoverArtArchiveApi();
@@ -1554,7 +1556,7 @@ describe.skip('Node specific API', function () {
     (mbApi as any).rateLimiter = (mbTestApi as any).rateLimiter;
   });
 
-  this.timeout(40000); // MusicBrainz has a rate limiter
+  this.timeout(timeoutInSec * 1000); // MusicBrainz has a rate limiter
 
   /**
    * https://wiki.musicbrainz.org/Development/Release_Editor_Seeding
