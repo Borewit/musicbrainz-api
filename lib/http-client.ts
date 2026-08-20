@@ -58,7 +58,7 @@ export class HttpClient {
     });
   }
 
-  public postJson(path: string, json: Object, options?: IFetchOptions) {
+  public postJson(path: string, json: object, options?: IFetchOptions) {
     const encodedJson = JSON.stringify(json);
     return this._fetch('post', path, {...options, body: encodedJson, headers: {'Content-Type': 'application/json.'}});
   }
