@@ -161,7 +161,7 @@ export interface IMusicBrainzConfig {
   */
   rateLimit?: [number, number]
   /**
-   * Number of times to retry a GET request
+   * Maximum number of attempts for a GET request.
    * 
    * Default is 10
    */

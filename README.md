@@ -103,7 +103,7 @@ const config = {
     //           (default: 15 requests every 18 seconds)
     rateLimit: [15, 18],
     
-    // Optional: Set number of request retries for GET requests
+    // Optional: Set the maximum number of attempts for GET requests
     // Default 10
     retryLimit: 10
 };
