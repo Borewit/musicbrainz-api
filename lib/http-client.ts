@@ -13,7 +13,7 @@ export type MultiQueryFormData = { [key: string]: string | string[]; }
 export interface IHttpClientOptions {
   baseUrl: string,
   /**
-   * Retry time-out, default 500 ms
+   * Base retry delay in milliseconds. The delay increases linearly after each failed attempt.
    */
   timeout: number;
   userAgent: string;
@@ -22,6 +22,7 @@ export interface IHttpClientOptions {
 
 export interface IFetchOptions {
   query?: MultiQueryFormData;
+  /** Maximum number of attempts, including the initial request. */
   retryLimit?: number;
   body?: string;
   headers?: HeadersInit;
@@ -65,7 +66,9 @@ export class HttpClient {
   private async _fetch(method: string, path: string, options?: IFetchOptions): Promise<Response> {
     if (!options) options = {};
 
-    let retryLimit = options.retryLimit && options.retryLimit > 1 ? options.retryLimit : 1;
+    const maxAttempts = typeof options.retryLimit === 'number' && Number.isFinite(options.retryLimit)
+      ? Math.max(1, Math.floor(options.retryLimit))
+      : 1;
     const retryTimeout = this.httpOptions.timeout ? this.httpOptions.timeout : 500;
     const url = this._buildUrl(path, options.query);
     const cookies = await this.getCookies();
@@ -76,7 +79,13 @@ export class HttpClient {
       headers.set('Cookie', cookies);
     }
 
-    while (retryLimit > 0) {
+    let attempt = 0;
+    while (attempt < maxAttempts) {
+      if (attempt > 0) {
+        await this._delay(retryTimeout * attempt);
+      }
+      ++attempt;
+      const retryDelay = retryTimeout * attempt;
       let response: Response;
       try {
         response = await fetch(url, {
@@ -88,21 +97,18 @@ export class HttpClient {
         })
       } catch (err) {
         if (isConnectionReset(err)) {
-          // Retry on TCP connection resets
-          await this._delay(retryTimeout); // wait 200ms before retry
-          continue;
+          if (attempt < maxAttempts) {
+            debug(`Transient connection failure on attempt ${attempt}/${maxAttempts}: ${err instanceof Error ? err.message : 'unknown error'}; retry in ${retryDelay} ms`);
+            continue;
+          }
         }
         throw err;
       }
 
-      if (response.status === 429 || response.status === 503) {
-        debug(`Received status=${response.status}, assume reached rate limit, retry in ${retryTimeout} ms`);
-        retryLimit--;
-
-        if (retryLimit > 0) {
-          await this._delay(retryTimeout); // wait 200ms before retry
-          continue;
-        }
+      if ((response.status === 429 || response.status === 503) && attempt < maxAttempts) {
+        debug(`Received status=${response.status} on attempt ${attempt}/${maxAttempts}, retry in ${retryDelay} ms`);
+        await response.body?.cancel();
+        continue;
       }
 
       debug(`Received status=${response.status}`);
@@ -111,7 +117,7 @@ export class HttpClient {
       return response;
     }
 
-    throw new Error(`Failed to fetch ${url} after retries`);
+    throw new Error(`Failed to fetch ${url} after ${maxAttempts} attempts`);
   }
 
 // Helper: Builds URL with query string
