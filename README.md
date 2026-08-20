@@ -28,7 +28,7 @@ The distributed JavaScript codebase is compliant with the [ECMAScript 2020 (11th
 > See also [CommonJS backward compatibility](#commonjs-backward-compatibility)
 
 ### Requirements
-- Node.js: Requires [Node.js version 16](https://nodejs.org/en/about/previous-releases) or higher.
+- Node.js: Requires [Node.js version 20](https://nodejs.org/en/about/previous-releases) or higher.
 - Browser: Can be used in browser environments when bundled with a module bundler (not actively tested).
 
 > [!NOTE]
