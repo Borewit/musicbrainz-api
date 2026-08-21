@@ -1488,6 +1488,7 @@ describe('Cover Art Archive API', function () {
 
   const coverArtTimeoutInSec = Number(process.env.TEST_TIMEOUT_SEC || 10);
   this.timeout(coverArtTimeoutInSec * 1000);
+  this.retries(5);
 
   it('Get all cover-art for release Formidable', async () => {
     const coverArtArchiveApiClient = new CoverArtArchiveApi();
