@@ -17,6 +17,10 @@ export interface IHttpClientOptions {
    */
   timeout: number;
   userAgent: string;
+  /**
+   * OAuth Bearer access token sent as the Authorization header.
+   */
+  accessToken?: string;
   followRedirects?: boolean;
 }
 
@@ -73,8 +77,13 @@ export class HttpClient {
     const url = this._buildUrl(path, options.query);
     const cookies = await this.getCookies();
 
-    const headers: HeadersInit = new Headers(options.headers);
+    const headers = new Headers(options.headers);
     headers.set('User-Agent', this.httpOptions.userAgent);
+
+    const existingAuth = headers.get('Authorization');
+    if (this.httpOptions.accessToken && (!existingAuth || existingAuth.trim() === '')) {
+      headers.set('Authorization', `Bearer ${this.httpOptions.accessToken}`);
+    }
     if (cookies !== null) {
       headers.set('Cookie', cookies);
     }

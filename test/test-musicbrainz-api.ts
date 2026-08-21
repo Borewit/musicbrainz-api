@@ -1352,6 +1352,166 @@ describe('MusicBrainz-api', function () {
 
   });
 
+
+  describe('OAuth Bearer token', () => {
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it('sends configured accessToken as Authorization Bearer header (default entrypoint)', async () => {
+      const accessToken = 'test-access-token';
+      const mbApi = new MusicBrainzApi(await makeSearchApiConfig({
+        accessToken,
+        disableRateLimiting: true
+      }));
+      const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('{}'));
+
+      await mbApi.restGet<IArtist>(`/artist/${mbid.artist.Stromae}`);
+
+      assert.isTrue(fetchStub.calledOnce);
+      const requestInit = fetchStub.firstCall.args[1] as RequestInit;
+      const headers = requestInit.headers as Headers;
+      assert.strictEqual(headers.get('Authorization'), `Bearer ${accessToken}`);
+    });
+
+
+    it('sends configured accessToken as Authorization Bearer header (node entrypoint)', async () => {
+      const accessToken = 'test-access-token';
+      const mbApi = new MusicBrainzApiNode(await makeSearchApiConfig({
+        accessToken,
+        disableRateLimiting: true
+      }));
+      const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('{}'));
+      await mbApi.restGet<IArtist>(`/artist/${mbid.artist.Stromae}`);
+      assert.isTrue(fetchStub.calledOnce);
+      const requestInit = fetchStub.firstCall.args[1] as RequestInit;
+      const headers = requestInit.headers as Headers;
+      assert.strictEqual(headers.get('Authorization'), `Bearer ${accessToken}`);
+    });
+
+
+    it('does not send Authorization header when accessToken is not configured', async () => {
+      const mbApi = new MusicBrainzApi(await makeSearchApiConfig({
+        disableRateLimiting: true
+      }));
+      const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('{}'));
+
+      await mbApi.restGet<IArtist>(`/artist/${mbid.artist.Stromae}`);
+
+      assert.isTrue(fetchStub.calledOnce);
+      const requestInit = fetchStub.firstCall.args[1] as RequestInit;
+      const headers = requestInit.headers as Headers;
+      assert.isFalse(headers.has('Authorization'));
+    });
+    it('does not overwrite a caller-provided non-empty Authorization header', async () => {
+      const accessToken = 'configured-token';
+      const mbApi = new MusicBrainzApi(await makeSearchApiConfig({
+        accessToken,
+        disableRateLimiting: true
+      }));
+      const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('{}'));
+
+      // Exercise override behavior via the underlying httpClient so we can
+      // pass a custom Authorization header directly.
+      const httpClient = (mbApi as unknown as { httpClient: HttpClient }).httpClient;
+      await httpClient.get('/ws/2/artist/' + mbid.artist.Stromae, {
+        headers: { Authorization: 'Bearer caller-supplied-token' }
+      });
+
+      assert.isTrue(fetchStub.calledOnce);
+      const requestInit = fetchStub.firstCall.args[1] as RequestInit;
+      const headers = requestInit.headers as Headers;
+      assert.strictEqual(
+        headers.get('Authorization'),
+        'Bearer caller-supplied-token',
+        'caller-provided Authorization header must not be overwritten by the configured accessToken'
+      );
+    });
+
+    it('overrides an empty Authorization header with the configured Bearer token', async () => {
+      const accessToken = 'configured-token';
+      const mbApi = new MusicBrainzApi(await makeSearchApiConfig({
+        accessToken,
+        disableRateLimiting: true
+      }));
+      const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('{}'));
+
+      const httpClient = (mbApi as unknown as { httpClient: HttpClient }).httpClient;
+      await httpClient.get('/ws/2/artist/' + mbid.artist.Stromae, {
+        headers: { Authorization: '   ' } // whitespace-only counts as empty
+      });
+
+      assert.isTrue(fetchStub.calledOnce);
+      const requestInit = fetchStub.firstCall.args[1] as RequestInit;
+      const headers = requestInit.headers as Headers;
+      assert.strictEqual(headers.get('Authorization'), `Bearer ${accessToken}`);
+    });
+
+    it('throws if accessToken is configured but baseUrl is not HTTPS', async () => {
+      const base = await makeSearchApiConfig({
+        accessToken: 'test-access-token',
+        baseUrl: 'http://musicbrainz.org', // intentionally non-HTTPS
+        disableRateLimiting: true
+      });
+      assert.throws(
+        () => new MusicBrainzApi(base),
+        /HTTPS baseUrl/
+      );
+    });
+
+    it('uses Bearer token for XML web-service post() and skips Digest challenge', async () => {
+      const accessToken = 'submit-isrc-token';
+      const mbApi = new MusicBrainzApi(await makeTestApiConfig({
+        accessToken,
+        disableRateLimiting: true,
+        // No botAccount required when accessToken is configured
+        botAccount: undefined
+      }));
+      const fetchStub = sinon.stub(globalThis, 'fetch').resolves(
+        new Response('', { status: 200 })
+      );
+
+      const xmlMetadata = new XmlMetadata();
+      const xmlRecording = xmlMetadata.pushRecording(mbid.recording.Formidable);
+      xmlRecording.isrcList.pushIsrc('BET671300161');
+
+      await mbApi.post('recording', xmlMetadata);
+
+      assert.isTrue(fetchStub.calledOnce, 'fetch should be called exactly once (no Digest retry)');
+      const [, requestInit] = fetchStub.firstCall.args;
+      const headers = (requestInit as RequestInit).headers as Headers;
+      assert.strictEqual(headers.get('Authorization'), `Bearer ${accessToken}`);
+      assert.strictEqual(headers.get('Content-Type'), 'application/xml');
+    });
+
+    it('post() throws when neither accessToken nor botAccount credentials are configured', async () => {
+      const mbApi = new MusicBrainzApi(await makeTestApiConfig({
+        disableRateLimiting: true,
+        botAccount: undefined
+      }));
+
+      const xmlMetadata = new XmlMetadata();
+      xmlMetadata.pushRecording(mbid.recording.Formidable);
+
+      // Stub fetch so an accidental network call would surface as a test failure
+      const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('', { status: 200 }));
+
+      let thrown: Error | undefined;
+      try {
+        await mbApi.post('recording', xmlMetadata);
+      } catch (err) {
+        thrown = err as Error;
+      }
+      assert.isDefined(thrown, 'post() should have thrown');
+      assert.match(
+        (thrown as Error).message,
+        /accessToken.*botAccount|botAccount.*accessToken/i
+      );
+      assert.isFalse(fetchStub.called, 'no HTTP request should be made without credentials');
+    });
+  });
+
   describe("Rate limiting", () => {
     let mbTestApiNoLimit: MusicBrainzApi;
     let mbTestApiLimit: MusicBrainzApi;
@@ -1542,6 +1702,54 @@ describe('Cover Art Archive API', function () {
 
 });
 
+/**
+ * OAuth-authenticated submissions via the XML web service through the Node
+ * entrypoint.
+ *
+ * The endpoints under `/ws/2/...` accept `Authorization: Bearer <token>`
+ */
+describe('Node specific API (OAuth)', () => {
+
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  describe('ISRC submission via XML web service', () => {
+
+    it('uses Bearer token for post() (no botAccount required)', async () => {
+      const accessToken = 'submit-isrc-token';
+      const mbTestApi = new MusicBrainzApiNode(await makeTestApiConfig({
+        accessToken,
+        disableRateLimiting: true,
+        botAccount: undefined
+      }));
+      const fetchStub = sinon.stub(globalThis, 'fetch').resolves(
+        new Response('', { status: 200 })
+      );
+
+      const xmlMetadata = new XmlMetadata();
+      const xmlRecording = xmlMetadata.pushRecording('94fb868b-9233-4f9e-966b-e8036bf7461e');
+      xmlRecording.isrcList.pushIsrc('GB5EM1801762');
+
+      await mbTestApi.post('recording', xmlMetadata);
+
+      assert.isTrue(fetchStub.calledOnce, 'fetch should be called exactly once (no Digest retry)');
+      const [, requestInit] = fetchStub.firstCall.args;
+      const headers = (requestInit as RequestInit).headers as Headers;
+      assert.strictEqual(headers.get('Authorization'), `Bearer ${accessToken}`);
+      assert.strictEqual(headers.get('Content-Type'), 'application/xml');
+    });
+
+  });
+
+});
+
+/**
+ * Skipped: this suite drives the MusicBrainz website form flow
+ * (/login, /logout, /<entity>/<mbid>/edit), which authenticates with
+ * CSRF tokens, session cookies, and form-encoded username/password.
+ * These endpoints do not accept OAuth Bearer tokens.
+ */
 describe.skip('Node specific API', function () {
 
   let mbTestApi: MusicBrainzApiNode;
