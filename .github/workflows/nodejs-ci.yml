@@ -84,6 +84,7 @@ jobs:
           MBUSER: ${{ secrets.MBUSER }}
           MBPWD: ${{ secrets.MBPWD }}
           TEST_TIMEOUT_SEC: ${{ vars.TEST_TIMEOUT_SEC }}
+          TEST_COVERART_TIMEOUT_SEC: ${{ vars.TEST_COVERART_TIMEOUT_SEC }}
           DEBUG: ${{ vars.DEBUG }}
         run: yarn run test-coverage
 
