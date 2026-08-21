@@ -33,31 +33,92 @@ export interface ICoverInfo {
   url: string | null;
 }
 
+export class CoverArtArchiveApiError extends Error {
+  public readonly status: number;
+  public readonly statusText: string;
+  public readonly body?: unknown;
+  public readonly url?: string;
+
+  constructor(message: string, options: {status: number; statusText: string; body?: unknown; url?: string}) {
+    super(message);
+    this.name = 'CoverArtArchiveApiError';
+    this.status = options.status;
+    this.statusText = options.statusText;
+    this.body = options.body;
+    this.url = options.url;
+  }
+}
+
 export class CoverArtArchiveApi {
+
+  private static readonly retryLimit = 3;
 
   private httpClient = new HttpClient({baseUrl: 'https://coverartarchive.org', userAgent: 'Node.js musicbrains-api', timeout: 2000, followRedirects: false});
 
-  private async getJson(path: string) {
+  private async getJson(path: string): Promise<unknown> {
     const response = await this.httpClient.get(path, {
       headers: {
         Accept: "application/json"
-      }
+      },
+      retryLimit: CoverArtArchiveApi.retryLimit
     });
 
-    const contentType = response.headers.get("Content-Type");
-    if (response.status === 404 && contentType?.toLowerCase() !== "application/json") {
+    const contentType = response.headers.get('Content-Type');
+    const mediaType = contentType?.toLowerCase().split(';', 1)[0].trim();
+    const isJson = mediaType === 'application/json' || mediaType?.endsWith('+json') === true;
+
+    if (response.status === 404 && !isJson) {
+      await response.body?.cancel();
       return {
         "error": "Not Found",
         "help": "For usage, please see: https://musicbrainz.org/development/mmd"
       }
     }
 
-    return response.json();
+    const body = await response.text();
+    let json: unknown;
+    if (isJson) {
+      try {
+        json = JSON.parse(body);
+      } catch {
+        if (response.ok) {
+          throw new CoverArtArchiveApiError(
+            `Cover Art Archive returned invalid JSON (${response.status})`,
+            {status: response.status, statusText: response.statusText, body, url: response.url}
+          );
+        }
+      }
+    }
+
+    if (response.status === 404 && json !== undefined) {
+      return json;
+    }
+
+    if (!response.ok) {
+      const apiError = json as {error?: unknown} | undefined;
+      const detail = typeof apiError?.error === 'string' ? apiError.error : response.statusText;
+      const suffix = detail ? `: ${detail}` : '';
+      throw new CoverArtArchiveApiError(
+        `Cover Art Archive request failed (${response.status})${suffix}`,
+        {status: response.status, statusText: response.statusText, body: json ?? body, url: response.url}
+      );
+    }
+
+    if (!isJson) {
+      const receivedType = contentType ? `"${contentType}"` : 'no Content-Type';
+      throw new CoverArtArchiveApiError(
+        `Cover Art Archive returned ${receivedType} instead of JSON (${response.status})`,
+        {status: response.status, statusText: response.statusText, body, url: response.url}
+      );
+    }
+
+    return json;
   }
 
   private async getCoverRedirect(path: string): Promise<string|null> {
     const response = await this.httpClient.get(path, {
-      followRedirects: false
+      followRedirects: false,
+      retryLimit: CoverArtArchiveApi.retryLimit
     });
     switch(response.status) {
       case 307:
