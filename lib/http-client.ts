@@ -111,7 +111,7 @@ export class HttpClient {
         continue;
       }
 
-      debug(`Received status=${response.status}`);
+      // debug(`Received status=${response.status}`);
 
       await this.registerCookies(response);
       return response;
