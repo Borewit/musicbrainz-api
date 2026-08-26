@@ -90,6 +90,11 @@ const config = {
     appVersion: '0.1.0',
     appContactInfo: 'user@mail.org',
 
+    // Optional: OAuth Bearer access token for authenticated requests.
+    // Requires an HTTPS `baseUrl`. When set, `botAccount` is not needed.
+    // Submission scopes: `submit_isrc`, `submit_barcode`.
+    accessToken: 'eyJ...',
+
     // Optional: Proxy settings (default: no proxy server)
     proxy: {
         host: 'localhost',
