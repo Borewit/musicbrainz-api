@@ -91,7 +91,8 @@ const config = {
     appContactInfo: 'user@mail.org',
 
     // Optional: OAuth Bearer access token for authenticated requests.
-    // Requires an HTTPS `baseUrl`. When set, `botAccount` is not needed.
+    // Requires an HTTPS `baseUrl`. For web-service requests, `botAccount` is not needed.
+    // Website methods such as login() and editEntity() still require botAccount.
     // Submission scopes: `submit_isrc`, `submit_barcode`.
     accessToken: 'eyJ...',
 

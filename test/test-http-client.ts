@@ -15,6 +15,33 @@ function makeConnectionReset(): TypeError {
   return Object.assign(new TypeError('fetch failed'), {cause: {code: 'ECONNRESET'}});
 }
 
+describe('HttpClient OAuth transport', () => {
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  it('rejects bearer tokens over HTTP before sending a request', async () => {
+    const client = new HttpClient({
+      baseUrl: 'http://example.test',
+      timeout: 1,
+      userAgent: 'musicbrainz-api/test',
+      accessToken: 'test-access-token'
+    });
+    const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('{}'));
+
+    let caughtError: unknown;
+    try {
+      await client.get('/resource');
+    } catch (error) {
+      caughtError = error;
+    }
+
+    assert.instanceOf(caughtError, Error);
+    assert.match((caughtError as Error).message, /HTTPS baseUrl/);
+    assert.isFalse(fetchStub.called);
+  });
+});
+
 describe('HttpClient retry loop', () => {
 
   let fetchStub: sinon.SinonStub;

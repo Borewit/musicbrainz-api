@@ -1486,6 +1486,51 @@ describe('MusicBrainz-api', function () {
     });
 
     for (const Api of [MusicBrainzApiDefault, MusicBrainzApiNode]) {
+      it(`uses updated tokens for reads and XML submissions (${Api === MusicBrainzApiNode ? 'node' : 'default'} entrypoint)`, async () => {
+        const mbApi = new Api(await makeSearchApiConfig({
+          accessToken: 'original-token',
+          disableRateLimiting: true
+        }));
+        const fetchStub = sinon.stub(globalThis, 'fetch').callsFake(async () => new Response('{}'));
+
+        await mbApi.restGet(`/artist/${mbid.artist.Stromae}`);
+        mbApi.config.accessToken = 'replacement-token';
+        await mbApi.restGet(`/artist/${mbid.artist.Stromae}`);
+        await mbApi.post('recording', new XmlMetadata());
+        mbApi.config.accessToken = undefined;
+        await mbApi.restGet(`/artist/${mbid.artist.Stromae}`);
+        mbApi.config.botAccount = {username: 'test-user', password: 'test-password'};
+        await mbApi.post('recording', new XmlMetadata());
+
+        assert.deepEqual(fetchStub.args.map(([, init]) => new Headers(init?.headers).get('Authorization')), [
+          'Bearer original-token',
+          'Bearer replacement-token',
+          'Bearer replacement-token',
+          null,
+          '' // The initial Digest request must not use the removed Bearer token.
+        ]);
+      });
+
+      it(`rejects tokens added to an HTTP client (${Api === MusicBrainzApiNode ? 'node' : 'default'} entrypoint)`, async () => {
+        const mbApi = new Api(await makeSearchApiConfig({
+          baseUrl: 'http://musicbrainz.org',
+          disableRateLimiting: true
+        }));
+        const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('{}'));
+        mbApi.config.accessToken = 'new-token';
+
+        let caughtError: unknown;
+        try {
+          await mbApi.restGet(`/artist/${mbid.artist.Stromae}`);
+        } catch (error) {
+          caughtError = error;
+        }
+
+        assert.instanceOf(caughtError, Error);
+        assert.match((caughtError as Error).message, /HTTPS baseUrl/);
+        assert.isFalse(fetchStub.called);
+      });
+
       for (const status of [400, 401, 403, 503]) {
         it(`rejects OAuth XML submissions with HTTP ${status} (${Api === MusicBrainzApiNode ? 'node' : 'default'} entrypoint)`, async () => {
           const mbApi = new Api(await makeTestApiConfig({
@@ -1505,8 +1550,10 @@ describe('MusicBrainz-api', function () {
             thrown = err;
           }
 
-          assert.instanceOf(thrown, MusicBrainzApiError);
-          const error = thrown as MusicBrainzApiError;
+          if (!(thrown instanceof MusicBrainzApiError)) {
+            throw new Error('Expected the submission to reject with MusicBrainzApiError');
+          }
+          const error = thrown;
           assert.strictEqual(error.status, status);
           assert.strictEqual(error.statusText, 'Submission rejected');
           assert.strictEqual(error.body, body);

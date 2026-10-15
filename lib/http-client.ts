@@ -82,6 +82,9 @@ export class HttpClient {
 
     const existingAuth = headers.get('Authorization');
     if (this.httpOptions.accessToken && (!existingAuth || existingAuth.trim() === '')) {
+      if (new URL(url).protocol !== 'https:') {
+        throw new Error("HttpClient: 'accessToken' requires an HTTPS baseUrl (RFC 6750).");
+      }
       headers.set('Authorization', `Bearer ${this.httpOptions.accessToken}`);
     }
     if (cookies !== null) {
