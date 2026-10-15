@@ -458,11 +458,23 @@ export class MusicBrainzApi {
     // Submit the body once; no digest-challenge retry is needed.
     if (this.config.accessToken) {
       await this.applyRateLimiter();
-      await this.httpClient.post(path, {
+      const response = await this.httpClient.post(path, {
         query: { client: clientId },
         headers: { 'Content-Type': 'application/xml' },
         body: postData
       });
+      if (!response.ok) {
+        const body = await response.text();
+        throw new MusicBrainzApiError(
+          `MusicBrainz submission failed (${response.status}): ${body || response.statusText}`,
+          {
+            status: response.status,
+            statusText: response.statusText,
+            body,
+            url: response.url,
+          }
+        );
+      }
       return;
     }
 
