@@ -29,7 +29,7 @@ import sinon from 'sinon';
 import type { HttpClient } from "../lib/http-client.js";
 import { RateLimitThreshold } from 'rate-limit-threshold';
 import type { AreaIncludes, IArea, IInstrument, InstrumentIncludes, IPlace, IRelation, ISeries, IWork, LabelIncludes, PlaceIncludes, SeriesIncludes, UrlIncludes, SeriesIncludes as WorkIncludes } from "../lib/musicbrainz-api.js";
-import { MusicBrainzApi as MusicBrainzApiDefault } from "../lib/musicbrainz-api.js";
+import { MusicBrainzApi as MusicBrainzApiDefault, MusicBrainzApiError } from "../lib/musicbrainz-api.js";
 import { MusicBrainzApi as MusicBrainzApiNode } from "../lib/musicbrainz-api-node.js";
 
 const appUrl = 'https://github.com/Borewit/musicbrainz-api';
@@ -1484,6 +1484,38 @@ describe('MusicBrainz-api', function () {
       assert.strictEqual(headers.get('Authorization'), `Bearer ${accessToken}`);
       assert.strictEqual(headers.get('Content-Type'), 'application/xml');
     });
+
+    for (const Api of [MusicBrainzApiDefault, MusicBrainzApiNode]) {
+      for (const status of [400, 401, 403, 503]) {
+        it(`rejects OAuth XML submissions with HTTP ${status} (${Api === MusicBrainzApiNode ? 'node' : 'default'} entrypoint)`, async () => {
+          const mbApi = new Api(await makeTestApiConfig({
+            accessToken: 'test-access-token',
+            disableRateLimiting: true,
+            botAccount: undefined
+          }));
+          const body = '<error>Submission rejected</error>';
+          const fetchStub = sinon.stub(globalThis, 'fetch').resolves(
+            new Response(body, { status, statusText: 'Submission rejected' })
+          );
+
+          let thrown: unknown;
+          try {
+            await mbApi.post('recording', new XmlMetadata());
+          } catch (err) {
+            thrown = err;
+          }
+
+          assert.instanceOf(thrown, MusicBrainzApiError);
+          const error = thrown as MusicBrainzApiError;
+          assert.strictEqual(error.status, status);
+          assert.strictEqual(error.statusText, 'Submission rejected');
+          assert.strictEqual(error.body, body);
+          assert.include(error.message, String(status));
+          assert.include(error.message, body);
+          assert.isTrue(fetchStub.calledOnce, 'failed submissions must not be retried');
+        });
+      }
+    }
 
     it('post() throws when neither accessToken nor botAccount credentials are configured', async () => {
       const mbApi = new MusicBrainzApi(await makeTestApiConfig({
