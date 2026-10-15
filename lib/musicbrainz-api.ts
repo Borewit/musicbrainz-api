@@ -262,11 +262,15 @@ export class MusicBrainzApi {
   }
 
   protected getHttpClientOptions(): IHttpClientOptions {
+    const config = this.config;
     return {
       baseUrl: this.config.baseUrl,
       timeout: 500,
       userAgent: `${this.config.appName}/${this.config.appVersion} ( ${this.config.appContactInfo} )`,
-      accessToken: this.config.accessToken,
+      // Keep transport credentials in sync with the public API configuration.
+      get accessToken() {
+        return config.accessToken;
+      },
     };
   }
 
