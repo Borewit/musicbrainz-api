@@ -1,0 +1,5 @@
+{
+  "extension": ["js"],
+  "watch-files": ["lib/**/*.js", "test/**/*.js"],
+  "spec": ["test/test-*.js"]
+}
