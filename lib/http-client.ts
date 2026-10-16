@@ -26,27 +26,27 @@ export interface IHttpClientOptions {
 
 export interface IFetchOptions {
   query?: MultiQueryFormData;
-  /** Maximum number of attempts, including the initial request. Defaults to 3 for GET connection timeouts/unreachable networks, 1 otherwise. */
+  /** Maximum number of attempts, including the initial request. Defaults to 1. */
   retryLimit?: number;
   body?: string;
   headers?: HeadersInit;
   followRedirects?: boolean;
 }
 
-function isTransientConnectionError(err: unknown, includeConnectionReset: boolean): boolean {
+function isTransientConnectionError(err: unknown): boolean {
   if (typeof err !== 'object' || err === null) return false;
 
   const error = err as {code?: unknown; cause?: unknown; errors?: unknown};
   // Node can mix IPv4 timeouts with unreachable IPv6 addresses in one aggregate.
   if (Array.isArray(error.errors)) {
-    return error.errors.length > 0 && error.errors.every(error => isTransientConnectionError(error, includeConnectionReset));
+    return error.errors.length > 0 && error.errors.every(isTransientConnectionError);
   }
 
-  if ((includeConnectionReset && error.code === 'ECONNRESET') || error.code === 'ETIMEDOUT'
+  if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT'
     || error.code === 'UND_ERR_CONNECT_TIMEOUT' || error.code === 'ENETUNREACH') return true;
 
   // Fetch wraps Node/Undici connection errors in a TypeError's cause.
-  return isTransientConnectionError(error.cause, includeConnectionReset);
+  return isTransientConnectionError(error.cause);
 }
 
 export class HttpClient {
@@ -82,8 +82,6 @@ export class HttpClient {
     const maxAttempts = typeof options.retryLimit === 'number' && Number.isFinite(options.retryLimit)
       ? Math.max(1, Math.floor(options.retryLimit))
       : 1;
-    // Only retry reads by default: a timeout does not prove a submission was not sent.
-    const maxConnectionAttempts = options.retryLimit === undefined && method === 'get' ? 3 : maxAttempts;
     const retryTimeout = this.httpOptions.timeout ? this.httpOptions.timeout : 500;
     const url = this._buildUrl(path, options.query);
     const cookies = await this.getCookies();
@@ -103,7 +101,7 @@ export class HttpClient {
     }
 
     let attempt = 0;
-    while (attempt < maxConnectionAttempts) {
+    while (attempt < maxAttempts) {
       if (attempt > 0) {
         await this._delay(retryTimeout * attempt);
       }
@@ -119,12 +117,11 @@ export class HttpClient {
           redirect: options.followRedirects === false ? 'manual' : 'follow'
         })
       } catch (err) {
-        const retryAttempts = isTransientConnectionError(err, false) ? maxConnectionAttempts : maxAttempts;
-        if (attempt < retryAttempts && isTransientConnectionError(err, true)) {
-          debug(`Transient connection failure on attempt ${attempt}/${retryAttempts}: ${err instanceof Error ? err.message : 'unknown error'}; retry in ${retryDelay} ms`);
+        if (attempt < maxAttempts && isTransientConnectionError(err)) {
+          debug(`Transient connection failure on attempt ${attempt}/${maxAttempts}: ${err instanceof Error ? err.message : 'unknown error'}; retry in ${retryDelay} ms`);
           continue;
         }
-        debug('Fetch failed on attempt %d/%d: %O', attempt, retryAttempts, err);
+        debug('Fetch failed on attempt %d/%d: %O', attempt, maxAttempts, err);
         throw err;
       }
 
