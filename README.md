@@ -34,6 +34,17 @@ The distributed JavaScript codebase is compliant with the [ECMAScript 2020 (11th
 > [!NOTE]
 > We are looking into making this package usable in the browser as well.
 
+## Development
+
+Use Node.js 24 and enable Corepack (`corepack enable`) to use the Yarn version pinned in `package.json`.
+Install dependencies with `yarn install --immutable`.
+
+- `yarn test` runs the TypeScript tests with `tsx`.
+- `yarn build:dev` compiles the library and tests with TypeScript.
+- `yarn test-coverage:compiled` runs the compiled tests with coverage, as in CI. Run `yarn build:dev` first.
+
+The integration tests require `MBUSER` and `MBPWD` for a test MusicBrainz account.
+
 ## Support the Project
 If you find this project useful and would like to support its development, consider sponsoring or contributing:
  
