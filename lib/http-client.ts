@@ -21,6 +21,8 @@ export interface IHttpClientOptions {
    */
   accessToken?: string;
   followRedirects?: boolean;
+  /** Request timeout in milliseconds; no timeout by default. */
+  requestTimeout?: number;
 }
 
 export interface IFetchOptions {
@@ -113,11 +115,16 @@ export class HttpClient {
       }
       ++attempt;
       const retryDelay = retryTimeout * attempt;
+      const signal =
+        this.httpOptions.requestTimeout !== undefined
+          ? AbortSignal.timeout(this.httpOptions.requestTimeout)
+          : undefined;
       let response: Response;
       try {
         response = await fetch(url, {
           method,
           ...requestOptions,
+          signal,
           headers,
           body: requestOptions.body,
           redirect: requestOptions.followRedirects === false ? 'manual' : 'follow'
