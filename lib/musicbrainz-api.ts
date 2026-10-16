@@ -133,6 +133,11 @@ export interface IMusicBrainzConfig {
    * Default is [15, 18], which allows up to 15 requests every 18 seconds
    */
   rateLimit?: [number, number];
+  /**
+   * Maximum number of attempts for a GET request, including the initial request.
+   * Defaults to 10. Set to 1 to disable retries.
+   */
+  retryLimit?: number;
 }
 
 interface IInternalConfig extends IMusicBrainzConfig {
@@ -220,7 +225,7 @@ export class MusicBrainzApi {
 
     const response = await this.httpClient.get(`/ws/2${relUrl}`, {
       query,
-      retryLimit: 10
+      retryLimit: this.config.retryLimit ?? 10
     });
 
     if (!response.ok) {
