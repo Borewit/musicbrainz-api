@@ -73,6 +73,14 @@ describe('HttpClient retry loop', () => {
   const connectionTimeouts = [
     {name: 'Node timeout', error: Object.assign(new Error('connect timed out'), {code: 'ETIMEDOUT'})},
     {name: 'Undici timeout', error: Object.assign(new Error('connect timed out'), {code: 'UND_ERR_CONNECT_TIMEOUT'})},
+    {name: 'unreachable network', error: Object.assign(new Error('network unreachable'), {code: 'ENETUNREACH'})},
+    {
+      name: 'mixed IPv4 timeout and unreachable IPv6 network',
+      error: Object.assign(new Error('All connection attempts failed'), {errors: [
+        Object.assign(new Error('connect timed out'), {code: 'ETIMEDOUT'}),
+        Object.assign(new Error('IPv6 network unreachable'), {code: 'ENETUNREACH'})
+      ], code: 'ETIMEDOUT'})
+    },
     {
       name: 'aggregate Node timeout',
       error: Object.assign(new Error('All connection attempts failed'), {errors: [
@@ -209,7 +217,7 @@ describe('HttpClient retry loop', () => {
     {code: 'CERT_HAS_EXPIRED'},
     {code: 'UND_ERR_HEADERS_TIMEOUT'},
     {errors: []},
-    {code: 'ETIMEDOUT', errors: [{code: 'ETIMEDOUT'}, {code: 'ENETUNREACH'}]},
+    {code: 'ETIMEDOUT', errors: [{code: 'ETIMEDOUT'}, {code: 'CERT_HAS_EXPIRED'}]},
     {errors: [{code: 'ETIMEDOUT'}, {code: 'ENOTFOUND'}]}
   ]) {
     it(`does not retry an unrelated fetch failure (${JSON.stringify(cause)})`, async () => {
