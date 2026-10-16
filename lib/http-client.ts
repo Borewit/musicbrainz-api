@@ -1,4 +1,3 @@
-import type { Cookie } from "tough-cookie";
 import Debug from "debug";
 
 export type HttpFormData = { [key: string]: string; }
@@ -84,7 +83,6 @@ export class HttpClient {
       : 1;
     const retryTimeout = this.httpOptions.timeout ? this.httpOptions.timeout : 500;
     const url = this._buildUrl(path, options.query);
-    const cookies = await this.getCookies();
 
     const headers = new Headers(options.headers);
     headers.set('User-Agent', this.httpOptions.userAgent);
@@ -95,9 +93,6 @@ export class HttpClient {
         throw new Error("HttpClient: 'accessToken' requires an HTTPS baseUrl (RFC 6750).");
       }
       headers.set('Authorization', `Bearer ${this.httpOptions.accessToken}`);
-    }
-    if (cookies !== null) {
-      headers.set('Cookie', cookies);
     }
 
     let attempt = 0;
@@ -133,7 +128,6 @@ export class HttpClient {
 
       debug(`Received status=${response.status}`);
 
-      await this.registerCookies(response);
       return response;
     }
 
@@ -163,14 +157,6 @@ export class HttpClient {
 // Helper: Delays execution
   private _delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  protected registerCookies(_response: Response): Promise<Cookie | undefined> {
-    return Promise.resolve(undefined);
-  }
-
-  public async getCookies(): Promise<string | null> {
-    return Promise.resolve(null);
   }
 
 }

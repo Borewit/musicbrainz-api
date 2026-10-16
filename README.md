@@ -103,7 +103,6 @@ const config = {
 
     // Optional: OAuth Bearer access token for authenticated requests.
     // Requires an HTTPS `baseUrl`. For web-service requests, `botAccount` is not needed.
-    // Website methods such as login() and editEntity() still require botAccount.
     // Submission scopes: `submit_isrc`, `submit_barcode`.
     accessToken: 'eyJ...',
 
@@ -520,36 +519,24 @@ xmlRecording.isrcList.pushIsrc(isrc_Formidable);
 await mbApi.post('recording', xmlMetadata);
 ```    
     
-# Submitting data via user form-data
+# Migrating from website sessions
 
-For all of the following function you need to use a dedicated bot account. 
+The website form methods `login()`, `logout()`, `editEntity()`, and `addIsrc()`
+have been removed, together with the CSRF helpers and cookie store. This is a
+breaking API change. The Node and default entrypoints now share the same stateless
+web-service client.
 
-## Submitting ISRC via post user form-data
+The test server redirects website login and edit requests to MetaBrainz OAuth;
+the old username/password form flow no longer establishes a session. Previously,
+`editEntity()` could mistake a redirect to sign-in for a successful edit.
 
-Use with caution, and only on a test server, it may clear existing metadata has side effect.
-      
-```js
+For ISRC submissions, use `XmlMetadata` with `post('recording', metadata)` as shown
+above. XML web-service submissions support an OAuth `accessToken` or Digest
+`botAccount` credentials and do not require `login()`.
 
-const mbid_Formidable = '16afa384-174e-435e-bfa3-5591accda31c';
-const isrc_Formidable = 'BET671300161';
-
-    
-const recording = await mbApi.lookup('recording', mbid_Formidable);
-
-// Authentication the http-session against MusicBrainz (as defined in config.baseUrl)
-const succeed = await mbApi.login();
-assert.isTrue(succeed, 'Login successful');
-
-// To submit the ISRC, the `recording.id` and `recording.title` are required
-await mbApi.addIsrc(recording, isrc_Formidable);
-```
-
-### URL relationships
-
-The `addUrlToRecording()` and `addSpotifyIdToRecording()` convenience methods have
-been removed. To write URL relationships, including Spotify links, use
-`editEntity()` with the MusicBrainz website form fields for URL relationships.
-This requires `botAccount` credentials.
+The previously removed `addUrlToRecording()` and `addSpotifyIdToRecording()`
+methods have no replacement in the public web-service API. Edit URL relationships
+through the MusicBrainz website.
 
 ## Cover Art Archive API
 

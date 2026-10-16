@@ -25,7 +25,7 @@ import { assert, expect } from 'chai';
 import type * as mb from '../lib/musicbrainz.types.js';
 import { readFile } from 'node:fs/promises';
 import sinon from 'sinon';
-import type { HttpClient } from "../lib/http-client.js";
+import { HttpClient } from "../lib/http-client.js";
 import { RateLimitThreshold } from 'rate-limit-threshold';
 import type { AreaIncludes, IArea, IInstrument, InstrumentIncludes, IPlace, IRelation, ISeries, IWork, LabelIncludes, PlaceIncludes, SeriesIncludes, UrlIncludes, SeriesIncludes as WorkIncludes } from "../lib/musicbrainz-api.js";
 import { MusicBrainzApi as MusicBrainzApiDefault, MusicBrainzApiError } from "../lib/musicbrainz-api.js";
@@ -232,15 +232,6 @@ describe('MusicBrainz-api', function () {
   it('Required environment variable', () => {
     assert.isDefined(process.env.MBUSER, 'process.env.MBUSER');
     assert.isDefined(process.env.MBPWD, 'process.env.MBPWD');
-  });
-
-  it('Extract CSRF', async () => {
-    const html = await readFile(new URL('./csrf.html', import.meta.url), 'utf8');
-    const csrf = MusicBrainzApi.fetchCsrf(html);
-    assert.deepStrictEqual(csrf, {
-      sessionKey: 'csrf_token:x0VIlHob5nPcWKqJIwNPwE5Y3kE+nGQ9fccgTSYbuMU=',
-      token: '6G9f/xJ6Y4fLVvfYGHrzBUM34j6hy4CJrBi3VkVwO9I='
-    }, 'CSRF data');
   });
 
   describe('Read metadata', () => {
@@ -1486,8 +1477,8 @@ describe('MusicBrainz-api', function () {
       assert.strictEqual(headers.get('Content-Type'), 'application/xml');
     });
 
-    for (const Api of [MusicBrainzApiDefault, MusicBrainzApiNode]) {
-      it(`uses updated tokens for reads and XML submissions (${Api === MusicBrainzApiNode ? 'node' : 'default'} entrypoint)`, async () => {
+    for (const [entrypoint, Api] of [['default', MusicBrainzApiDefault], ['node', MusicBrainzApiNode]] as const) {
+      it(`uses updated tokens for reads and XML submissions (${entrypoint} entrypoint)`, async () => {
         const mbApi = new Api(await makeSearchApiConfig({
           accessToken: 'original-token',
           disableRateLimiting: true
@@ -1508,11 +1499,11 @@ describe('MusicBrainz-api', function () {
           'Bearer replacement-token',
           'Bearer replacement-token',
           null,
-          '' // The initial Digest request must not use the removed Bearer token.
+          null // The initial Digest request must not use the removed Bearer token.
         ]);
       });
 
-      it(`rejects tokens added to an HTTP client (${Api === MusicBrainzApiNode ? 'node' : 'default'} entrypoint)`, async () => {
+      it(`rejects tokens added to an HTTP client (${entrypoint} entrypoint)`, async () => {
         const mbApi = new Api(await makeSearchApiConfig({
           baseUrl: 'http://musicbrainz.org',
           disableRateLimiting: true
@@ -1533,7 +1524,7 @@ describe('MusicBrainz-api', function () {
       });
 
       for (const status of [400, 401, 403, 503]) {
-        it(`rejects OAuth XML submissions with HTTP ${status} (${Api === MusicBrainzApiNode ? 'node' : 'default'} entrypoint)`, async () => {
+        it(`rejects OAuth XML submissions with HTTP ${status} (${entrypoint} entrypoint)`, async () => {
           const mbApi = new Api(await makeTestApiConfig({
             accessToken: 'test-access-token',
             disableRateLimiting: true,
@@ -1626,8 +1617,7 @@ describe('MusicBrainz-api', function () {
 
       beforeEach(() => {
         // Stub to avoid unnecessary HTTP requests in the context of these tests
-        const x = mbApi as unknown as { httpClient: HttpClient };
-        sinon.stub(x.httpClient, "get").resolves(new Response('{}'));
+        sinon.stub(HttpClient.prototype, "get").resolves(new Response('{}'));
       });
 
       it("rate limits by default", async () => {
@@ -1659,9 +1649,8 @@ describe('MusicBrainz-api', function () {
     describe('post', () => {
 
       beforeEach(() => {
-        // Stub to avoid unecessary HTTP requests in the context of these tests
-        const x = mbApi as unknown as { httpClient: HttpClient };
-        sinon.stub(x.httpClient, "post").resolves(new Response('{}'));
+        // Stub every client used by these rate-limiter tests.
+        sinon.stub(HttpClient.prototype, "post").resolves(new Response('{}'));
       });
 
       it("rate limits by default", async () => {
@@ -1676,38 +1665,6 @@ describe('MusicBrainz-api', function () {
 
       it("does not rate limit when disableRateLimiting is true", async () => {
         await mbTestApiNoLimit.post("recording", new XmlMetadata());
-        assert.isFalse(rateLimiterSpy.called);
-      });
-
-      afterEach(() => {
-        sinon.restore();
-      });
-    });
-
-    describe.skip('editEntity', () => {
-
-      beforeEach(() => {
-        // Stub to avoid unnecessary HTTP requests in the context of these tests
-        const x = mbApi as unknown as { httpClient: HttpClient };
-        sinon.stub(x.httpClient, "post").resolves(new Response());
-      });
-
-      it("rate limits by default", async () => {
-        await mbTestApi.editEntity("recording", mbid.recording.Formidable, {});
-        assert.isTrue(rateLimiterSpy.calledOnce);
-      });
-
-      it("rate limits when disableRateLimiting is false", async () => {
-        await mbTestApiLimit.editEntity("recording", mbid.recording.Formidable, {});
-        assert.isTrue(rateLimiterSpy.calledOnce);
-      });
-
-      it("does not rate limit when disableRateLimiting is true", async () => {
-        await mbTestApiNoLimit.editEntity(
-          "recording",
-          mbid.recording.Formidable,
-          {}
-        );
         assert.isFalse(rateLimiterSpy.called);
       });
 
@@ -1825,68 +1782,5 @@ describe('Node specific API (OAuth)', () => {
     });
 
   });
-
-});
-
-/**
- * Skipped: this suite drives the MusicBrainz website form flow
- * (/login, /logout, /<entity>/<mbid>/edit), which authenticates with
- * CSRF tokens, session cookies, and form-encoded username/password.
- * These endpoints do not accept OAuth Bearer tokens.
- */
-describe.skip('Node specific API', function () {
-
-  let mbTestApi: MusicBrainzApiNode;
-  let mbApi: MusicBrainzApiNode;
-
-  before(async () => {
-    mbTestApi = new MusicBrainzApiNode(await makeTestApiConfig());
-    mbApi = new MusicBrainzApiNode(await makeSearchApiConfig());
-    // Hack a shared rate-limiter
-    (mbApi as any).rateLimiter = (mbTestApi as any).rateLimiter;
-  });
-
-  this.timeout(timeoutInSec * 1000); // MusicBrainz has a rate limiter
-
-  /**
-   * https://wiki.musicbrainz.org/Development/Release_Editor_Seeding
-   */
-  describe('User (bot) post form-data API', () => {
-
-    it('login & logout', async () => {
-      for (let n = 1; n <= 2; ++n) {
-        assert.isTrue(await mbTestApi.login(), `Login ${n}`);
-        assert.isTrue(await mbTestApi.logout(), `Logout ${n}`);
-      }
-    });
-
-    describe('ISRC', () => {
-
-      it('add ISRC', async () => {
-        const recording = await mbTestApi.lookup('recording', mbid.recording.Formidable, ['isrcs']);
-        assert.strictEqual(recording.id, mbid.recording.Formidable);
-        assert.strictEqual(recording.title, 'Formidable');
-
-        await mbTestApi.addIsrc(recording, 'BET671300161');
-      });
-
-    });
-
-    /**
-     * https://musicbrainz.org/doc/Development/XML_Web_Service/Version_2#ISRC_submission
-     */
-    describe('ISRC submission', () => {
-
-      it('add ISRC', async () => {
-        const xmlMedata = new XmlMetadata();
-        const xmlRec = xmlMedata.pushRecording('94fb868b-9233-4f9e-966b-e8036bf7461e');
-        xmlRec.isrcList.pushIsrc('GB5EM1801762');
-        await mbTestApi.post('recording', xmlMedata);
-      });
-
-    });
-
-  });
-
 
 });
