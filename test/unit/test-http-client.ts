@@ -415,3 +415,38 @@ describe('HttpClient request encoding', () => {
     assert.strictEqual(fetchStub.callCount, 2);
   });
 });
+
+describe('MusicBrainzApi retry configuration', () => {
+  afterEach(() => {
+    sinon.restore();
+  });
+
+  for (const { retryLimit, expectedAttempts } of [
+    { retryLimit: undefined, expectedAttempts: 10 },
+    { retryLimit: 3, expectedAttempts: 3 },
+    { retryLimit: 1, expectedAttempts: 1 }
+  ]) {
+    it(`limits GET attempts to ${expectedAttempts} with retryLimit=${retryLimit}`, async () => {
+      const fetchStub = sinon.stub(globalThis, 'fetch').callsFake(
+        async () =>
+          new Response(JSON.stringify({ error: 'Service unavailable' }), {
+            status: 503,
+            statusText: 'Service Unavailable'
+          })
+      );
+      sinon.stub(HttpClient.prototype as unknown as { _delay(ms: number): Promise<void> }, '_delay').resolves();
+      const client = new MusicBrainzApi({ disableRateLimiting: true, retryLimit });
+
+      let caughtError: unknown;
+      try {
+        await client.restGet('/artist/test');
+      } catch (error) {
+        caughtError = error;
+      }
+
+      assert.instanceOf(caughtError, MusicBrainzApiError);
+      assert.strictEqual((caughtError as MusicBrainzApiError).status, 503);
+      assert.strictEqual(fetchStub.callCount, expectedAttempts);
+    });
+  }
+});
