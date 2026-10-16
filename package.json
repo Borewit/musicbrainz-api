@@ -65,7 +65,7 @@
     }
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.9",
+    "@biomejs/biome": "2.5.15",
     "@types/chai": "^5.0.0",
     "@types/jsontoxml": "^1.0.5",
     "@types/mocha": "^10.0.4",

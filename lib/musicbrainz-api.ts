@@ -1,25 +1,23 @@
-import { StatusCodes as HttpStatus } from 'http-status-codes';
 import Debug from 'debug';
-import type { XmlMetadata } from './xml/xml-metadata.js';
-import { DigestAuth } from './digest-auth.js';
-
+import { StatusCodes as HttpStatus } from 'http-status-codes';
 import { RateLimitThreshold } from 'rate-limit-threshold';
-import type * as mb from './musicbrainz.types.js';
+import { DigestAuth } from './digest-auth.js';
 import { HttpClient, type IHttpClientOptions, type MultiQueryFormData } from './http-client.js';
-
-export { XmlMetadata } from './xml/xml-metadata.js';
-export { XmlIsrc } from './xml/xml-isrc.js';
-export { XmlIsrcList } from './xml/xml-isrc-list.js';
-export { XmlRecording } from './xml/xml-recording.js';
+import type * as mb from './musicbrainz.types.js';
+import type { XmlMetadata } from './xml/xml-metadata.js';
 
 export * from './musicbrainz.types.js';
+export { XmlIsrc } from './xml/xml-isrc.js';
+export { XmlIsrcList } from './xml/xml-isrc-list.js';
+export { XmlMetadata } from './xml/xml-metadata.js';
+export { XmlRecording } from './xml/xml-recording.js';
 
 /*
  * https://musicbrainz.org/doc/Development/XML_Web_Service/Version_2#Subqueries
  */
 
 export type RelationsIncludes =
-  'area-rels'
+  | 'area-rels'
   | 'artist-rels'
   | 'event-rels'
   | 'genre-rels'
@@ -34,10 +32,10 @@ export type RelationsIncludes =
   | 'work-rels';
 
 export type SubQueryIncludes =
-/**
- * include discids for all media in the releases
- */
-  'discids'
+  /**
+   * include discids for all media in the releases
+   */
+  | 'discids'
   /**
    * include media for all releases, this includes the # of tracks on each medium and its format.
    */
@@ -55,28 +53,13 @@ export type SubQueryIncludes =
    */
   | 'various-artists';
 
-export type MiscIncludes =
-  'aliases'
-  | 'annotation'
-  | 'tags'
-  | 'genres'
-  | 'ratings'
-  | 'media';
+export type MiscIncludes = 'aliases' | 'annotation' | 'tags' | 'genres' | 'ratings' | 'media';
 
 export type AreaIncludes = MiscIncludes | RelationsIncludes;
 
-export type ArtistIncludes =
-  MiscIncludes
-  | RelationsIncludes
-  | 'recordings'
-  | 'releases'
-  | 'release-groups'
-  | 'works';
+export type ArtistIncludes = MiscIncludes | RelationsIncludes | 'recordings' | 'releases' | 'release-groups' | 'works';
 
-export type CollectionIncludes =
-  MiscIncludes
-  | RelationsIncludes
-  | 'user-collections';
+export type CollectionIncludes = MiscIncludes | RelationsIncludes | 'user-collections';
 
 export type EventIncludes = MiscIncludes | RelationsIncludes;
 
@@ -84,23 +67,14 @@ export type GenreIncludes = MiscIncludes;
 
 export type InstrumentIncludes = MiscIncludes | RelationsIncludes;
 
-export type LabelIncludes =
-  MiscIncludes
-  | RelationsIncludes
-  | 'releases';
+export type LabelIncludes = MiscIncludes | RelationsIncludes | 'releases';
 
 export type PlaceIncludes = MiscIncludes | RelationsIncludes;
 
-export type RecordingIncludes =
-  MiscIncludes
-  | RelationsIncludes
-  | SubQueryIncludes
-  | 'artists'
-  | 'releases'
-  | 'isrcs';
+export type RecordingIncludes = MiscIncludes | RelationsIncludes | SubQueryIncludes | 'artists' | 'releases' | 'isrcs';
 
 export type ReleaseIncludes =
-  MiscIncludes
+  | MiscIncludes
   | SubQueryIncludes
   | RelationsIncludes
   | 'artists'
@@ -110,12 +84,7 @@ export type ReleaseIncludes =
   | 'release-groups'
   | 'recording-level-rels';
 
-export type ReleaseGroupIncludes =
-  MiscIncludes
-  | SubQueryIncludes
-  | RelationsIncludes
-  | 'artists'
-  | 'releases';
+export type ReleaseGroupIncludes = MiscIncludes | SubQueryIncludes | RelationsIncludes | 'artists' | 'releases';
 
 export type SeriesIncludes = MiscIncludes | RelationsIncludes;
 
@@ -125,50 +94,49 @@ export type UrlIncludes = RelationsIncludes;
 
 export type IFormData = { [key: string]: string | number };
 
-
 const debug = Debug('musicbrainz-api');
 
 export interface IMusicBrainzConfig {
   botAccount?: {
-    username?: string,
-    password?: string
-  },
-  baseUrl?: string,
+    username?: string;
+    password?: string;
+  };
+  baseUrl?: string;
 
-  appName?: string,
-  appVersion?: string,
+  appName?: string;
+  appVersion?: string;
 
   /**
    * OAuth Bearer access token for authenticated requests.
    */
-  accessToken?: string,
+  accessToken?: string;
 
   /**
    * HTTP Proxy
    */
-  proxy?: string,
+  proxy?: string;
 
   /**
    * User e-mail address or application URL
    */
-  appContactInfo?: string,
+  appContactInfo?: string;
 
-  disableRateLimiting?: boolean
- /**
-  * Optional rate limit configuration.
-  * 
-  * [maxRequests, periodSeconds]
-  * 
-  * maxRequests     The maximum number of allowed requests within the period
-  * periodSeconds   The time window in seconds during which requests are counted
-  * 
-  * Default is [15, 18], which allows up to 15 requests every 18 seconds
-  */
-  rateLimit?: [number, number]
+  disableRateLimiting?: boolean;
+  /**
+   * Optional rate limit configuration.
+   *
+   * [maxRequests, periodSeconds]
+   *
+   * maxRequests     The maximum number of allowed requests within the period
+   * periodSeconds   The time window in seconds during which requests are counted
+   *
+   * Default is [15, 18], which allows up to 15 requests every 18 seconds
+   */
+  rateLimit?: [number, number];
 }
 
 interface IInternalConfig extends IMusicBrainzConfig {
-  baseUrl: string,
+  baseUrl: string;
 }
 
 type MusicBrainzErrorBody = {
@@ -193,7 +161,7 @@ export class MusicBrainzApiError extends Error {
 
   constructor(message: string, opts: { status: number; statusText: string; body?: unknown; url?: string }) {
     super(message);
-    this.name = "MusicBrainzApiError";
+    this.name = 'MusicBrainzApiError';
     this.status = opts.status;
     this.statusText = opts.statusText;
     this.body = opts.body;
@@ -202,19 +170,17 @@ export class MusicBrainzApiError extends Error {
 }
 
 export class MusicBrainzApi {
-
   public readonly config: IInternalConfig;
 
   protected rateLimiter: RateLimitThreshold;
   protected httpClient: HttpClient;
   public constructor(_config?: IMusicBrainzConfig) {
-
     this.config = {
       ...{
         baseUrl: 'https://musicbrainz.org'
       },
       ..._config
-    }
+    };
 
     // RFC 6750 §5.3: Bearer tokens require TLS. Reject non-HTTPS baseUrl when
     // an accessToken is configured to prevent token leakage over plain HTTP.
@@ -226,7 +192,7 @@ export class MusicBrainzApi {
 
     this.httpClient = this.initHttpClient();
 
-    const limits = this.config.rateLimit ?? [15,18];
+    const limits = this.config.rateLimit ?? [15, 18];
     this.rateLimiter = new RateLimitThreshold(limits[0], limits[1]);
   }
 
@@ -239,7 +205,7 @@ export class MusicBrainzApi {
       // Keep transport credentials in sync with the public API configuration.
       get accessToken() {
         return config.accessToken;
-      },
+      }
     };
   }
 
@@ -248,7 +214,6 @@ export class MusicBrainzApi {
   }
 
   public async restGet<T>(relUrl: string, query: MultiQueryFormData = {}): Promise<T> {
-
     query.fmt = 'json';
 
     await this.applyRateLimiter();
@@ -258,22 +223,20 @@ export class MusicBrainzApi {
       retryLimit: 10
     });
 
-    if(!response.ok) {
-
+    if (!response.ok) {
       const body = await safeJson(response);
       const mb = (body ?? {}) as MusicBrainzErrorBody;
 
       // Prefer the API-provided message when available.
-      const message =
-        mb.error
-          ? `MusicBrainz request failed (${response.status}): ${mb.error}`
-          : `MusicBrainz request failed (${response.status}): ${response.statusText}`;
+      const message = mb.error
+        ? `MusicBrainz request failed (${response.status}): ${mb.error}`
+        : `MusicBrainz request failed (${response.status}): ${response.statusText}`;
 
       throw new MusicBrainzApiError(message, {
         status: response.status,
         statusText: response.statusText,
         body,
-        url: response.url,
+        url: response.url
       });
     }
 
@@ -300,18 +263,18 @@ export class MusicBrainzApi {
   public lookup(entity: 'url', mbid: string, inc?: UrlIncludes[]): Promise<mb.IUrl>;
   public lookup(entity: 'event', mbid: string, inc?: EventIncludes[]): Promise<mb.IEvent>;
   public lookup<T, I extends string = never>(entity: mb.EntityType, mbid: string, inc: I[] = []): Promise<T> {
-    return this.restGet<T>(`/${entity}/${mbid}`, {inc: inc.join(' ')});
+    return this.restGet<T>(`/${entity}/${mbid}`, { inc: inc.join(' ') });
   }
 
   public lookupUrl(url: string, inc?: UrlIncludes[]): Promise<mb.IUrl>;
   public lookupUrl(url: string[], inc?: UrlIncludes[]): Promise<mb.IUrlLookupResult>;
   public async lookupUrl(url: string | string[], inc: UrlIncludes[] = []): Promise<mb.IUrlLookupResult | mb.IUrl> {
-    const result = await this.restGet<mb.IUrlLookupResult>('/url', {resource: url, inc: inc.join(' ')});
+    const result = await this.restGet<mb.IUrlLookupResult>('/url', { resource: url, inc: inc.join(' ') });
     if (Array.isArray(url) && url.length <= 1) {
       return {
         'url-count': 1,
         'url-offset': 0,
-        urls: [result as any as mb.IUrl],
+        urls: [result as any as mb.IUrl]
       };
     }
     return result;
@@ -328,31 +291,59 @@ export class MusicBrainzApi {
    * @param inc Includes, which allows you to request more information to be included about the entity
    */
   public browse(entity: 'area', query?: mb.IBrowseAreasQuery, inc?: AreaIncludes[]): Promise<mb.IBrowseAreasResult>;
-  public browse(entity: 'artist', query?: mb.IBrowseArtistsQuery, inc?: ArtistIncludes[]): Promise<mb.IBrowseArtistsResult>;
-  public browse(entity: 'collection', query?: mb.IBrowseCollectionsQuery, inc?: CollectionIncludes[]): Promise<mb.IBrowseCollectionsResult> ;
+  public browse(
+    entity: 'artist',
+    query?: mb.IBrowseArtistsQuery,
+    inc?: ArtistIncludes[]
+  ): Promise<mb.IBrowseArtistsResult>;
+  public browse(
+    entity: 'collection',
+    query?: mb.IBrowseCollectionsQuery,
+    inc?: CollectionIncludes[]
+  ): Promise<mb.IBrowseCollectionsResult>;
   public browse(entity: 'event', query?: mb.IBrowseEventsQuery, inc?: EventIncludes[]): Promise<mb.IBrowseEventsResult>;
   public browse(entity: 'label', query?: mb.IBrowseLabelsQuery, inc?: LabelIncludes[]): Promise<mb.IBrowseLabelsResult>;
-  public browse(entity: 'instrument', query?: mb.IBrowseInstrumentsQuery, inc?: InstrumentIncludes[]): Promise<mb.IBrowseInstrumentsResult>;
+  public browse(
+    entity: 'instrument',
+    query?: mb.IBrowseInstrumentsQuery,
+    inc?: InstrumentIncludes[]
+  ): Promise<mb.IBrowseInstrumentsResult>;
   public browse(entity: 'place', query?: mb.IBrowsePlacesQuery, inc?: PlaceIncludes[]): Promise<mb.IBrowsePlacesResult>;
-  public browse(entity: 'recording', query?: mb.IBrowseRecordingsQuery, inc?: RecordingIncludes[]): Promise<mb.IBrowseRecordingsResult>;
-  public browse(entity: 'release', query?: mb.IBrowseReleasesQuery, inc?: ReleaseIncludes[]): Promise<mb.IBrowseReleasesResult>;
-  public browse(entity: 'release-group', query?: mb.IBrowseReleaseGroupsQuery, inc?: ReleaseGroupIncludes[]): Promise<mb.IBrowseReleaseGroupsResult>;
-  public browse(entity: 'series', query?: mb.IBrowseSeriesQuery, inc?: SeriesIncludes[]): Promise<mb.IBrowseSeriesResult>;
+  public browse(
+    entity: 'recording',
+    query?: mb.IBrowseRecordingsQuery,
+    inc?: RecordingIncludes[]
+  ): Promise<mb.IBrowseRecordingsResult>;
+  public browse(
+    entity: 'release',
+    query?: mb.IBrowseReleasesQuery,
+    inc?: ReleaseIncludes[]
+  ): Promise<mb.IBrowseReleasesResult>;
+  public browse(
+    entity: 'release-group',
+    query?: mb.IBrowseReleaseGroupsQuery,
+    inc?: ReleaseGroupIncludes[]
+  ): Promise<mb.IBrowseReleaseGroupsResult>;
+  public browse(
+    entity: 'series',
+    query?: mb.IBrowseSeriesQuery,
+    inc?: SeriesIncludes[]
+  ): Promise<mb.IBrowseSeriesResult>;
   public browse(entity: 'url', query?: mb.IBrowseUrlsQuery, inc?: UrlIncludes[]): Promise<mb.IUrl>;
   public browse(entity: 'work', query?: mb.IBrowseWorksQuery, inc?: WorkIncludes[]): Promise<mb.IBrowseWorksResult>;
-  public browse<T>(entity: mb.EntityType, query?: { [key: string]: any; }, inc?: string[]): Promise<T> {
-    query = query ? query : {};
+  public browse<T>(entity: mb.EntityType, query?: { [key: string]: any }, inc?: string[]): Promise<T> {
+    const browseQuery = query ? query : {};
     if (inc) {
       // Serialize include parameter
-      query.inc = inc.join(' ');
+      browseQuery.inc = inc.join(' ');
     }
-    for(const pipedFilter of ['type', 'status']) {
-      if (query[pipedFilter]) {
+    for (const pipedFilter of ['type', 'status']) {
+      if (browseQuery[pipedFilter]) {
         // Serialize type parameter
-        query[pipedFilter] = query[pipedFilter].join('|');
+        browseQuery[pipedFilter] = browseQuery[pipedFilter].join('|');
       }
     }
-    return this.restGet<T>(`/${entity}`, query);
+    return this.restGet<T>(`/${entity}`, browseQuery);
   }
 
   // -----------------------------------------------------------------------------------------------------------------
@@ -364,23 +355,65 @@ export class MusicBrainzApi {
    * @param entity e.g. 'recording'
    * @param query e.g.: '" artist: Madonna, track: Like a virgin"' or object with search terms: {artist: Madonna}
    */
-  public async search(entity: 'annotation', query: mb.ISearchQuery<(MiscIncludes | RelationsIncludes)>): Promise<mb.IAnnotationList>;
-  public async search(entity: 'area', query: mb.ISearchQuery<AreaIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IAreaList>;
-  public async search(entity: 'artist', query: mb.ISearchQuery<ArtistIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IArtistList>;
-  public async search(entity: 'cdstub', query: mb.ISearchQuery<(MiscIncludes | RelationsIncludes)>): Promise<mb.ICdStubList>;
-  public async search(entity: 'event', query: mb.ISearchQuery<EventIncludes> & mb.ILinkedEntitiesEvent): Promise<mb.IEventList>;
-  public async search(entity: 'instrument', query: mb.ISearchQuery<InstrumentIncludes> & mb.ILinkedEntitiesInstrument): Promise<mb.IInstrumentList>;
-  public async search(entity: 'label', query: mb.ISearchQuery<LabelIncludes> & mb.ILinkedEntitiesLabel): Promise<mb.ILabelList>;
-  public async search(entity: 'place', query: mb.ISearchQuery<PlaceIncludes> & mb.ILinkedEntitiesPlace): Promise<mb.IPlaceList>;
-  public async search(entity: 'recording', query: mb.ISearchQuery<RecordingIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IRecordingList>;
-  public async search(entity: 'release', query: mb.ISearchQuery<ReleaseIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IReleaseList>;
-  public async search(entity: 'release-group', query: mb.ISearchQuery<ReleaseGroupIncludes> & mb.ILinkedEntitiesArea): Promise<mb.IReleaseGroupList>;
-  public async search(entity: 'series', query: mb.ISearchQuery<SeriesIncludes> & mb.ILinkedEntitiesSeries): Promise<mb.ISeriesList>;
+  public async search(
+    entity: 'annotation',
+    query: mb.ISearchQuery<MiscIncludes | RelationsIncludes>
+  ): Promise<mb.IAnnotationList>;
+  public async search(
+    entity: 'area',
+    query: mb.ISearchQuery<AreaIncludes> & mb.ILinkedEntitiesArea
+  ): Promise<mb.IAreaList>;
+  public async search(
+    entity: 'artist',
+    query: mb.ISearchQuery<ArtistIncludes> & mb.ILinkedEntitiesArea
+  ): Promise<mb.IArtistList>;
+  public async search(
+    entity: 'cdstub',
+    query: mb.ISearchQuery<MiscIncludes | RelationsIncludes>
+  ): Promise<mb.ICdStubList>;
+  public async search(
+    entity: 'event',
+    query: mb.ISearchQuery<EventIncludes> & mb.ILinkedEntitiesEvent
+  ): Promise<mb.IEventList>;
+  public async search(
+    entity: 'instrument',
+    query: mb.ISearchQuery<InstrumentIncludes> & mb.ILinkedEntitiesInstrument
+  ): Promise<mb.IInstrumentList>;
+  public async search(
+    entity: 'label',
+    query: mb.ISearchQuery<LabelIncludes> & mb.ILinkedEntitiesLabel
+  ): Promise<mb.ILabelList>;
+  public async search(
+    entity: 'place',
+    query: mb.ISearchQuery<PlaceIncludes> & mb.ILinkedEntitiesPlace
+  ): Promise<mb.IPlaceList>;
+  public async search(
+    entity: 'recording',
+    query: mb.ISearchQuery<RecordingIncludes> & mb.ILinkedEntitiesArea
+  ): Promise<mb.IRecordingList>;
+  public async search(
+    entity: 'release',
+    query: mb.ISearchQuery<ReleaseIncludes> & mb.ILinkedEntitiesArea
+  ): Promise<mb.IReleaseList>;
+  public async search(
+    entity: 'release-group',
+    query: mb.ISearchQuery<ReleaseGroupIncludes> & mb.ILinkedEntitiesArea
+  ): Promise<mb.IReleaseGroupList>;
+  public async search(
+    entity: 'series',
+    query: mb.ISearchQuery<SeriesIncludes> & mb.ILinkedEntitiesSeries
+  ): Promise<mb.ISeriesList>;
   public async search(entity: 'tag', query: mb.ISearchQuery<MiscIncludes | RelationsIncludes>): Promise<mb.ITagList>;
   public async search(entity: 'url', query: mb.ISearchQuery<UrlIncludes> & mb.ILinkedEntitiesUrl): Promise<mb.IUrlList>;
-  public async search(entity: 'work', query: mb.ISearchQuery<WorkIncludes> & mb.ILinkedEntitiesWork): Promise<mb.IWorkList>;
-  public async search<T extends mb.ISearchResult, I extends string = never>(entity: mb.EntityType | mb.OtherEntityTypes, query: mb.ISearchQuery<I>): Promise<T> {
-    const urlQuery: any = {...query};
+  public async search(
+    entity: 'work',
+    query: mb.ISearchQuery<WorkIncludes> & mb.ILinkedEntitiesWork
+  ): Promise<mb.IWorkList>;
+  public async search<T extends mb.ISearchResult, I extends string = never>(
+    entity: mb.EntityType | mb.OtherEntityTypes,
+    query: mb.ISearchQuery<I>
+  ): Promise<T> {
+    const urlQuery: any = { ...query };
     if (typeof query.query === 'object') {
       urlQuery.query = makeAndQueryString(query.query);
     }
@@ -412,9 +445,8 @@ export class MusicBrainzApi {
   }
 
   public async post(entity: mb.EntityType, xmlMetadata: XmlMetadata): Promise<void> {
-
     if (!this.config.appName || !this.config.appVersion) {
-      throw new Error("XML-Post requires the appName & appVersion to be defined");
+      throw new Error('XML-Post requires the appName & appVersion to be defined');
     }
 
     // Require credentials before serializing XML or making a network request.
@@ -434,20 +466,27 @@ export class MusicBrainzApi {
 
     for (let attempt = 0; attempt < 5; ++attempt) {
       await this.applyRateLimiter();
-      const headers: Record<string, string> = {'Content-Type': 'application/xml'};
-      if (digest) headers.Authorization = digest;
+      const headers: Record<string, string> = { 'Content-Type': 'application/xml' };
+      if (digest) {
+        headers.Authorization = digest;
+      }
       const response = await this.httpClient.post(path, {
-        query: {client: clientId},
+        query: { client: clientId },
         headers,
         body: postData
       });
 
       const challenge = response.headers.get('www-authenticate');
-      if (!this.config.accessToken && response.status === HttpStatus.UNAUTHORIZED
-        && challenge && /^Digest\s/i.test(challenge) && attempt < 4) {
+      if (
+        !this.config.accessToken &&
+        response.status === HttpStatus.UNAUTHORIZED &&
+        challenge &&
+        /^Digest\s/i.test(challenge) &&
+        attempt < 4
+      ) {
         // Native fetch exposes status and Headers, not the former client's response fields.
         await response.text();
-        const auth = new DigestAuth(this.config.botAccount as {username: string, password: string});
+        const auth = new DigestAuth(this.config.botAccount as { username: string; password: string });
         digest = auth.digest('POST', digestUri, challenge);
         continue;
       }
@@ -460,7 +499,7 @@ export class MusicBrainzApi {
             status: response.status,
             statusText: response.statusText,
             body,
-            url: response.url,
+            url: response.url
           }
         );
       }
@@ -477,5 +516,7 @@ export class MusicBrainzApi {
 }
 
 export function makeAndQueryString(keyValuePairs: IFormData): string {
-  return Object.keys(keyValuePairs).map(key => `${key}:"${keyValuePairs[key]}"`).join(' AND ');
+  return Object.keys(keyValuePairs)
+    .map(key => `${key}:"${keyValuePairs[key]}"`)
+    .join(' AND ');
 }

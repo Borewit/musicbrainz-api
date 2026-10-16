@@ -1,8 +1,8 @@
-import {createHash} from 'node:crypto';
-import {assert} from 'chai';
+import { createHash } from 'node:crypto';
+import { assert } from 'chai';
 import sinon from 'sinon';
-import {MusicBrainzApi as DefaultApi, MusicBrainzApiError, XmlMetadata} from '../lib/entry-default.js';
-import {MusicBrainzApi as NodeApi} from '../lib/entry-node.js';
+import { MusicBrainzApi as DefaultApi, MusicBrainzApiError, XmlMetadata } from '../lib/entry-default.js';
+import { MusicBrainzApi as NodeApi } from '../lib/entry-node.js';
 
 function makeMetadata(): XmlMetadata {
   const metadata = new XmlMetadata();
@@ -16,20 +16,25 @@ function makeConfig() {
     appName: 'musicbrainz-api-test',
     appVersion: '1.0.0',
     disableRateLimiting: true,
-    botAccount: {username: 'test-user', password: 'test-password'}
+    botAccount: { username: 'test-user', password: 'test-password' }
   };
 }
 
 describe('Stateless web-service authentication', () => {
   afterEach(() => sinon.restore());
 
-  for (const [name, Api] of [['default', DefaultApi], ['node', NodeApi]] as const) {
+  for (const [name, Api] of [
+    ['default', DefaultApi],
+    ['node', NodeApi]
+  ] as const) {
     it(`does not replay website session cookies (${name} entrypoint)`, async () => {
-      const api = new Api({...makeConfig(), accessToken: 'test-token'});
+      const api = new Api({ ...makeConfig(), accessToken: 'test-token' });
       const fetchStub = sinon.stub(globalThis, 'fetch');
-      fetchStub.onFirstCall().resolves(new Response('{}', {
-        headers: {'Set-Cookie': 'musicbrainz_server_session=website-session; Path=/; Secure'}
-      }));
+      fetchStub.onFirstCall().resolves(
+        new Response('{}', {
+          headers: { 'Set-Cookie': 'musicbrainz_server_session=website-session; Path=/; Secure' }
+        })
+      );
       fetchStub.onSecondCall().resolves(new Response('{}'));
 
       await api.restGet('/recording/test');
@@ -46,10 +51,12 @@ describe('Stateless web-service authentication', () => {
     it(`authenticates an XML submission with a real Digest challenge (${name} entrypoint)`, async () => {
       const api = new Api(makeConfig());
       const fetchStub = sinon.stub(globalThis, 'fetch');
-      fetchStub.onFirstCall().resolves(new Response('', {
-        status: 401,
-        headers: {'WWW-Authenticate': 'Digest realm="musicbrainz", nonce="test-nonce", qop="auth", algorithm=MD5'}
-      }));
+      fetchStub.onFirstCall().resolves(
+        new Response('', {
+          status: 401,
+          headers: { 'WWW-Authenticate': 'Digest realm="musicbrainz", nonce="test-nonce", qop="auth", algorithm=MD5' }
+        })
+      );
       fetchStub.onSecondCall().resolves(new Response('<metadata/>'));
 
       await api.post('recording', makeMetadata());
@@ -58,8 +65,9 @@ describe('Stateless web-service authentication', () => {
       const [url, options] = fetchStub.secondCall.args;
       const authorization = new Headers(options?.headers).get('Authorization') ?? '';
       assert.match(authorization, /^Digest /);
-      const fields = Object.fromEntries([...authorization.matchAll(/(\w+)=(?:"([^"]*)"|([^,\s]+))/g)]
-        .map(match => [match[1], match[2] ?? match[3]]));
+      const fields = Object.fromEntries(
+        [...authorization.matchAll(/(\w+)=(?:"([^"]*)"|([^,\s]+))/g)].map(match => [match[1], match[2] ?? match[3]])
+      );
       const requestUrl = new URL(String(url));
       assert.strictEqual(fields.uri, requestUrl.pathname + requestUrl.search);
       assert.strictEqual(fields.username, 'test-user');
@@ -76,7 +84,7 @@ describe('Stateless web-service authentication', () => {
   for (const status of [400, 401, 403, 503]) {
     it(`rejects a failed Digest submission with HTTP ${status}`, async () => {
       const api = new DefaultApi(makeConfig());
-      const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('Submission rejected', {status}));
+      const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('Submission rejected', { status }));
       let caught: unknown;
       try {
         await api.post('recording', makeMetadata());
@@ -91,10 +99,13 @@ describe('Stateless web-service authentication', () => {
 
   it('stops after repeated Digest challenges and reports authentication failure', async () => {
     const api = new DefaultApi(makeConfig());
-    const fetchStub = sinon.stub(globalThis, 'fetch').callsFake(async () => new Response('', {
-      status: 401,
-      headers: {'WWW-Authenticate': 'Digest realm="musicbrainz", nonce="rejected", qop="auth"'}
-    }));
+    const fetchStub = sinon.stub(globalThis, 'fetch').callsFake(
+      async () =>
+        new Response('', {
+          status: 401,
+          headers: { 'WWW-Authenticate': 'Digest realm="musicbrainz", nonce="rejected", qop="auth"' }
+        })
+    );
     let caught: unknown;
     try {
       await api.post('recording', makeMetadata());

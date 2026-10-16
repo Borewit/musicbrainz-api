@@ -1,11 +1,11 @@
 import DateTimeFormat = Intl.DateTimeFormat;
-import type {IFormData} from './musicbrainz-api.js';
 
+import type { IFormData } from './musicbrainz-api.js';
 
 export interface IPeriod {
-  'begin': string;
-  'ended': boolean;
-  'end': string;
+  begin: string;
+  ended: boolean;
+  end: string;
 }
 
 export interface ITypedEntity extends IEntity {
@@ -19,9 +19,9 @@ export interface IEntity {
 }
 
 export interface LifeSpan {
-  ended: boolean,
-  begin: null | string,
-  end: null | string
+  ended: boolean;
+  begin: null | string;
+  end: null | string;
 }
 
 export interface IAnnotation {
@@ -32,13 +32,13 @@ export interface IAnnotation {
 }
 
 export interface IArea extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres {
-  type: 'Country' | 'Subdivision' | 'Municipality' | 'City' | 'District' | 'Island'
+  type: 'Country' | 'Subdivision' | 'Municipality' | 'City' | 'District' | 'Island';
   'iso-3166-1-codes'?: string[];
-  primary: boolean,
+  primary: boolean;
   name: string;
   'sort-name': string;
   disambiguation: string;
-  'life-span': LifeSpan
+  'life-span': LifeSpan;
 }
 
 export interface IAlias extends ITypedEntity {
@@ -110,13 +110,13 @@ export interface IEvent extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAnd
 }
 
 export type InstrumentType =
-  'Wind instrument'
+  | 'Wind instrument'
   | 'String instrument'
   | 'Percussion instrument'
   | 'Electronic instrument'
   | 'Family'
   | 'Ensemble'
-  | 'Other instrument'
+  | 'Other instrument';
 
 export interface IInstrument extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres {
   disambiguation: string;
@@ -127,7 +127,7 @@ export interface IInstrument extends ITypedEntity, IMayHaveRelations, IMayHaveTa
 
 export type ReleaseQuality = 'normal' | 'high';
 export type ReleaseStatus =
-  'Official'
+  | 'Official'
   | 'Promotion'
   | 'Bootleg'
   | 'Pseudo-release'
@@ -135,7 +135,7 @@ export type ReleaseStatus =
   | 'Expunged'
   | 'Cancelled';
 export type ReleasePackaging =
-  'Book'
+  | 'Book'
   | 'Box'
   | 'Cardboard/Paper Sleeve'
   | 'Cassette Case'
@@ -157,13 +157,13 @@ export type ReleasePackaging =
   | 'SnapPack'
   | 'Super Jewel Box'
   | 'Other'
-  | 'None'
+  | 'None';
 
 export interface IRelease extends IEntity, IMayHaveRelations, IMayHaveTagsAndGenres {
   title: string;
-  'text-representation': { 'language': string, 'script': string },
+  'text-representation': { language: string; script: string };
   disambiguation: string;
-  asin: null | string,
+  asin: null | string;
   status: ReleaseStatus;
   'status-id': string;
   packaging?: ReleasePackaging;
@@ -177,10 +177,10 @@ export interface IRelease extends IEntity, IMayHaveRelations, IMayHaveTagsAndGen
   barcode: string;
   'artist-credit'?: IArtistCredit[]; // Include 'artist-credits '
   'release-group'?: IReleaseGroup; // Include: 'release-groups'
-  collections?: ICollection[],
+  collections?: ICollection[];
   'track-count'?: number;
   count?: number;
-  'label-info'?: ILabelInfo[] // Include: 'labels'
+  'label-info'?: ILabelInfo[]; // Include: 'labels'
 }
 
 export interface IReleaseEvent {
@@ -205,7 +205,7 @@ export interface IRecording extends IEntity, IMayHaveRelations, IMayHaveTagsAndG
 export interface ITrack extends IEntity {
   position: number;
   recording: IRecording;
-  'number': string; // in JSON, this is a string field
+  number: string; // in JSON, this is a string field
   length: number;
   title: string;
   'artist-credit'?: IArtistCredit[];
@@ -236,10 +236,10 @@ export interface IReleaseGroup extends IEntity, IMayHaveRelations, IMayHaveTagsA
   'secondary-types': string[];
   'first-release-date': string;
   'primary-type': string;
-  'primary-type-id'?: string,
-  'secondary-type-ids'?: string[],
+  'primary-type-id'?: string;
+  'secondary-type-ids'?: string[];
   'sort-name': string;
-  'artist-credit': { artist: IArtist, name: string, joinphrase: string }[];
+  'artist-credit': { artist: IArtist; name: string; joinphrase: string }[];
   releases?: IRelease[]; // include 'releases'
 }
 
@@ -285,8 +285,8 @@ export interface ILabelList extends ISearchResult {
 }
 
 export interface ILabelInfo {
-  label: ILabel | null,
-  'catalog-number': string | null
+  label: ILabel | null;
+  'catalog-number': string | null;
 }
 
 export type IPlacesMatch = IPlace & IMatch;
@@ -352,13 +352,13 @@ export interface IRelation {
   area?: IArea;
   event?: IEvent;
   genre?: IGenre;
-  instrument?: IInstrument
-  label?: ILabel
-  place?: IPlace
-  recording?: IRecording
-  release_group?: IReleaseGroup
-  series?: ISeries
-  work?: IWork
+  instrument?: IInstrument;
+  label?: ILabel;
+  place?: IPlace;
+  recording?: IRecording;
+  release_group?: IReleaseGroup;
+  series?: ISeries;
+  work?: IWork;
 }
 
 export interface IMayHaveRelations {
@@ -368,14 +368,14 @@ export interface IMayHaveRelations {
 export interface IWork extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
   title: string;
   disambiguation: string;
-  language: string
-  languages: string[]
-  iswcs: string[]
-  attributes: IWorkAttribute[]
+  language: string;
+  languages: string[];
+  iswcs: string[];
+  attributes: IWorkAttribute[];
 }
 
 export interface IWorkAttribute extends ITypedEntity {
-  value: string
+  value: string;
 }
 
 export interface ILabel extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
@@ -386,7 +386,7 @@ export interface ILabel extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAnd
   disambiguation?: string;
   'label-code': null | string;
   ipis?: string[];
-  isnis?: string[]
+  isnis?: string[];
   area?: IArea;
 }
 
@@ -400,8 +400,8 @@ export interface IPlace extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAnd
 }
 
 export interface ICoordinates {
-  latitude: number,
-  longitude: number
+  latitude: number;
+  longitude: number;
 }
 
 export interface ISeries extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres {
@@ -418,7 +418,7 @@ export interface IUserVote {
 }
 
 export type IUserTag = ITag & IUserVote;
-export interface IGenre extends IEntity, IUserVote{
+export interface IGenre extends IEntity, IUserVote {
   name: string;
   disambiguation: string;
 }
@@ -434,11 +434,11 @@ export interface IRating {
 }
 
 export interface IMayHaveRating {
-  rating?: IRating
+  rating?: IRating;
 }
 
 export interface IUrl extends IEntity, IMayHaveRelations {
-  id: string,
+  id: string;
   resource: string;
 }
 
@@ -458,43 +458,46 @@ export type OtherEntityTypes = 'annotation' | 'cdstub' | 'tag';
 /**
  * https://musicbrainz.org/doc/Development/XML_Web_Service/Version_2#Subqueries
  */
-export type EntityType = 'annotation' |
-  'area' |
-  'artist' |
-  'collection' |
-  'event' |
-  'instrument' |
-  'label' |
-  'place' |
-  'recording' |
-  'release' |
-  'release-group' |
-  'series' |
-  'work' |
-  'url';
+export type EntityType =
+  | 'annotation'
+  | 'area'
+  | 'artist'
+  | 'collection'
+  | 'event'
+  | 'instrument'
+  | 'label'
+  | 'place'
+  | 'recording'
+  | 'release'
+  | 'release-group'
+  | 'series'
+  | 'work'
+  | 'url';
 
-export type Relationships = 'area-rels' |
-  'artist-rels' |
-  'event-rels' |
-  'instrument-rels' |
-  'label-rels' |
-  'place-rels' |
-  'recording-rels' |
-  'release-rels' |
-  'release-group-rels' |
-  'series-rels' |
-  'url-rels' |
-  'work-rels';
-
-/**
- * Ref: https://musicbrainz.org/doc/MusicBrainz_API#Release_.28Group.29_Type_and_Status
- */
-export type ReleaseStatusQuery = 'official' | 'promotion' | 'bootleg' | 'pseudo-release' |  'withdrawn' | 'cancelled';
+export type Relationships =
+  | 'area-rels'
+  | 'artist-rels'
+  | 'event-rels'
+  | 'instrument-rels'
+  | 'label-rels'
+  | 'place-rels'
+  | 'recording-rels'
+  | 'release-rels'
+  | 'release-group-rels'
+  | 'series-rels'
+  | 'url-rels'
+  | 'work-rels';
 
 /**
  * Ref: https://musicbrainz.org/doc/MusicBrainz_API#Release_.28Group.29_Type_and_Status
  */
-export type ReleaseTypeQuery = 'album'
+export type ReleaseStatusQuery = 'official' | 'promotion' | 'bootleg' | 'pseudo-release' | 'withdrawn' | 'cancelled';
+
+/**
+ * Ref: https://musicbrainz.org/doc/MusicBrainz_API#Release_.28Group.29_Type_and_Status
+ */
+export type ReleaseTypeQuery =
+  | 'album'
   | 'single'
   | 'ep'
   | 'broadcast'
@@ -510,10 +513,6 @@ export type ReleaseTypeQuery = 'album'
   | 'remix'
   | 'soundtrack'
   | 'spokenword';
-
-
-
-
 
 export enum LinkType {
   license = 302,
@@ -557,8 +556,8 @@ export interface ISearchQuery<I extends string> extends IPagination {
   /**
    * Lucene search query, this is mandatory
    */
-  query?: string | IFormData,
-  inc?: I[]
+  query?: string | IFormData;
+  inc?: I[];
   artist?: string;
 }
 
@@ -709,7 +708,7 @@ export interface ILinkedEntitiesUrl {
 
 // Shared utility to enforce only one key
 export type OneOf<T> = {
-  [K in keyof T]: { [P in K]: T[K] } & Partial<Record<Exclude<keyof T, K>, never>>
+  [K in keyof T]: { [P in K]: T[K] } & Partial<Record<Exclude<keyof T, K>, never>>;
 }[keyof T];
 
 /**

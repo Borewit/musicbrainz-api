@@ -6,7 +6,6 @@ import { XmlRecording } from './xml-recording.js';
 const ns_metadata = 'http://musicbrainz.org/ns/mmd-2.0#';
 
 export class XmlMetadata {
-
   public recordings: XmlRecording[] = [];
 
   public pushRecording(id: string): XmlRecording {
@@ -16,15 +15,21 @@ export class XmlMetadata {
   }
 
   public toXml(): string {
-
-    return jsontoxml([{
-      name: 'metadata',
-      attrs: {
-        xmlns: ns_metadata
-      },
-      children: [{
-        'recording-list': this.recordings.map(rec => rec.toXml())
-      }]
-    }], {prettyPrint: false, escape: true, xmlHeader: true});
+    return jsontoxml(
+      [
+        {
+          name: 'metadata',
+          attrs: {
+            xmlns: ns_metadata
+          },
+          children: [
+            {
+              'recording-list': this.recordings.map(rec => rec.toXml())
+            }
+          ]
+        }
+      ],
+      { prettyPrint: false, escape: true, xmlHeader: true }
+    );
   }
 }

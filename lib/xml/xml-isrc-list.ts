@@ -1,7 +1,6 @@
 import { XmlIsrc } from './xml-isrc.js';
 
 export class XmlIsrcList {
-
   public items: XmlIsrc[] = [];
 
   public pushIsrc(isrc: string) {
@@ -9,12 +8,14 @@ export class XmlIsrcList {
   }
 
   public toXml() {
-    return this.items.length === 0 ? null : {
-      name: 'isrc-list',
-      attrs: {
-        count: this.items.length
-      },
-      children: this.items.map(isrc => isrc.toXml())
-    };
+    return this.items.length === 0
+      ? null
+      : {
+          name: 'isrc-list',
+          attrs: {
+            count: this.items.length
+          },
+          children: this.items.map(isrc => isrc.toXml())
+        };
   }
 }

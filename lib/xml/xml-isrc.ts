@@ -1,8 +1,5 @@
-
 export class XmlIsrc {
-
-  public constructor(public isrc: string) {
-  }
+  public constructor(public isrc: string) {}
 
   public toXml() {
     return {

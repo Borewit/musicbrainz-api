@@ -24,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
-      - name: Lint Typescript
+      - name: Check code style
         run: yarn run lint:ts
 
       - name: Lint Markdown

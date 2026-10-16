@@ -1,74 +1,101 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.5.9/schema.json",
-	"assist": {
-		"actions": {
-			"source": {
-				"organizeImports": "off"
-			}
-		}
-	},
-	"formatter": {
-		"enabled": false
-	},
-	"linter": {
-		"enabled": true,
-		"rules": {
-			"correctness": {
-				"noConstantCondition": "warn",
-				"noUnusedImports": "error",
-				"noNodejsModules": "error"
-			},
-			"style": {
-				"noParameterAssign": "off",
-				"useConst": "error",
-				"useConsistentBuiltinInstantiation": "error",
-				"useThrowNewError": "error",
-				"useThrowOnlyError": "error",
-				"noRestrictedImports": {
-					"level": "error",
-					"options": {
-						"paths": {
-							"node:buffer": "Use Uint8Array instead of Buffer"
-						}
-					}
-				}
-			},
-			"preset": "recommended",
-			"complexity": {
-				"noForEach": "off"
-			},
-			"suspicious": {
-				"noEmptyBlockStatements": "error",
-				"noExplicitAny": "off"
-				// ToDo
-			},
-			"nursery": {}
-		}
-	},
-	"files": {
-		"ignoreUnknown": true,
-		"includes": [
-			"**",
-			"!.pnp.*",
-			"!coverage",
-			"!yarn",
-			"!.pnp.*",
-			"!lib/**/*.d.ts",
-			"!lib/**/*.js",
-			"!test/**/*.d.ts",
-			"!test/**/*.js"
-		]
-	},
-	"overrides": [
-		{
-			"includes": ["test/**/*"],
-			"linter": {
-				"rules": {
-					"correctness": {
-						"noNodejsModules": "off"
-					}
-				}
-			}
-		}
-	]
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 120,
+    "lineEnding": "lf"
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "always",
+      "trailingCommas": "none",
+      "arrowParentheses": "asNeeded",
+      "bracketSpacing": true
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "correctness": {
+        "noUnusedImports": "error",
+        "noNodejsModules": "error",
+        "noUnusedVariables": "error",
+        "noConstantCondition": "warn"
+      },
+      "preset": "recommended",
+      "complexity": {
+        "noForEach": "off"
+      },
+      "suspicious": {
+        "noEmptyBlockStatements": "error",
+        "useErrorMessage": "error",
+        "noExplicitAny": "off"
+      },
+      "style": {
+        "useConsistentBuiltinInstantiation": "error",
+        "useThrowNewError": "error",
+        "useThrowOnlyError": "error",
+        "noParameterAssign": "error",
+        "useAsConstAssertion": "error",
+        "useDefaultParameterLast": "error",
+        "useEnumInitializers": "error",
+        "useSelfClosingElements": "error",
+        "useSingleVarDeclarator": "error",
+        "noUnusedTemplateLiteral": "error",
+        "useNumberNamespace": "error",
+        "noInferrableTypes": "error",
+        "noUselessElse": "error",
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "paths": {
+              "node:buffer": "Use Uint8Array instead of Buffer"
+            }
+          }
+        },
+        "useBlockStatements": "error",
+        "useConsistentArrayType": {
+          "level": "error",
+          "options": {
+            "syntax": "shorthand"
+          }
+        },
+        "useImportType": "error",
+        "useExportType": "error",
+        "useNodejsImportProtocol": "error",
+        "useConst": "error"
+      }
+    }
+  },
+  "files": {
+    "ignoreUnknown": true,
+    "includes": ["**", "!**/*.d.ts"]
+  },
+  "overrides": [
+    {
+      "includes": ["test/**/*"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noNodejsModules": "off"
+          }
+        }
+      }
+    }
+  ],
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  }
 }
