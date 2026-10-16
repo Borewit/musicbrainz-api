@@ -26,7 +26,7 @@ export interface IHttpClientOptions {
 
 export interface IFetchOptions {
   query?: MultiQueryFormData;
-  /** Maximum number of attempts, including the initial request. Defaults to 3 for GET connection timeouts, 1 otherwise. */
+  /** Maximum number of attempts, including the initial request. Defaults to 3 for GET connection timeouts/unreachable networks, 1 otherwise. */
   retryLimit?: number;
   body?: string;
   headers?: HeadersInit;
@@ -37,13 +37,13 @@ function isTransientConnectionError(err: unknown, includeConnectionReset: boolea
   if (typeof err !== 'object' || err === null) return false;
 
   const error = err as {code?: unknown; cause?: unknown; errors?: unknown};
-  // Node can aggregate failed connection attempts to multiple IP addresses.
+  // Node can mix IPv4 timeouts with unreachable IPv6 addresses in one aggregate.
   if (Array.isArray(error.errors)) {
     return error.errors.length > 0 && error.errors.every(error => isTransientConnectionError(error, includeConnectionReset));
   }
 
   if ((includeConnectionReset && error.code === 'ECONNRESET') || error.code === 'ETIMEDOUT'
-    || error.code === 'UND_ERR_CONNECT_TIMEOUT') return true;
+    || error.code === 'UND_ERR_CONNECT_TIMEOUT' || error.code === 'ENETUNREACH') return true;
 
   // Fetch wraps Node/Undici connection errors in a TypeError's cause.
   return isTransientConnectionError(error.cause, includeConnectionReset);
@@ -124,6 +124,7 @@ export class HttpClient {
           debug(`Transient connection failure on attempt ${attempt}/${retryAttempts}: ${err instanceof Error ? err.message : 'unknown error'}; retry in ${retryDelay} ms`);
           continue;
         }
+        debug('Fetch failed on attempt %d/%d: %O', attempt, retryAttempts, err);
         throw err;
       }
 
