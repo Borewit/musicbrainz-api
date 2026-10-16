@@ -538,35 +538,6 @@ export class MusicBrainzApi {
   }
 
   /**
-   * Set URL to recording
-   * @param recording Recording to update
-   * @param url2add URL to add to the recording
-   * @param editNote Edit note
-   */
-  public async addUrlToRecording(recording: mb.IRecording, url2add: {
-    linkTypeId: mb.LinkType,
-    text: string
-  }, editNote = '') {
-
-    const formData: { [key: string]: string | boolean | number } = {};
-
-    formData['edit-recording.name'] = recording.title; // Required
-    formData['edit-recording.comment'] = recording.disambiguation;
-    formData['edit-recording.make_votable'] = true;
-
-    formData['edit-recording.url.0.link_type_id'] = url2add.linkTypeId;
-    formData['edit-recording.url.0.text'] = url2add.text;
-
-    recording.isrcs?.forEach((isrcs, i) => {
-      formData[`edit-recording.isrcs.${i}`] = isrcs;
-    });
-
-    formData['edit-recording.edit_note'] = editNote;
-
-    return this.editEntity('recording', recording.id, formData);
-  }
-
-  /**
    * Add ISRC to recording
    * @param recording Recording to update
    * @param isrc ISRC code to add
@@ -591,29 +562,6 @@ export class MusicBrainzApi {
     }
   }
 
-
-  // -----------------------------------------------------------------------------------------------------------------
-  // Helper functions
-  // -----------------------------------------------------------------------------------------------------------------
-
-  /**
-   * Add Spotify-ID to MusicBrainz recording.
-   * This function will automatically lookup the recording title, which is required to submit the recording URL
-   * @param recording MBID of the recording
-   * @param spotifyId Spotify ID
-   * @param editNote Comment to add.
-   */
-  public addSpotifyIdToRecording(recording: mb.IRecording, spotifyId: string, editNote: string) {
-
-    if (spotifyId.length !== 22) {
-      throw new Error('Invalid Spotify ID length');
-    }
-
-    return this.addUrlToRecording(recording, {
-      linkTypeId: mb.LinkType.stream_for_free,
-      text: `https://open.spotify.com/track/${spotifyId}`
-    }, editNote);
-  }
 
   protected async getSession(): Promise<ISessionInformation> {
 
