@@ -1,52 +1,51 @@
 # Release Drafter template
-# Ref: https://github.com/marketplace/actions/release-drafter
+# Ref: https://github.com/release-drafter/release-drafter/tree/v7.10.0#configuration-options
 
 name-template: 'v$RESOLVED_VERSION'
 tag-template: 'v$RESOLVED_VERSION'
 categories:
-  - title: 💥 API Changes
-    labels:
-      - API change
-  - title: 🚀 Enhancements
-    labels:
-      - enhancement
-  - title: 🎨 Improvements
-    labels:
-      - improvement
+  - title: ⚠️ API Changes
+    semver-increment: major
+    when:
+      label: API change
+  - title: ✨ Enhancements
+    semver-increment: minor
+    when:
+      label: enhancement
+  # All other changelog categories default to a patch increment.
+  - title: 🚀 Improvements
+    when:
+      label: improvement
+  - title: 🔒 Security
+    when:
+      label: security
   - title: 🐛 Bug Fixes
-    labels:
-      - bug
-  - title: 🔧 Under the hood
-    labels:
-      - technical debt
-      - dev-dependencies
-  - title: ⬆️ Dependencies
-    labels:
-      - dependencies
-  - title: 📝 Documentation
-    labels:
-      - documentation
-exclude-labels:
-  - DevOps
-  - dev-dependencies
-  - internal
+    when:
+      label: bug
+  - title: 📚 Documentation
+    when:
+      label: documentation
+  - title: 📦 Dependencies
+    when:
+      label: dependencies
+  - title: 🛠️ Under the hood
+    when:
+      label: technical debt
+  - type: pre-exclude
+    when:
+      labels:
+        - DevOps
+        - dev-dependencies
+        - internal
+  # Keep a patch fallback for changes without a category label.
+  - type: version-resolver
+    semver-increment: patch
 change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
 change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add ` to disable code blocks.
-version-resolver:
-  major:
-    labels:
-      - 'major'
-  minor:
-    labels:
-      - 'minor'
-  patch:
-    labels:
-      - 'patch'
-  default: patch
 template: |
   ## Changes
 
   $CHANGES
 
-  ## NPM release
+  ## 📦 NPM release
   NPM release: [$REPOSITORY@$RESOLVED_VERSION](https://www.npmjs.com/package/$REPOSITORY/v/$RESOLVED_VERSION)
