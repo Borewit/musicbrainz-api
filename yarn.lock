@@ -2764,6 +2764,9 @@ __metadata:
     tsx: "npm:^4.23.15"
     typescript: "npm:^7.0.2"
     uuid: "npm:^14.0.0"
+  dependenciesMeta:
+    esbuild:
+      built: true
   languageName: unknown
   linkType: soft
 

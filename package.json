@@ -60,6 +60,11 @@
     "tough-cookie": "^5.0.0",
     "uuid": "^14.0.0"
   },
+  "dependenciesMeta": {
+    "esbuild": {
+      "built": true
+    }
+  },
   "devDependencies": {
     "@biomejs/biome": "2.5.9",
     "@types/chai": "^5.0.0",
