@@ -147,8 +147,44 @@ MusicBrainz API documentation: [MusicBrainz API - Lookups](https://wiki.musicbra
 const artist = await mbApi.lookup('artist', 'ab2528d9-719f-4261-8098-21849222a0f2', ['recordings']);
 ```
 
+Genre and identifier lookups are also supported:
+
+```typescript
+const genre = await mbApi.lookup('genre', genreId);
+const genres = await mbApi.getGenres({ limit: 25, offset: 0 });
+const collectionGenres = await mbApi.browse('genre', { collection: collectionId });
+const recordings = await mbApi.lookup('isrc', 'GBAAA9900303', ['artist-credits']);
+const works = await mbApi.lookup('iswc', iswc);
+const disc = await mbApi.lookup('discid', discId, ['recordings'], { cdstubs: 'no' });
+```
+
+Disc lookups return a disc with releases, a CD stub, or a release list for a fuzzy TOC match.
+ISRC lookups return `{ isrc, recordings }`; ISWC lookups return a work list with `work-count` and `work-offset`.
+
+Pass release type and status filters as the fourth lookup argument when including releases:
+
+```typescript
+const artistReleases = await mbApi.lookup('artist', artistId, ['releases'], {
+  type: ['album', 'audio drama'],
+  status: ['official']
+});
+```
+
+Authenticated user data can be fetched with `getUserTags({ entity, id })` and `getUserRating({ entity, id })`.
+
+Use `search()` with a Lucene `query` for scored search results and `browse()` with a linked entity ID for paginated
+browse results. Existing `search()` calls with browse parameters remain supported and now infer the browse response type.
+Search responses do not expand `inc`; fetch additional information through lookup or browse requests.
+
+Return types are inferred from the request. Lookup and browse results expose their guaranteed fields directly, so
+`artist['sort-name']`, `artist.ipis`, and `work.languages` need no optional checks. Search hits and nested references
+use the shared entity interfaces because they can contain less information. Include-dependent properties such as
+`media`, `relations`, and `releases` remain optional. In a complete result, `null` represents an unknown value; optional
+properties can be omitted.
+
+
 Arguments:
-- entity (`string`): `'area'` | `'artist'` | `'collection'` | `'instrument'` | `'label'` | `'place'` | `'release'` | `'release-group'` | `'recording'` | `'series'` | `'work'` | `'url'` | `'event'`
+- entity (`string`): `'area'` | `'artist'` | `'collection'` | `'instrument'` | `'label'` | `'place'` | `'release'` | `'release-group'` | `'recording'` | `'series'` | `'work'` | `'url'` | `'event'` | `'genre'` | `'isrc'` | `'iswc'` | `'discid'`
 - MBID (`string`): [(MusicBrainz identifier)](https://wiki.musicbrainz.org/MusicBrainz_Identifier)
 - include arguments (`string[]`), see [Include arguments](#include-arguments)
 

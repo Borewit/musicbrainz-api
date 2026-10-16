@@ -1,28 +1,22 @@
-import DateTimeFormat = Intl.DateTimeFormat;
-
 import type { IFormData } from './musicbrainz-api.js';
 
 export interface IPeriod {
-  begin: string;
-  ended: boolean;
-  end: string;
+  begin?: string | null;
+  ended?: boolean | null;
+  end?: string | null;
 }
 
 export interface ITypedEntity extends IEntity {
-  'type-id': string;
-  type: string;
-  id: string;
+  'type-id'?: string | null;
+  type?: string | null;
 }
 
 export interface IEntity {
   id: string;
 }
 
-export interface LifeSpan {
-  ended: boolean;
-  begin: null | string;
-  end: null | string;
-}
+/** Backwards-compatible name for the shared date-period shape. */
+export type LifeSpan = IPeriod;
 
 export interface IAnnotation {
   entity: string;
@@ -31,46 +25,76 @@ export interface IAnnotation {
   type: string;
 }
 
-export interface IArea extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres {
-  type: 'Country' | 'Subdivision' | 'Municipality' | 'City' | 'District' | 'Island';
+export interface IArea
+  extends ITypedEntity,
+    IMayHaveRelations,
+    IMayHaveAliases,
+    IMayHaveAnnotation,
+    IMayHaveTagsAndGenres {
+  type?: 'Country' | 'Subdivision' | 'County' | 'Municipality' | 'City' | 'District' | 'Island' | null;
   'iso-3166-1-codes'?: string[];
-  primary: boolean;
+  'iso-3166-2-codes'?: string[];
+  'iso-3166-3-codes'?: string[];
   name: string;
   'sort-name': string;
-  disambiguation: string;
-  'life-span': LifeSpan;
+  disambiguation?: string;
+  'life-span'?: LifeSpan;
 }
 
-export interface IAlias extends ITypedEntity {
+export interface IAlias {
+  type?: string | null;
+  'type-id'?: string | null;
   name: string;
   'sort-name': string;
-  ended: boolean;
-  locale: string;
-  primary: string;
-  begin: string;
-  end: string;
+  ended?: boolean | null;
+  locale?: string | null;
+  primary?: boolean | null;
+  begin?: string | null;
+  end?: string | null;
+  'begin-date'?: string | null;
+  'end-date'?: string | null;
 }
 
 export interface IMatch {
   score: number;
 }
 
-export type Gender = 'male' | 'female' | 'other' | 'not applicable';
+export type Gender =
+  | 'Male'
+  | 'Female'
+  | 'Other'
+  | 'Non-binary'
+  | 'Not applicable'
+  | 'male'
+  | 'female'
+  | 'other'
+  | 'non-binary'
+  | 'not applicable';
 
-export interface IArtist extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
+export interface IArtist
+  extends ITypedEntity,
+    IMayHaveRelations,
+    IMayHaveAliases,
+    IMayHaveAnnotation,
+    IMayHaveTagsAndGenres,
+    IMayHaveRating {
   name: string;
-  disambiguation: string;
+  disambiguation?: string;
   'sort-name': string;
-  'gender-id'?: string;
+  'gender-id'?: string | null;
   'life-span'?: IPeriod;
-  country?: string;
+  country?: string | null;
   ipis?: string[];
   isnis?: string[];
-  aliases?: IAlias[];
-  gender?: Gender;
-  area?: IArea;
-  begin_area?: IArea;
-  end_area?: IArea;
+  gender?: Gender | null;
+  area?: IArea | null;
+  'begin-area'?: IArea | null;
+  'end-area'?: IArea | null;
+  // Legacy spellings retained for compatibility.
+  begin_area?: IArea | null;
+  end_area?: IArea | null;
+  recordings?: IRecording[];
+  works?: IWork[];
   /**
    * Only defined if 'releases' are includes
    */
@@ -82,8 +106,17 @@ export interface ICdStub {
   id: string;
   title: string;
   artist: string;
-  barcode: string;
-  comment: string;
+  barcode?: string | null;
+  comment?: string;
+  disambiguation?: string;
+  tracks?: ICdStubTrack[];
+  'track-count'?: number;
+}
+
+export interface ICdStubTrack {
+  title: string;
+  artist: string | null;
+  length: number | null;
 }
 
 export interface IArtistCredit {
@@ -93,19 +126,48 @@ export interface IArtistCredit {
 }
 
 export interface ICollection extends ITypedEntity {
-  type: 'Recording collection';
   name: string;
-  'recording-count': number;
+  description?: string;
+  'area-count'?: number;
+  'artist-count'?: number;
+  'event-count'?: number;
+  'genre-count'?: number;
+  'instrument-count'?: number;
+  'label-count'?: number;
+  'place-count'?: number;
+  'recording-count'?: number;
+  'release-count'?: number;
+  'release-group-count'?: number;
+  'series-count'?: number;
+  'work-count'?: number;
+  areas?: IArea[];
+  artists?: IArtist[];
+  events?: IEvent[];
+  genres?: IGenre[];
+  instruments?: IInstrument[];
+  labels?: ILabel[];
+  places?: IPlace[];
+  recordings?: IRecording[];
+  releases?: IRelease[];
+  'release-groups'?: IReleaseGroup[];
+  series?: ISeries[];
+  works?: IWork[];
   editor: string;
   'entity-type': string;
 }
 
-export interface IEvent extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
-  cancelled: boolean;
-  'life-span': IPeriod;
-  disambiguation: string;
-  time: string;
-  setlist: string;
+export interface IEvent
+  extends ITypedEntity,
+    IMayHaveRelations,
+    IMayHaveAliases,
+    IMayHaveAnnotation,
+    IMayHaveTagsAndGenres,
+    IMayHaveRating {
+  cancelled?: boolean;
+  'life-span'?: IPeriod;
+  disambiguation?: string;
+  time?: string;
+  setlist?: string;
   name: string;
 }
 
@@ -118,14 +180,19 @@ export type InstrumentType =
   | 'Ensemble'
   | 'Other instrument';
 
-export interface IInstrument extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres {
-  disambiguation: string;
+export interface IInstrument
+  extends ITypedEntity,
+    IMayHaveRelations,
+    IMayHaveAliases,
+    IMayHaveAnnotation,
+    IMayHaveTagsAndGenres {
+  disambiguation?: string;
   name: string;
-  type: InstrumentType;
-  description: string;
+  type?: InstrumentType | null;
+  description?: string;
 }
 
-export type ReleaseQuality = 'normal' | 'high';
+export type ReleaseQuality = 'low' | 'normal' | 'high';
 export type ReleaseStatus =
   | 'Official'
   | 'Promotion'
@@ -159,66 +226,88 @@ export type ReleasePackaging =
   | 'Other'
   | 'None';
 
-export interface IRelease extends IEntity, IMayHaveRelations, IMayHaveTagsAndGenres {
+export interface IRelease
+  extends IEntity,
+    IMayHaveRelations,
+    IMayHaveAliases,
+    IMayHaveAnnotation,
+    IMayHaveTagsAndGenres {
   title: string;
-  'text-representation': { language: string; script: string };
-  disambiguation: string;
-  asin: null | string;
-  status: ReleaseStatus;
-  'status-id': string;
-  packaging?: ReleasePackaging;
-  'packaging-id'?: string;
+  'text-representation'?: { language: string | null; script: string | null };
+  disambiguation?: string;
+  asin?: null | string;
+  status?: ReleaseStatus | null;
+  'status-id'?: string | null;
+  packaging?: ReleasePackaging | null;
+  'packaging-id'?: string | null;
   'release-events'?: IReleaseEvent[];
-  date: string;
-  media: IMedium[];
-  'cover-art-archive': ICoverArtArchive;
-  country: string;
-  quality: ReleaseQuality;
-  barcode: string;
+  date?: string;
+  media?: IMedium[];
+  'cover-art-archive'?: ICoverArtArchive;
+  country?: string | null;
+  quality?: ReleaseQuality;
+  barcode?: string | null;
   'artist-credit'?: IArtistCredit[]; // Include 'artist-credits '
   'release-group'?: IReleaseGroup; // Include: 'release-groups'
   collections?: ICollection[];
   'track-count'?: number;
-  count?: number;
+  'medium-count'?: number;
   'label-info'?: ILabelInfo[]; // Include: 'labels'
 }
 
 export interface IReleaseEvent {
-  area?: IArea;
+  area?: IArea | null;
   date?: string;
 }
 
 export type MediaFormatType = 'Digital Media'; // ToDo
 
-export interface IRecording extends IEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
-  video: boolean;
-  length: number;
+export interface IRecording
+  extends IEntity,
+    IMayHaveRelations,
+    IMayHaveAliases,
+    IMayHaveAnnotation,
+    IMayHaveTagsAndGenres,
+    IMayHaveRating {
+  video?: boolean | null;
+  length?: number | null;
   title: string;
-  disambiguation: string;
+  disambiguation?: string;
   isrcs?: string[];
   releases?: IRelease[];
   'artist-credit'?: IArtistCredit[];
-  aliases?: IAlias[];
-  'first-release-date': string;
+  'first-release-date'?: string;
 }
 
 export interface ITrack extends IEntity {
-  position: number;
-  recording: IRecording;
+  position?: number;
+  recording?: IRecording;
   number: string; // in JSON, this is a string field
-  length: number;
+  length: number | null;
   title: string;
   'artist-credit'?: IArtistCredit[];
 }
 
 export interface IMedium {
-  title: string;
-  format?: string; // optional, type doesn't work
-  'format-id': string;
-  tracks: ITrack[];
+  id?: string;
+  title?: string;
+  format?: string | null;
+  'format-id'?: string | null;
+  tracks?: ITrack[];
   'track-count': number;
-  'track-offset': number;
-  position: number;
+  'disc-count'?: number;
+  'track-offset'?: number;
+  position?: number;
+  discs?: IDisc[];
+  pregap?: ITrack;
+  'data-tracks'?: ITrack[];
+}
+
+export interface IDisc extends IEntity {
+  'offset-count': number;
+  sectors: number;
+  offsets?: number[];
+  releases?: IRelease[];
 }
 
 export interface ICoverArtArchive {
@@ -229,22 +318,26 @@ export interface ICoverArtArchive {
   back: boolean;
 }
 
-export interface IReleaseGroup extends IEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
-  count: number;
+export interface IReleaseGroup
+  extends IEntity,
+    IMayHaveRelations,
+    IMayHaveAliases,
+    IMayHaveAnnotation,
+    IMayHaveTagsAndGenres,
+    IMayHaveRating {
   disambiguation?: string;
   title: string;
-  'secondary-types': string[];
-  'first-release-date': string;
-  'primary-type': string;
-  'primary-type-id'?: string;
+  'secondary-types'?: string[];
+  'first-release-date'?: string;
+  'primary-type'?: string | null;
+  'primary-type-id'?: string | null;
   'secondary-type-ids'?: string[];
-  'sort-name': string;
-  'artist-credit': { artist: IArtist; name: string; joinphrase: string }[];
+  'artist-credit'?: IArtistCredit[];
   releases?: IRelease[]; // include 'releases'
 }
 
 export interface ISearchResult {
-  created: DateTimeFormat;
+  created: string;
   count: number;
   offset: number;
 }
@@ -294,19 +387,17 @@ export interface IPlaceList extends ISearchResult {
   places: IPlacesMatch[];
 }
 
-export type IReleaseMatch = IRelease & IMatch;
+export type IReleaseMatch = IRelease & IMatch & { count?: number };
 export interface IReleaseList extends ISearchResult {
   releases: IReleaseMatch[];
-  'release-count': number;
 }
 
 export type IRecordingMatch = IRecording & IMatch;
 export interface IRecordingList extends ISearchResult {
   recordings: IRecordingMatch[];
-  'recordings-count': number;
 }
 
-export type IReleaseGroupMatch = IReleaseGroup & IMatch;
+export type IReleaseGroupMatch = IReleaseGroup & IMatch & { count?: number };
 export interface IReleaseGroupList extends ISearchResult {
   'release-groups': IReleaseGroupMatch[];
 }
@@ -335,17 +426,19 @@ export type RelationDirection = 'backward' | 'forward';
 
 export interface IRelation {
   artist?: IArtist;
-  'attribute-ids': unknown[];
+  'attribute-ids'?: Record<string, string>;
   direction: RelationDirection;
-  'target-credit': string;
-  end: null | unknown;
-  'source-credit': string;
-  ended: boolean;
-  'attribute-values': unknown[];
-  attributes?: any[];
+  'target-credit'?: string;
+  end?: string | null;
+  'source-credit'?: string;
+  ended?: boolean | null;
+  'attribute-values'?: Record<string, string>;
+  'attribute-credits'?: Record<string, string>;
+  'ordering-key'?: number;
+  attributes?: string[];
   type: string;
-  begin?: null | unknown;
-  'target-type'?: 'url';
+  begin?: string | null;
+  'target-type'?: Exclude<EntityType, 'annotation' | 'collection' | 'release-group'> | 'release_group';
   'type-id': string;
   url?: IUrl;
   release?: IRelease;
@@ -361,52 +454,88 @@ export interface IRelation {
   work?: IWork;
 }
 
+export interface IMayHaveAnnotation {
+  /** Present when requested with inc=annotation. */
+  annotation?: string | null;
+}
+
+export interface IMayHaveAliases {
+  aliases?: IAlias[];
+}
+
 export interface IMayHaveRelations {
   relations?: IRelation[];
 }
 
-export interface IWork extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
+export interface IWork
+  extends ITypedEntity,
+    IMayHaveRelations,
+    IMayHaveAliases,
+    IMayHaveAnnotation,
+    IMayHaveTagsAndGenres,
+    IMayHaveRating {
   title: string;
-  disambiguation: string;
-  language: string;
-  languages: string[];
-  iswcs: string[];
-  attributes: IWorkAttribute[];
+  disambiguation?: string;
+  language?: string | null;
+  languages?: string[];
+  iswcs?: string[];
+  attributes?: IWorkAttribute[];
 }
 
-export interface IWorkAttribute extends ITypedEntity {
+export interface IWorkAttribute {
+  type: string;
+  'type-id': string;
   value: string;
+  'value-id'?: string;
 }
 
-export interface ILabel extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
+export interface ILabel
+  extends ITypedEntity,
+    IMayHaveRelations,
+    IMayHaveAliases,
+    IMayHaveAnnotation,
+    IMayHaveTagsAndGenres,
+    IMayHaveRating {
+  releases?: IRelease[];
   country?: null | string;
   name: string;
-  'sort-name': string;
+  'sort-name'?: string;
   'life-span'?: LifeSpan;
   disambiguation?: string;
-  'label-code': null | string;
+  'label-code'?: number | null;
   ipis?: string[];
   isnis?: string[];
-  area?: IArea;
+  area?: IArea | null;
 }
 
-export interface IPlace extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres, IMayHaveRating {
+export interface IPlace
+  extends ITypedEntity,
+    IMayHaveRelations,
+    IMayHaveAliases,
+    IMayHaveAnnotation,
+    IMayHaveTagsAndGenres,
+    IMayHaveRating {
   name: string;
-  disambiguation: string;
-  address: string;
-  coordinates: ICoordinates | null;
-  'life-span': LifeSpan;
-  area: IArea | null;
+  disambiguation?: string;
+  address?: string;
+  coordinates?: ICoordinates | null;
+  'life-span'?: LifeSpan;
+  area?: IArea | null;
 }
 
 export interface ICoordinates {
-  latitude: number;
-  longitude: number;
+  latitude: number | string;
+  longitude: number | string;
 }
 
-export interface ISeries extends ITypedEntity, IMayHaveRelations, IMayHaveTagsAndGenres {
+export interface ISeries
+  extends ITypedEntity,
+    IMayHaveRelations,
+    IMayHaveAliases,
+    IMayHaveAnnotation,
+    IMayHaveTagsAndGenres {
   name: string;
-  disambiguation: string;
+  disambiguation?: string;
 }
 
 export interface ITag {
@@ -418,14 +547,17 @@ export interface IUserVote {
 }
 
 export type IUserTag = ITag & IUserVote;
-export interface IGenre extends IEntity, IUserVote {
+export interface IGenre extends IEntity {
   name: string;
-  disambiguation: string;
+  disambiguation?: string;
 }
 
 export interface IMayHaveTagsAndGenres {
   tags?: IUserTag[];
-  genres?: IGenre[];
+  /** Genre vote counts are present in aggregated genre lists. */
+  genres?: (IGenre & IUserVote)[];
+  'user-tags'?: ITag[];
+  'user-genres'?: IGenre[];
 }
 
 export interface IRating {
@@ -435,10 +567,10 @@ export interface IRating {
 
 export interface IMayHaveRating {
   rating?: IRating;
+  'user-rating'?: IUserRatingResult['user-rating'];
 }
 
 export interface IUrl extends IEntity, IMayHaveRelations {
-  id: string;
   resource: string;
 }
 
@@ -446,9 +578,7 @@ export interface IExernalIds {
   [type: string]: string;
 }
 
-export interface IReleaseSearchResult extends ISearchResult {
-  releases: IRelease[];
-}
+export type IReleaseSearchResult = IReleaseList;
 
 /**
  * Entities without MBID
@@ -464,6 +594,7 @@ export type EntityType =
   | 'artist'
   | 'collection'
   | 'event'
+  | 'genre'
   | 'instrument'
   | 'label'
   | 'place'
@@ -478,6 +609,7 @@ export type Relationships =
   | 'area-rels'
   | 'artist-rels'
   | 'event-rels'
+  | 'genre-rels'
   | 'instrument-rels'
   | 'label-rels'
   | 'place-rels'
@@ -502,6 +634,7 @@ export type ReleaseTypeQuery =
   | 'ep'
   | 'broadcast'
   | 'other'
+  | 'audio drama'
   | 'audiobook'
   | 'compilation'
   | 'demo'
@@ -556,9 +689,10 @@ export interface ISearchQuery<I extends string> extends IPagination {
   /**
    * Lucene search query, this is mandatory
    */
-  query?: string | IFormData;
+  query: string | IFormData;
+  /** @deprecated Search responses do not expand inc; use lookup or browse for includes. */
   inc?: I[];
-  artist?: string;
+  dismax?: boolean;
 }
 
 /**
@@ -584,9 +718,12 @@ export interface ILinkedEntitiesArtist {
 
 /**
  * https://musicbrainz.org/doc/MusicBrainz_API#Browse
- * /ws/2/collection        area, artist, editor, event, label, place, recording, release, release-group, work
+ * /ws/2/collection        area, artist, editor, event, genre, instrument, label, place, recording, release, release-group, series, work
  */
 export interface ILinkedEntitiesCollection {
+  genre?: string;
+  instrument?: string;
+  series?: string;
   area?: string;
   artist?: string;
   editor?: string;
@@ -601,9 +738,11 @@ export interface ILinkedEntitiesCollection {
 
 /**
  * https://musicbrainz.org/doc/MusicBrainz_API#Subqueries
- * /ws/2/event             area, artist, collection, place
+ * /ws/2/event             area, artist, collection, event, place, series
  */
 export interface ILinkedEntitiesEvent {
+  event?: string;
+  series?: string;
   area?: string;
   artist?: string;
   collection?: string;
@@ -612,8 +751,12 @@ export interface ILinkedEntitiesEvent {
 
 /**
  * https://musicbrainz.org/doc/MusicBrainz_API#Subqueries
- * /ws/2/instrument        collection
+ * /ws/2/genre             collection
  */
+export interface ILinkedEntitiesGenre {
+  collection?: string;
+}
+
 export interface ILinkedEntitiesInstrument {
   collection?: string;
 }
@@ -630,10 +773,11 @@ export interface ILinkedEntitiesLabel {
 
 /**
  * https://musicbrainz.org/doc/MusicBrainz_API#Subqueries
- * /ws/2/place             area, collection, release
+ * /ws/2/place             area, collection
  */
 export interface ILinkedEntitiesPlace {
-  place?: string;
+  area?: string;
+  collection?: string;
 }
 
 /**
@@ -650,7 +794,7 @@ export interface IBrowseArgumentPlace {
  * /ws/2/recording         artist, collection, release, work
  */
 export interface ILinkedEntitiesRecording {
-  area?: string;
+  artist?: string;
   collection?: string;
   release?: string;
   work?: string;
@@ -718,15 +862,12 @@ export type OneOf<T> = {
 interface BrowseReleasesEntityParams {
   area: string;
   artist: string;
-  editor: string;
-  event: string;
+  collection: string;
   label: string;
-  place: string;
   recording: string;
-  release: string;
   'release-group': string;
+  track: string;
   track_artist: string;
-  work: string;
 }
 export type IBrowseReleasesQuery = IPagination & IReleaseTypeAndStatus & OneOf<BrowseReleasesEntityParams>;
 
@@ -749,6 +890,9 @@ export type IBrowseArtistsQuery = IPagination & OneOf<BrowseArtistsEntityParams>
  * Used as a key set for constructing exclusive query types.
  */
 interface BrowseCollectionsEntityParams {
+  genre: string;
+  instrument: string;
+  series: string;
   area: string;
   artist: string;
   editor: string;
@@ -767,6 +911,8 @@ export type IBrowseCollectionsQuery = IPagination & OneOf<BrowseCollectionsEntit
  * Used as a key set for constructing exclusive query types.
  */
 interface BrowseEventsEntityParams {
+  event: string;
+  series: string;
   area: string;
   artist: string;
   collection: string;
@@ -816,7 +962,12 @@ interface BrowseReleaseGroupsEntityParams {
   collection: string;
   release: string;
 }
-export type IBrowseReleaseGroupsQuery = IPagination & IReleaseTypeAndStatus & OneOf<BrowseReleaseGroupsEntityParams>;
+export type IBrowseReleaseGroupsQuery = IPagination &
+  Pick<IReleaseTypeAndStatus, 'type'> &
+  (
+    | { artist: string; collection?: never; release?: never; 'release-group-status'?: 'website-default' | 'all' }
+    | (OneOf<Omit<BrowseReleaseGroupsEntityParams, 'artist'>> & { artist?: never; 'release-group-status'?: never })
+  );
 
 /**
  * List of entity names allowed for browsing works by a single MBID.
@@ -860,75 +1011,74 @@ export interface IBrowseUrlsQuery extends IPagination {
   resource?: string;
 }
 
-// Results interfaces remain the same
 export interface IBrowseAreasResult {
-  area: IArea;
+  areas: ILookupResultMap['area'][];
   'area-count': number;
   'area-offset': number;
 }
 
 export interface IBrowseArtistsResult {
-  artists: IArtist[];
+  artists: ILookupResultMap['artist'][];
   'artist-count': number;
   'artist-offset': number;
 }
 
 export interface IBrowseCollectionsResult {
-  collections: ICollection[];
+  collections: ILookupResultMap['collection'][];
   'collection-count': number;
   'collection-offset': number;
 }
 
 export interface IBrowseEventsResult {
-  events: IEvent[];
+  events: ILookupResultMap['event'][];
   'event-count': number;
   'event-offset': number;
 }
 
 export interface IBrowseInstrumentsResult {
-  instruments: IInstrument[];
+  instruments: ILookupResultMap['instrument'][];
   'instrument-count': number;
   'instrument-offset': number;
 }
 
 export interface IBrowseLabelsResult {
-  label: ILabel[];
+  labels: ILookupResultMap['label'][];
   'label-count': number;
   'label-offset': number;
 }
 
 export interface IBrowsePlacesResult {
-  place: IPlace[];
+  places: ILookupResultMap['place'][];
   'place-count': number;
   'place-offset': number;
 }
 
 export interface IBrowseRecordingsResult {
-  recording: IRecording[];
+  recordings: ILookupResultMap['recording'][];
   'recording-count': number;
   'recording-offset': number;
 }
 
 export interface IBrowseReleasesResult {
-  releases: IRelease[];
+  releases: ILookupResultMap['release'][];
   'release-count': number;
   'release-offset': number;
 }
 
 export interface IBrowseReleaseGroupsResult {
-  'release-groups': IReleaseGroup[];
+  'release-groups': ILookupResultMap['release-group'][];
   'release-group-count': number;
   'release-group-offset': number;
 }
 
 export interface IBrowseSeriesResult {
-  series: IReleaseGroup[];
+  series: ILookupResultMap['series'][];
   'series-count': number;
   'series-offset': number;
 }
 
 export interface IBrowseWorksResult {
-  works: IReleaseGroup[];
+  works: ILookupResultMap['work'][];
   'work-count': number;
   'work-offset': number;
 }
@@ -937,4 +1087,196 @@ export interface IUrlLookupResult {
   'url-offset': number;
   'url-count': number;
   urls: IUrl[];
+}
+
+/** Genre/all and genre browsing share this paginated response. */
+export interface IBrowseGenresResult {
+  genres: ILookupResultMap['genre'][];
+  'genre-count': number;
+  'genre-offset': number;
+}
+
+export interface IBrowseGenresQuery extends IPagination {
+  collection: string;
+}
+
+export interface IIsrcLookupResult {
+  isrc: string;
+  recordings: ILookupResultMap['recording'][];
+}
+
+/** ISWC uses the work-list serializer; no search timestamp or match scores. */
+export interface IIswcLookupResult {
+  works: ILookupResultMap['work'][];
+  'work-count': number;
+  'work-offset': number;
+}
+
+export interface IDiscLookupQuery extends IPagination {
+  toc?: string;
+  cdstubs?: 'yes' | 'no';
+  'media-format'?: 'all';
+}
+
+export interface IDiscLookup extends IDisc {
+  releases: ILookupResultMap['release'][];
+}
+
+export interface ICdStubLookup extends ICdStub {
+  tracks: ICdStubTrack[];
+  'track-count': number;
+}
+
+export type IDiscLookupResult = IDiscLookup | ICdStubLookup | IBrowseReleasesResult;
+
+export type TaggedEntityType =
+  | 'area'
+  | 'artist'
+  | 'event'
+  | 'instrument'
+  | 'label'
+  | 'place'
+  | 'recording'
+  | 'release'
+  | 'release-group'
+  | 'series'
+  | 'work';
+export type RatedEntityType = 'artist' | 'event' | 'label' | 'place' | 'recording' | 'release-group' | 'work';
+
+export interface IUserTagsQuery {
+  entity: TaggedEntityType;
+  id: string;
+}
+
+export interface IUserRatingQuery {
+  entity: RatedEntityType;
+  id: string;
+}
+
+export interface IUserTagsResult {
+  'user-tags': ITag[];
+}
+
+export interface IUserRatingResult {
+  'user-rating': { value: number | null };
+}
+
+/** Mark guaranteed scalar fields as present without making include-dependent fields required. */
+type WithRequired<T, K extends keyof T> = T & Required<Pick<T, K>>;
+type CompletePeriod = Required<IPeriod> & { ended: boolean };
+
+/**
+ * Complete entities returned directly by lookup and browse requests.
+ * Search hits and nested references keep the shared, compact entity shapes.
+ * The client infers these refinements; callers do not need to supply type arguments.
+ */
+export interface ILookupResultMap {
+  area: WithRequired<IArea, 'type' | 'type-id' | 'disambiguation'> & { 'life-span': CompletePeriod };
+  artist: WithRequired<
+    IArtist,
+    | 'type'
+    | 'type-id'
+    | 'disambiguation'
+    | 'gender'
+    | 'gender-id'
+    | 'country'
+    | 'area'
+    | 'begin-area'
+    | 'end-area'
+    | 'ipis'
+    | 'isnis'
+  > & { 'life-span': CompletePeriod };
+  collection: WithRequired<ICollection, 'type' | 'type-id' | 'description'>;
+  event: WithRequired<IEvent, 'type' | 'type-id' | 'disambiguation' | 'cancelled' | 'time' | 'setlist'> & {
+    'life-span': CompletePeriod;
+  };
+  genre: WithRequired<IGenre, 'disambiguation'>;
+  instrument: WithRequired<IInstrument, 'type' | 'type-id' | 'disambiguation' | 'description'>;
+  label: WithRequired<
+    ILabel,
+    'type' | 'type-id' | 'sort-name' | 'disambiguation' | 'label-code' | 'country' | 'area' | 'ipis' | 'isnis'
+  > & { 'life-span': CompletePeriod };
+  place: WithRequired<IPlace, 'type' | 'type-id' | 'disambiguation' | 'address' | 'area'> & {
+    'life-span': CompletePeriod;
+    coordinates: { latitude: number; longitude: number } | null;
+  };
+  recording: WithRequired<IRecording, 'disambiguation' | 'length'> & { video: boolean };
+  release: WithRequired<
+    IRelease,
+    | 'text-representation'
+    | 'disambiguation'
+    | 'asin'
+    | 'status'
+    | 'status-id'
+    | 'packaging'
+    | 'packaging-id'
+    | 'quality'
+    | 'barcode'
+    | 'cover-art-archive'
+  >;
+  'release-group': WithRequired<
+    IReleaseGroup,
+    | 'disambiguation'
+    | 'secondary-types'
+    | 'secondary-type-ids'
+    | 'first-release-date'
+    | 'primary-type'
+    | 'primary-type-id'
+  >;
+  series: WithRequired<ISeries, 'type' | 'type-id' | 'disambiguation'>;
+  url: IUrl;
+  work: WithRequired<IWork, 'type' | 'type-id' | 'disambiguation' | 'language' | 'languages' | 'iswcs' | 'attributes'>;
+}
+
+/** Response types for Lucene searches, separate from browse responses. */
+export interface ISearchResultMap {
+  annotation: IAnnotationList;
+  area: IAreaList;
+  artist: IArtistList;
+  cdstub: ICdStubList;
+  event: IEventList;
+  instrument: IInstrumentList;
+  label: ILabelList;
+  place: IPlaceList;
+  recording: IRecordingList;
+  release: IReleaseList;
+  'release-group': IReleaseGroupList;
+  series: ISeriesList;
+  tag: ITagList;
+  url: IUrlList;
+  work: IWorkList;
+}
+
+export interface IBrowseResultMap {
+  area: IBrowseAreasResult;
+  artist: IBrowseArtistsResult;
+  collection: IBrowseCollectionsResult;
+  event: IBrowseEventsResult;
+  genre: IBrowseGenresResult;
+  instrument: IBrowseInstrumentsResult;
+  label: IBrowseLabelsResult;
+  place: IBrowsePlacesResult;
+  recording: IBrowseRecordingsResult;
+  release: IBrowseReleasesResult;
+  'release-group': IBrowseReleaseGroupsResult;
+  series: IBrowseSeriesResult;
+  url: IUrl;
+  work: IBrowseWorksResult;
+}
+
+export interface IBrowseQueryMap {
+  area: IBrowseAreasQuery;
+  artist: IBrowseArtistsQuery;
+  collection: IBrowseCollectionsQuery;
+  event: IBrowseEventsQuery;
+  genre: IBrowseGenresQuery;
+  instrument: IBrowseInstrumentsQuery;
+  label: IBrowseLabelsQuery;
+  place: IBrowsePlacesQuery;
+  recording: IBrowseRecordingsQuery;
+  release: IBrowseReleasesQuery;
+  'release-group': IBrowseReleaseGroupsQuery;
+  series: IBrowseSeriesQuery;
+  url: IBrowseUrlsQuery;
+  work: IBrowseWorksQuery;
 }
