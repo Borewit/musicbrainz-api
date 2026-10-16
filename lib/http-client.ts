@@ -1,16 +1,16 @@
-import Debug from "debug";
+import Debug from 'debug';
 
-export type HttpFormData = { [key: string]: string; }
+export type HttpFormData = { [key: string]: string };
 
 const debug = Debug('musicbrainz-api:http-client');
 
 /**
  * Allows multiple entries for the same key
  */
-export type MultiQueryFormData = { [key: string]: string | string[]; }
+export type MultiQueryFormData = { [key: string]: string | string[] };
 
 export interface IHttpClientOptions {
-  baseUrl: string,
+  baseUrl: string;
   /**
    * Base retry delay in milliseconds. The delay increases linearly after each failed attempt.
    */
@@ -33,25 +33,31 @@ export interface IFetchOptions {
 }
 
 function isTransientConnectionError(err: unknown): boolean {
-  if (typeof err !== 'object' || err === null) return false;
+  if (typeof err !== 'object' || err === null) {
+    return false;
+  }
 
-  const error = err as {code?: unknown; cause?: unknown; errors?: unknown};
+  const error = err as { code?: unknown; cause?: unknown; errors?: unknown };
   // Node can mix IPv4 timeouts with unreachable IPv6 addresses in one aggregate.
   if (Array.isArray(error.errors)) {
     return error.errors.length > 0 && error.errors.every(isTransientConnectionError);
   }
 
-  if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT'
-    || error.code === 'UND_ERR_CONNECT_TIMEOUT' || error.code === 'ENETUNREACH') return true;
+  if (
+    error.code === 'ECONNRESET' ||
+    error.code === 'ETIMEDOUT' ||
+    error.code === 'UND_ERR_CONNECT_TIMEOUT' ||
+    error.code === 'ENETUNREACH'
+  ) {
+    return true;
+  }
 
   // Fetch wraps Node/Undici connection errors in a TypeError's cause.
   return isTransientConnectionError(error.cause);
 }
 
 export class HttpClient {
-
-  public constructor(protected httpOptions: IHttpClientOptions) {
-  }
+  public constructor(protected httpOptions: IHttpClientOptions) {}
 
   public get(path: string, options?: IFetchOptions): Promise<Response> {
     return this._fetch('get', path, options);
@@ -66,25 +72,30 @@ export class HttpClient {
     return this._fetch('post', path, {
       ...options,
       body: encodedFormData,
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     });
   }
 
   public postJson(path: string, json: object, options?: IFetchOptions) {
     const encodedJson = JSON.stringify(json);
-    return this._fetch('post', path, {...options, body: encodedJson, headers: {'Content-Type': 'application/json.'}});
+    return this._fetch('post', path, {
+      ...options,
+      body: encodedJson,
+      headers: { 'Content-Type': 'application/json.' }
+    });
   }
 
   private async _fetch(method: string, path: string, options?: IFetchOptions): Promise<Response> {
-    if (!options) options = {};
+    const requestOptions = options || {};
 
-    const maxAttempts = typeof options.retryLimit === 'number' && Number.isFinite(options.retryLimit)
-      ? Math.max(1, Math.floor(options.retryLimit))
-      : 1;
+    const maxAttempts =
+      typeof requestOptions.retryLimit === 'number' && Number.isFinite(requestOptions.retryLimit)
+        ? Math.max(1, Math.floor(requestOptions.retryLimit))
+        : 1;
     const retryTimeout = this.httpOptions.timeout ? this.httpOptions.timeout : 500;
-    const url = this._buildUrl(path, options.query);
+    const url = this._buildUrl(path, requestOptions.query);
 
-    const headers = new Headers(options.headers);
+    const headers = new Headers(requestOptions.headers);
     headers.set('User-Agent', this.httpOptions.userAgent);
 
     const existingAuth = headers.get('Authorization');
@@ -106,14 +117,16 @@ export class HttpClient {
       try {
         response = await fetch(url, {
           method,
-          ...options,
+          ...requestOptions,
           headers,
-          body: options.body,
-          redirect: options.followRedirects === false ? 'manual' : 'follow'
-        })
+          body: requestOptions.body,
+          redirect: requestOptions.followRedirects === false ? 'manual' : 'follow'
+        });
       } catch (err) {
         if (attempt < maxAttempts && isTransientConnectionError(err)) {
-          debug(`Transient connection failure on attempt ${attempt}/${maxAttempts}: ${err instanceof Error ? err.message : 'unknown error'}; retry in ${retryDelay} ms`);
+          debug(
+            `Transient connection failure on attempt ${attempt}/${maxAttempts}: ${err instanceof Error ? err.message : 'unknown error'}; retry in ${retryDelay} ms`
+          );
           continue;
         }
         debug('Fetch failed on attempt %d/%d: %O', attempt, maxAttempts, err);
@@ -134,11 +147,9 @@ export class HttpClient {
     throw new Error(`Failed to fetch ${url} after ${maxAttempts} attempts`);
   }
 
-// Helper: Builds URL with query string
+  // Helper: Builds URL with query string
   private _buildUrl(path: string, query?: Record<string, string | string[]>): string {
-    let url = path.startsWith('/')
-      ? `${this.httpOptions.baseUrl}${path}`
-      : `${this.httpOptions.baseUrl}/${path}`;
+    let url = path.startsWith('/') ? `${this.httpOptions.baseUrl}${path}` : `${this.httpOptions.baseUrl}/${path}`;
 
     if (query) {
       const urlSearchParams = new URLSearchParams();
@@ -154,9 +165,8 @@ export class HttpClient {
     return url;
   }
 
-// Helper: Delays execution
+  // Helper: Delays execution
   private _delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
-
 }

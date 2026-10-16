@@ -1,7 +1,11 @@
+import { readFile } from 'node:fs/promises';
+import { assert, expect } from 'chai';
+import { RateLimitThreshold } from 'rate-limit-threshold';
+import sinon from 'sinon';
 import {
   CoverArtArchiveApi,
-  XmlMetadata,
   type EventIncludes,
+  type IArtist,
   type IBrowseArtistsResult,
   type IBrowseCollectionsResult,
   type IBrowseEventsResult,
@@ -14,22 +18,35 @@ import {
   type IBrowseSeriesResult,
   type IBrowseWorksResult,
   type IEvent,
+  type IMusicBrainzConfig,
+  type IRecording,
   type IRelease,
   type IReleaseGroup,
+  MusicBrainzApi,
+  type RecordingIncludes,
   type ReleaseGroupIncludes,
   type ReleaseIncludes,
-  MusicBrainzApi, type RecordingIncludes, type IRecording,
-  type IMusicBrainzConfig, type IArtist
+  XmlMetadata
 } from '../lib/entry-default.js';
-import { assert, expect } from 'chai';
+import { HttpClient } from '../lib/http-client.js';
 import type * as mb from '../lib/musicbrainz.types.js';
-import { readFile } from 'node:fs/promises';
-import sinon from 'sinon';
-import { HttpClient } from "../lib/http-client.js";
-import { RateLimitThreshold } from 'rate-limit-threshold';
-import type { AreaIncludes, IArea, IInstrument, InstrumentIncludes, IPlace, IRelation, ISeries, IWork, LabelIncludes, PlaceIncludes, SeriesIncludes, UrlIncludes, SeriesIncludes as WorkIncludes } from "../lib/musicbrainz-api.js";
-import { MusicBrainzApi as MusicBrainzApiDefault, MusicBrainzApiError } from "../lib/musicbrainz-api.js";
-import { MusicBrainzApi as MusicBrainzApiNode } from "../lib/musicbrainz-api-node.js";
+import type {
+  AreaIncludes,
+  IArea,
+  IInstrument,
+  InstrumentIncludes,
+  IPlace,
+  IRelation,
+  ISeries,
+  IWork,
+  LabelIncludes,
+  PlaceIncludes,
+  SeriesIncludes,
+  UrlIncludes,
+  SeriesIncludes as WorkIncludes
+} from '../lib/musicbrainz-api.js';
+import { MusicBrainzApi as MusicBrainzApiDefault, MusicBrainzApiError } from '../lib/musicbrainz-api.js';
+import { MusicBrainzApi as MusicBrainzApiNode } from '../lib/musicbrainz-api-node.js';
 
 const appUrl = 'https://github.com/Borewit/musicbrainz-api';
 
@@ -42,9 +59,7 @@ async function readPackageInfo() {
   return JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf-8'));
 }
 
-async function makeTestApiConfig(
-  customConfig?: Partial<IMusicBrainzConfig>
-): Promise<IMusicBrainzConfig> {
+async function makeTestApiConfig(customConfig?: Partial<IMusicBrainzConfig>): Promise<IMusicBrainzConfig> {
   const packageInfo = await readPackageInfo();
   return {
     botAccount: testBotAccount,
@@ -63,12 +78,9 @@ async function makeTestApiConfig(
   };
 }
 
-async function makeSearchApiConfig(
-  customConfig?: Partial<IMusicBrainzConfig>
-): Promise<IMusicBrainzConfig> {
+async function makeSearchApiConfig(customConfig?: Partial<IMusicBrainzConfig>): Promise<IMusicBrainzConfig> {
   const packageInfo = await readPackageInfo();
   return {
-
     baseUrl: 'https://musicbrainz.org',
 
     /**
@@ -86,7 +98,7 @@ async function makeSearchApiConfig(
 
 const mbid = {
   annotation: {
-    PiedsNusSurLaBraise: "bdb24cb5-404b-4f60-bba4-7b730325ae47"
+    PiedsNusSurLaBraise: 'bdb24cb5-404b-4f60-bba4-7b730325ae47'
   },
   area: {
     Belgium: '5b8a5ee5-0bb3-34cf-9a75-c27c44e341fc',
@@ -96,7 +108,7 @@ const mbid = {
   },
   artist: {
     Stromae: 'ab2528d9-719f-4261-8098-21849222a0f2',
-    DeadCombo: '092ae9e2-60bf-4b66-aa33-9e31754d1924',
+    DeadCombo: '092ae9e2-60bf-4b66-aa33-9e31754d1924'
   },
   collection: {
     Ringtone: 'de4fdfc4-53aa-458a-b463-8761cc7f5af8'
@@ -149,45 +161,47 @@ const mbid = {
 
 const url = {
   area: {
-    UnitedStates: "https://www.wikidata.org/wiki/Q30"
+    UnitedStates: 'https://www.wikidata.org/wiki/Q30'
   },
   artist: {
-    Mozart: "https://www.wikidata.org/wiki/Q254"
+    Mozart: 'https://www.wikidata.org/wiki/Q254'
   },
   event: {
-    MolsonCanadianRocksForToronto: "https://www.wikidata.org/wiki/Q3510009"
+    MolsonCanadianRocksForToronto: 'https://www.wikidata.org/wiki/Q3510009'
   },
   genre: {
-    Classical: "https://www.wikidata.org/wiki/Q1583807"
+    Classical: 'https://www.wikidata.org/wiki/Q1583807'
   },
   instrument: {
-    Violin: "https://www.wikidata.org/wiki/Q8355"
+    Violin: 'https://www.wikidata.org/wiki/Q8355'
   },
   label: {
-    CapitolRecords: "https://www.wikidata.org/wiki/Q193023"
+    CapitolRecords: 'https://www.wikidata.org/wiki/Q193023'
   },
   place: {
-    MadisonSquareGarden: "https://www.wikidata.org/wiki/Q186125"
+    MadisonSquareGarden: 'https://www.wikidata.org/wiki/Q186125'
   },
-  recording: {// STYLE-2661 Wikidata links are not supported on recordings or releases
-    BlindingLights: "https://www.youtube.com/watch?v=fHI8X4OXluQ"
+  recording: {
+    // STYLE-2661 Wikidata links are not supported on recordings or releases
+    BlindingLights: 'https://www.youtube.com/watch?v=fHI8X4OXluQ'
   },
-  release: {// STYLE-2661 Wikidata links are not supported on recordings or releases
-    ShapeOfYou: "https://www.discogs.com/release/9882982" 
+  release: {
+    // STYLE-2661 Wikidata links are not supported on recordings or releases
+    ShapeOfYou: 'https://www.discogs.com/release/9882982'
   },
   release_group: {
-    DontStopMeNow: "https://www.wikidata.org/wiki/Q70203020"
+    DontStopMeNow: 'https://www.wikidata.org/wiki/Q70203020'
   },
   series: {
-    StarTrek: "https://www.wikidata.org/wiki/Q1092"
+    StarTrek: 'https://www.wikidata.org/wiki/Q1092'
   },
   url: {
     // Can't test for a URL relation on a URL
   },
   work: {
-    CountingStars: "https://www.wikidata.org/wiki/Q13422120"
+    CountingStars: 'https://www.wikidata.org/wiki/Q13422120'
   }
-}
+};
 
 const spotify = {
   album: {
@@ -212,7 +226,6 @@ const spotify = {
 const timeoutInSec = Number(process.env.TEST_TIMEOUT_SEC || 40);
 
 describe('MusicBrainz-api', function () {
-
   let mbTestApi: MusicBrainzApiDefault;
   let mbApi: MusicBrainzApiDefault;
 
@@ -235,11 +248,8 @@ describe('MusicBrainz-api', function () {
   });
 
   describe('Read metadata', () => {
-
     describe('Lookup', () => {
-
       describe('Area', () => {
-
         it('Belgium', async () => {
           const area = await mbApi.lookup('area', mbid.area.Belgium);
           assert.strictEqual(area.type, 'Country', 'area.type');
@@ -264,20 +274,23 @@ describe('MusicBrainz-api', function () {
           assert.strictEqual(area['life-span'].ended, false, 'area.life-span.ended');
         });
 
-        const includes: { inc: AreaIncludes, key: keyof IArea }[] = [
-          {inc: 'tags', key: 'tags'},
-          {inc: 'genres', key: 'genres'},
-          {inc: 'url-rels', key: 'relations'}
+        const includes: { inc: AreaIncludes; key: keyof IArea }[] = [
+          { inc: 'tags', key: 'tags' },
+          { inc: 'genres', key: 'genres' },
+          { inc: 'url-rels', key: 'relations' }
         ];
-        it(`get area, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
-            const area = await mbApi.lookup('area', mbid.area.Queens, includes.map(inc => inc.inc));
-            assert.strictEqual(area.id, mbid.area.Queens);
-            assert.strictEqual(area.name, 'Queens');
-            includes.forEach(inc => {
-              assert.isDefined(area[inc.key], `Should include '${inc.key}'`);
-            });
+        it(`get area, include: '${includes.map(inc => inc.inc).join(', ')}'`, async () => {
+          const area = await mbApi.lookup(
+            'area',
+            mbid.area.Queens,
+            includes.map(inc => inc.inc)
+          );
+          assert.strictEqual(area.id, mbid.area.Queens);
+          assert.strictEqual(area.name, 'Queens');
+          includes.forEach(inc => {
+            assert.isDefined(area[inc.key], `Should include '${inc.key}'`);
+          });
         });
-        
       });
 
       it('artist', async () => {
@@ -291,7 +304,10 @@ describe('MusicBrainz-api', function () {
         // Ref: https://musicbrainz.org/doc/MusicBrainz_API/Examples#Genres,_tags_and_ratings
         expect(artist.tags?.map(tag => tag.name)).include('dance-pop', 'Should contain tag "dance-pop"');
         expect(artist.genres?.map(genre => genre.name)).include('dance-pop', 'Should contain genre "dance-pop"');
-        expect(artist.genres?.map(genre => genre.id)).include(mbid.genre.DancePop, `Should contain genre id for "dance-pop"`);
+        expect(artist.genres?.map(genre => genre.id)).include(
+          mbid.genre.DancePop,
+          `Should contain genre id for "dance-pop"`
+        );
         expect(artist.rating?.value).to.be.greaterThan(0, 'Should have a rating');
         expect(artist.rating?.['votes-count']).to.be.greaterThan(0, 'Should have rating votes');
       });
@@ -303,64 +319,74 @@ describe('MusicBrainz-api', function () {
       });
 
       describe('instrument', async () => {
-        it('Get instrument', async() => {
-        const instrument = await mbApi.lookup('instrument', mbid.instrument.spanishAcousticGuitar);
-        assert.strictEqual(instrument.id, mbid.instrument.spanishAcousticGuitar);
-        assert.strictEqual(instrument.name, 'classical guitar');
-        assert.strictEqual(instrument.disambiguation, 'Modern acoustic gut/nylon string guitar');
-        assert.strictEqual(instrument.type, 'String instrument');
-        assert.strictEqual(instrument.description, 'Also known as Spanish guitar, it is used in classical, folk and other styles, the strings are nylon or gut.');
-        })
-        const includes: { inc: InstrumentIncludes, key: keyof IInstrument }[] = [
-          {inc: 'tags', key: 'tags'},
-          {inc: 'genres', key: 'genres'},
-          {inc: 'url-rels', key: 'relations'}
+        it('Get instrument', async () => {
+          const instrument = await mbApi.lookup('instrument', mbid.instrument.spanishAcousticGuitar);
+          assert.strictEqual(instrument.id, mbid.instrument.spanishAcousticGuitar);
+          assert.strictEqual(instrument.name, 'classical guitar');
+          assert.strictEqual(instrument.disambiguation, 'Modern acoustic gut/nylon string guitar');
+          assert.strictEqual(instrument.type, 'String instrument');
+          assert.strictEqual(
+            instrument.description,
+            'Also known as Spanish guitar, it is used in classical, folk and other styles, the strings are nylon or gut.'
+          );
+        });
+        const includes: { inc: InstrumentIncludes; key: keyof IInstrument }[] = [
+          { inc: 'tags', key: 'tags' },
+          { inc: 'genres', key: 'genres' },
+          { inc: 'url-rels', key: 'relations' }
         ];
 
-        it(`get instrument, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
-            const instrument = await mbApi.lookup('instrument', mbid.instrument.spanishAcousticGuitar, includes.map(inc => inc.inc));
-            assert.strictEqual(instrument.id, mbid.instrument.spanishAcousticGuitar);
-            assert.strictEqual(instrument.name, 'classical guitar');
-            includes.forEach(inc => {
-              assert.isDefined(instrument[inc.key], `Should include '${inc.key}'`);
-            });
+        it(`get instrument, include: '${includes.map(inc => inc.inc).join(', ')}'`, async () => {
+          const instrument = await mbApi.lookup(
+            'instrument',
+            mbid.instrument.spanishAcousticGuitar,
+            includes.map(inc => inc.inc)
+          );
+          assert.strictEqual(instrument.id, mbid.instrument.spanishAcousticGuitar);
+          assert.strictEqual(instrument.name, 'classical guitar');
+          includes.forEach(inc => {
+            assert.isDefined(instrument[inc.key], `Should include '${inc.key}'`);
+          });
         });
       });
 
       describe('label', async () => {
-        it('Get label', async() =>{
-        const label = await mbApi.lookup('label', mbid.label.Mosaert);
-        assert.strictEqual(label.id, mbid.label.Mosaert);
-        assert.strictEqual(label.name, 'Mosaert');
-        assert.strictEqual(label['sort-name'], 'Mosaert');
-        assert.isDefined(label.disambiguation, 'label.disambiguation')
-        expect(label.ipis).include('00367549320', 'Contain an Interested Parties Information Code (IPI)');
-        assert.isDefined(label.isnis, 'label.isnis');
-        assert.isDefined(label['label-code'], 'label.label-code');
-        assert.isDefined(label.area, 'label.area');
-        assert.isDefined(label.area?.name, 'label.area.name')
-        assert.isDefined(label.country, 'label.country')
-        })
+        it('Get label', async () => {
+          const label = await mbApi.lookup('label', mbid.label.Mosaert);
+          assert.strictEqual(label.id, mbid.label.Mosaert);
+          assert.strictEqual(label.name, 'Mosaert');
+          assert.strictEqual(label['sort-name'], 'Mosaert');
+          assert.isDefined(label.disambiguation, 'label.disambiguation');
+          expect(label.ipis).include('00367549320', 'Contain an Interested Parties Information Code (IPI)');
+          assert.isDefined(label.isnis, 'label.isnis');
+          assert.isDefined(label['label-code'], 'label.label-code');
+          assert.isDefined(label.area, 'label.area');
+          assert.isDefined(label.area?.name, 'label.area.name');
+          assert.isDefined(label.country, 'label.country');
+        });
 
-        const includes: { inc: LabelIncludes, key: keyof mb.ILabel }[] = [
-          {inc: 'tags', key: 'tags'},
-          {inc: 'genres', key: 'genres'},
-          {inc: 'ratings', key: 'rating'},
-          {inc: 'url-rels', key: 'relations'}
+        const includes: { inc: LabelIncludes; key: keyof mb.ILabel }[] = [
+          { inc: 'tags', key: 'tags' },
+          { inc: 'genres', key: 'genres' },
+          { inc: 'ratings', key: 'rating' },
+          { inc: 'url-rels', key: 'relations' }
         ];
 
-        it(`get label, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
-            const label = await mbApi.lookup('label', mbid.label.Mosaert, includes.map(inc => inc.inc));
-            assert.strictEqual(label.id, mbid.label.Mosaert);
-            assert.strictEqual(label.name, 'Mosaert');
-            includes.forEach(inc => {
-              assert.isDefined(label[inc.key], `Should include '${inc.key}'`);
-            });
+        it(`get label, include: '${includes.map(inc => inc.inc).join(', ')}'`, async () => {
+          const label = await mbApi.lookup(
+            'label',
+            mbid.label.Mosaert,
+            includes.map(inc => inc.inc)
+          );
+          assert.strictEqual(label.id, mbid.label.Mosaert);
+          assert.strictEqual(label.name, 'Mosaert');
+          includes.forEach(inc => {
+            assert.isDefined(label[inc.key], `Should include '${inc.key}'`);
+          });
         });
       });
 
       describe('place', () => {
-
         it('Paradiso', async () => {
           const place = await mbApi.lookup('place', mbid.place.Paradiso);
           assert.strictEqual(place.type, 'Venue', 'area.type');
@@ -377,37 +403,39 @@ describe('MusicBrainz-api', function () {
           assert.strictEqual(place['life-span'].ended, false, 'area.life-span.ended');
         });
 
-        const includes: { inc: PlaceIncludes, key: keyof IPlace }[] = [
-          {inc: 'tags', key: 'tags'},
-          {inc: 'genres', key: 'genres'},
-          {inc: 'ratings', key: 'rating'},
-          {inc: 'url-rels', key: 'relations'}
+        const includes: { inc: PlaceIncludes; key: keyof IPlace }[] = [
+          { inc: 'tags', key: 'tags' },
+          { inc: 'genres', key: 'genres' },
+          { inc: 'ratings', key: 'rating' },
+          { inc: 'url-rels', key: 'relations' }
         ];
-        it(`get place, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
-            const place = await mbApi.lookup('place', mbid.place.Paradiso, includes.map(inc => inc.inc));
-            assert.strictEqual(place.id, mbid.place.Paradiso);
-            assert.strictEqual(place.name, 'Paradiso');
-            includes.forEach(inc => {
-              assert.isDefined(place[inc.key], `Should include '${inc.key}'`);
-            });
+        it(`get place, include: '${includes.map(inc => inc.inc).join(', ')}'`, async () => {
+          const place = await mbApi.lookup(
+            'place',
+            mbid.place.Paradiso,
+            includes.map(inc => inc.inc)
+          );
+          assert.strictEqual(place.id, mbid.place.Paradiso);
+          assert.strictEqual(place.name, 'Paradiso');
+          includes.forEach(inc => {
+            assert.isDefined(place[inc.key], `Should include '${inc.key}'`);
+          });
         });
-        
       });
 
       describe('release', () => {
-
         it('release Formidable', async () => {
           const release = await mbApi.lookup('release', mbid.release.Formidable);
           assert.strictEqual(release.id, mbid.release.Formidable);
           assert.strictEqual(release.title, 'Formidable');
           assert.strictEqual(release.status, 'Official');
-          assert.strictEqual(release["status-id"], '4e304316-386d-3409-af2e-78857eec5cfe');
+          assert.strictEqual(release['status-id'], '4e304316-386d-3409-af2e-78857eec5cfe');
           assert.strictEqual(release.country, null);
           assert.strictEqual(release.asin, null);
           assert.strictEqual(release.quality, 'normal');
           assert.strictEqual(release.packaging, 'None');
-          assert.strictEqual(release["packaging-id"], '119eba76-b343-3e02-a292-f0f00644bb9b');
-          assert.isObject(release["cover-art-archive"]);
+          assert.strictEqual(release['packaging-id'], '119eba76-b343-3e02-a292-f0f00644bb9b');
+          assert.isObject(release['cover-art-archive']);
         });
 
         it('check release Anomalie', async () => {
@@ -416,161 +444,182 @@ describe('MusicBrainz-api', function () {
           assert.strictEqual(release.title, 'Anomalie');
         });
 
-        const includes: { inc: ReleaseIncludes, key: keyof IRelease }[] = [
-          {inc: 'artist-credits', key: 'artist-credit'},
-          {inc: 'artists', key: 'artist-credit'},
-          {inc: 'collections', key: 'collections'},
-          {inc: 'labels', key: 'release-events'},
-          {inc: 'media', key: 'media'},
+        const includes: { inc: ReleaseIncludes; key: keyof IRelease }[] = [
+          { inc: 'artist-credits', key: 'artist-credit' },
+          { inc: 'artists', key: 'artist-credit' },
+          { inc: 'collections', key: 'collections' },
+          { inc: 'labels', key: 'release-events' },
+          { inc: 'media', key: 'media' },
           // {inc: 'recordings', key: 'recordings'},
-          {inc: 'release-groups', key: 'release-group'},
-          {inc: 'tags', key: 'tags'},
-          {inc: 'genres', key: 'genres'},
-          {inc: 'url-rels', key: 'relations'},
-          {inc: 'labels', key: 'label-info'}
+          { inc: 'release-groups', key: 'release-group' },
+          { inc: 'tags', key: 'tags' },
+          { inc: 'genres', key: 'genres' },
+          { inc: 'url-rels', key: 'relations' },
+          { inc: 'labels', key: 'label-info' }
         ];
 
-        it(`get release, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
-            const release = await mbApi.lookup('release', mbid.release.Formidable, includes.map(inc => inc.inc));
-            assert.strictEqual(release.id, mbid.release.Formidable);
-            assert.strictEqual(release.title, 'Formidable');
-            includes.forEach(inc => {
-              assert.isDefined(release[inc.key], `Should include '${inc.key}'`);
-            });
+        it(`get release, include: '${includes.map(inc => inc.inc).join(', ')}'`, async () => {
+          const release = await mbApi.lookup(
+            'release',
+            mbid.release.Formidable,
+            includes.map(inc => inc.inc)
+          );
+          assert.strictEqual(release.id, mbid.release.Formidable);
+          assert.strictEqual(release.title, 'Formidable');
+          includes.forEach(inc => {
+            assert.isDefined(release[inc.key], `Should include '${inc.key}'`);
+          });
         });
 
-        it('get release, include: url-rels', async() => {
-            const release = await mbApi.lookup('release', mbid.release.Formidable, ['url-rels']);
-            assert.isDefined(release, 'Should get release')
-            assert.isDefined(release.relations, 'Should have relations')
-            assert.isTrue(release.relations.some(r => r.url), 'Should have url relation')
-        })
+        it('get release, include: url-rels', async () => {
+          const release = await mbApi.lookup('release', mbid.release.Formidable, ['url-rels']);
+          assert.isDefined(release, 'Should get release');
+          assert.isDefined(release.relations, 'Should have relations');
+          assert.isTrue(
+            release.relations.some(r => r.url),
+            'Should have url relation'
+          );
+        });
 
-        it('check release label info', async() => {
-            const release = await mbApi.lookup('release', mbid.release.Formidable, ['labels']);
-            assert.isDefined(release, 'Should get release')
-            assert.isDefined(release['label-info'], 'Should have labels')
-            assert.isAtLeast(release['label-info']?.length, 1, 'Should have at least 1 label')
-            assert.isDefined(release['label-info']?.[0].label?.name, 'Label should have name')
-            assert.isDefined(release['label-info']?.[0].label?.['label-code'], 'Should have label code')
-            assert.isUndefined(release['label-info']?.[0].label?.country, 'Should not have country')
-            assert.isUndefined(release['label-info']?.[0].label?.area, 'Should not have area')
-            assert.isUndefined(release['label-info']?.[0].label?.ipis, 'Should not have ipis')
-            assert.isUndefined(release['label-info']?.[0].label?.isnis, 'Should not have isnis')
-            assert.isUndefined(release['label-info']?.[0].label?.['life-span'], 'Should not have life span')
-        })
+        it('check release label info', async () => {
+          const release = await mbApi.lookup('release', mbid.release.Formidable, ['labels']);
+          assert.isDefined(release, 'Should get release');
+          assert.isDefined(release['label-info'], 'Should have labels');
+          assert.isAtLeast(release['label-info']?.length, 1, 'Should have at least 1 label');
+          assert.isDefined(release['label-info']?.[0].label?.name, 'Label should have name');
+          assert.isDefined(release['label-info']?.[0].label?.['label-code'], 'Should have label code');
+          assert.isUndefined(release['label-info']?.[0].label?.country, 'Should not have country');
+          assert.isUndefined(release['label-info']?.[0].label?.area, 'Should not have area');
+          assert.isUndefined(release['label-info']?.[0].label?.ipis, 'Should not have ipis');
+          assert.isUndefined(release['label-info']?.[0].label?.isnis, 'Should not have isnis');
+          assert.isUndefined(release['label-info']?.[0].label?.['life-span'], 'Should not have life span');
+        });
       });
 
       describe('Release-group', () => {
-
         it('release-group', async () => {
           const releaseGroup = await mbApi.lookup('release-group', mbid.releaseGroup.Formidable);
           assert.strictEqual(releaseGroup.id, mbid.releaseGroup.Formidable);
           assert.strictEqual(releaseGroup.title, 'Formidable');
         });
 
-        const includes: { inc: ReleaseGroupIncludes, key: keyof IReleaseGroup }[] = [
-          {inc: 'artist-credits', key: 'artist-credit'},
-          {inc: 'tags', key: 'tags'},
-          {inc: 'genres', key: 'genres'},
-          {inc: 'ratings', key: 'rating'},
-          {inc: 'url-rels', key: 'relations'}
+        const includes: { inc: ReleaseGroupIncludes; key: keyof IReleaseGroup }[] = [
+          { inc: 'artist-credits', key: 'artist-credit' },
+          { inc: 'tags', key: 'tags' },
+          { inc: 'genres', key: 'genres' },
+          { inc: 'ratings', key: 'rating' },
+          { inc: 'url-rels', key: 'relations' }
         ];
 
-        it(`get release-group, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
-            const release_group = await mbApi.lookup('release-group', mbid.releaseGroup.Formidable, includes.map(inc => inc.inc));
-            assert.strictEqual(release_group.id, mbid.releaseGroup.Formidable);
-            assert.strictEqual(release_group.title, 'Formidable');
-            includes.forEach(inc => {
-              assert.isDefined(release_group[inc.key], `Should include '${inc.key}'`);
-            });
+        it(`get release-group, include: '${includes.map(inc => inc.inc).join(', ')}'`, async () => {
+          const release_group = await mbApi.lookup(
+            'release-group',
+            mbid.releaseGroup.Formidable,
+            includes.map(inc => inc.inc)
+          );
+          assert.strictEqual(release_group.id, mbid.releaseGroup.Formidable);
+          assert.strictEqual(release_group.title, 'Formidable');
+          includes.forEach(inc => {
+            assert.isDefined(release_group[inc.key], `Should include '${inc.key}'`);
+          });
         });
       });
 
       describe('series', async () => {
-        it('get series', async() => {
-        const series = await mbApi.lookup('series', mbid.series.DireStraitsRemastered);
-        assert.strictEqual(series.id, mbid.series.DireStraitsRemastered, 'series.id');
-        assert.strictEqual(series.name, 'Dire Straits Remastered', 'series.name');
-        assert.strictEqual(series.disambiguation, '', 'series.disambiguation');
-        assert.strictEqual(series['type-id'], '52b90f1e-ff62-3bd0-b254-5d91ced5d757', 'series[\'type-id\']');
-        })
-        const includes: { inc: SeriesIncludes, key: keyof ISeries }[] = [
-          {inc: 'tags', key: 'tags'},
-          {inc: 'genres', key: 'genres'},
-          {inc: 'url-rels', key: 'relations'}
+        it('get series', async () => {
+          const series = await mbApi.lookup('series', mbid.series.DireStraitsRemastered);
+          assert.strictEqual(series.id, mbid.series.DireStraitsRemastered, 'series.id');
+          assert.strictEqual(series.name, 'Dire Straits Remastered', 'series.name');
+          assert.strictEqual(series.disambiguation, '', 'series.disambiguation');
+          assert.strictEqual(series['type-id'], '52b90f1e-ff62-3bd0-b254-5d91ced5d757', "series['type-id']");
+        });
+        const includes: { inc: SeriesIncludes; key: keyof ISeries }[] = [
+          { inc: 'tags', key: 'tags' },
+          { inc: 'genres', key: 'genres' },
+          { inc: 'url-rels', key: 'relations' }
         ];
 
-        it(`get series, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
-            const series = await mbApi.lookup('series', mbid.series.DireStraitsRemastered, includes.map(inc => inc.inc));
-            assert.strictEqual(series.id, mbid.series.DireStraitsRemastered);
-            assert.strictEqual(series.name, 'Dire Straits Remastered');
-            includes.forEach(inc => {
-              assert.isDefined(series[inc.key], `Should include '${inc.key}'`);
-            });
+        it(`get series, include: '${includes.map(inc => inc.inc).join(', ')}'`, async () => {
+          const series = await mbApi.lookup(
+            'series',
+            mbid.series.DireStraitsRemastered,
+            includes.map(inc => inc.inc)
+          );
+          assert.strictEqual(series.id, mbid.series.DireStraitsRemastered);
+          assert.strictEqual(series.name, 'Dire Straits Remastered');
+          includes.forEach(inc => {
+            assert.isDefined(series[inc.key], `Should include '${inc.key}'`);
+          });
         });
       });
 
       describe('work', async () => {
-        it('get work', async() => {
-        const work = await mbApi.lookup('work', mbid.work.Formidable);
-        assert.strictEqual(work.id, mbid.work.Formidable);
-        assert.strictEqual(work.title, 'Formidable');
-        assert.isDefined(work.disambiguation, 'work.disambiguation');
-        assert.isDefined(work.language, 'work.language');
-        assert.isDefined(work.languages, 'work.languages');
-        assert.isDefined(work.iswcs, 'work.iswcs');
-        assert.isDefined(work.attributes, 'work.attributes');
-        assert.isDefined(work.attributes?.[0].value, 'work attribute has value')
-        })
-        const includes: { inc: WorkIncludes, key: keyof IWork }[] = [
-          {inc: 'tags', key: 'tags'},
-          {inc: 'genres', key: 'genres'},
-          {inc: 'ratings', key: 'rating'},
-          {inc: 'url-rels', key: 'relations'}
+        it('get work', async () => {
+          const work = await mbApi.lookup('work', mbid.work.Formidable);
+          assert.strictEqual(work.id, mbid.work.Formidable);
+          assert.strictEqual(work.title, 'Formidable');
+          assert.isDefined(work.disambiguation, 'work.disambiguation');
+          assert.isDefined(work.language, 'work.language');
+          assert.isDefined(work.languages, 'work.languages');
+          assert.isDefined(work.iswcs, 'work.iswcs');
+          assert.isDefined(work.attributes, 'work.attributes');
+          assert.isDefined(work.attributes?.[0].value, 'work attribute has value');
+        });
+        const includes: { inc: WorkIncludes; key: keyof IWork }[] = [
+          { inc: 'tags', key: 'tags' },
+          { inc: 'genres', key: 'genres' },
+          { inc: 'ratings', key: 'rating' },
+          { inc: 'url-rels', key: 'relations' }
         ];
 
-        it(`get work, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
-            const work = await mbApi.lookup('work', mbid.work.Formidable, includes.map(inc => inc.inc));
-            assert.strictEqual(work.id, mbid.work.Formidable);
-            assert.strictEqual(work.title, 'Formidable');
-            includes.forEach(inc => {
-              assert.isDefined(work[inc.key], `Should include '${inc.key}'`);
-            });
+        it(`get work, include: '${includes.map(inc => inc.inc).join(', ')}'`, async () => {
+          const work = await mbApi.lookup(
+            'work',
+            mbid.work.Formidable,
+            includes.map(inc => inc.inc)
+          );
+          assert.strictEqual(work.id, mbid.work.Formidable);
+          assert.strictEqual(work.title, 'Formidable');
+          includes.forEach(inc => {
+            assert.isDefined(work[inc.key], `Should include '${inc.key}'`);
+          });
         });
       });
 
       describe('Recording', () => {
-
         it('recording', async () => {
           const recording = await mbApi.lookup('recording', mbid.recording.Formidable);
           assert.strictEqual(recording.length, 214000);
           assert.strictEqual(recording.id, mbid.recording.Formidable);
           assert.strictEqual(recording.title, 'Formidable');
-          assert.strictEqual(recording["first-release-date"], '2013-06-01');
+          assert.strictEqual(recording['first-release-date'], '2013-06-01');
           assert.isUndefined(recording.isrcs);
           assert.isUndefined(recording['artist-credit']);
           assert.isUndefined(recording.releases);
         });
 
-        const includes: { inc: RecordingIncludes, key: keyof IRecording }[] = [
-          {inc: 'isrcs', key: 'isrcs'},
-          {inc: 'artist-credits', key: 'artist-credit'},
-          {inc: 'artists', key: 'artist-credit'},
-          {inc: 'releases', key: 'releases'},
-          {inc: 'tags', key: 'tags'},
-          {inc: 'genres', key: 'genres'},
-          {inc: 'ratings', key: 'rating'},
-          {inc: 'url-rels', key: 'relations'}
+        const includes: { inc: RecordingIncludes; key: keyof IRecording }[] = [
+          { inc: 'isrcs', key: 'isrcs' },
+          { inc: 'artist-credits', key: 'artist-credit' },
+          { inc: 'artists', key: 'artist-credit' },
+          { inc: 'releases', key: 'releases' },
+          { inc: 'tags', key: 'tags' },
+          { inc: 'genres', key: 'genres' },
+          { inc: 'ratings', key: 'rating' },
+          { inc: 'url-rels', key: 'relations' }
         ];
 
-        it(`get recording, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
-            const recording = await mbApi.lookup('recording', mbid.recording.Formidable, includes.map(inc => inc.inc));
-            assert.strictEqual(recording.id, mbid.recording.Formidable);
-            assert.strictEqual(recording.title, 'Formidable');
-            includes.forEach(inc => {
-              assert.isDefined(recording[inc.key], `Should include '${inc.key}'`);
-            });
+        it(`get recording, include: '${includes.map(inc => inc.inc).join(', ')}'`, async () => {
+          const recording = await mbApi.lookup(
+            'recording',
+            mbid.recording.Formidable,
+            includes.map(inc => inc.inc)
+          );
+          assert.strictEqual(recording.id, mbid.recording.Formidable);
+          assert.strictEqual(recording.title, 'Formidable');
+          includes.forEach(inc => {
+            assert.isDefined(recording[inc.key], `Should include '${inc.key}'`);
+          });
         });
       });
 
@@ -584,33 +633,33 @@ describe('MusicBrainz-api', function () {
         it('event', async () => {
           const event = await mbApi.lookup('event', mbid.event.DireStraitsAlchemyLoveOverGold);
           assert.strictEqual(event.id, mbid.event.DireStraitsAlchemyLoveOverGold);
-          assert.strictEqual(event.name, "Dire Straits - Love Over Gold");
-          assert.strictEqual(event.type, "Concert");
+          assert.strictEqual(event.name, 'Dire Straits - Love Over Gold');
+          assert.strictEqual(event.type, 'Concert');
         });
-        const includes: {inc: EventIncludes, key: keyof IEvent}[] = [
-          {inc: 'tags', key: 'tags'},
-          {inc: 'genres', key: 'genres'},
-          {inc: 'artist-rels', key: 'relations'},
-          {inc: 'ratings', key: 'rating'},
-          {inc: 'url-rels', key: 'relations'}
-        ]
-        it(`get event, include: '${includes.map(inc => inc.inc).join(", ")}'`, async () => {
-            const event = await mbApi.lookup('event', mbid.event.DireStraitsAlchemyLoveOverGold, includes.map(inc => inc.inc));
-            assert.strictEqual(event.id, mbid.event.DireStraitsAlchemyLoveOverGold);
-            assert.strictEqual(event.name, 'Dire Straits - Love Over Gold');
-            includes.forEach(inc => {
-              assert.isDefined(event[inc.key], `Should include '${inc.key}'`);
-            });
+        const includes: { inc: EventIncludes; key: keyof IEvent }[] = [
+          { inc: 'tags', key: 'tags' },
+          { inc: 'genres', key: 'genres' },
+          { inc: 'artist-rels', key: 'relations' },
+          { inc: 'ratings', key: 'rating' },
+          { inc: 'url-rels', key: 'relations' }
+        ];
+        it(`get event, include: '${includes.map(inc => inc.inc).join(', ')}'`, async () => {
+          const event = await mbApi.lookup(
+            'event',
+            mbid.event.DireStraitsAlchemyLoveOverGold,
+            includes.map(inc => inc.inc)
+          );
+          assert.strictEqual(event.id, mbid.event.DireStraitsAlchemyLoveOverGold);
+          assert.strictEqual(event.name, 'Dire Straits - Love Over Gold');
+          includes.forEach(inc => {
+            assert.isDefined(event[inc.key], `Should include '${inc.key}'`);
+          });
         });
-
       });
-
     });
 
     describe('Lookup URLs', () => {
-
       it('single URLs', async () => {
-
         const urlsResult = await mbApi.lookupUrl(spotify.track.BigInJapan.url);
 
         assert.isDefined(urlsResult, 'Expect a result');
@@ -619,10 +668,7 @@ describe('MusicBrainz-api', function () {
       });
 
       it('multiple URLs', async () => {
-        const urls = [
-          spotify.track.BigInJapan.url,
-          spotify.track.Formidable.url
-        ];
+        const urls = [spotify.track.BigInJapan.url, spotify.track.Formidable.url];
 
         const urlsResult = await mbApi.lookupUrl(urls);
 
@@ -630,20 +676,24 @@ describe('MusicBrainz-api', function () {
         assert.isArray(urlsResult.urls, 'urls');
         assert.strictEqual(urlsResult.urls?.length, 2, 'urls.length');
 
-        expect(urlsResult.urls).to.deep.include({
-          id: mbid.url.Formidable,
-          resource: spotify.track.Formidable.url
-        }, 'Formidable');
-        expect(urlsResult.urls).to.deep.include({
-          id: mbid.url.BigInJapan,
-          resource: spotify.track.BigInJapan.url
-        }, 'BigInJapan');
+        expect(urlsResult.urls).to.deep.include(
+          {
+            id: mbid.url.Formidable,
+            resource: spotify.track.Formidable.url
+          },
+          'Formidable'
+        );
+        expect(urlsResult.urls).to.deep.include(
+          {
+            id: mbid.url.BigInJapan,
+            resource: spotify.track.BigInJapan.url
+          },
+          'BigInJapan'
+        );
       });
 
       it('array with single value', async () => {
-        const urls = [
-          spotify.track.BigInJapan.url,
-        ];
+        const urls = [spotify.track.BigInJapan.url];
 
         const urlsResult = await mbApi.lookupUrl(urls);
 
@@ -651,44 +701,49 @@ describe('MusicBrainz-api', function () {
         assert.isArray(urlsResult.urls, 'urls');
         assert.strictEqual(urlsResult.urls?.length, 1, 'urls.length');
 
-        expect(urlsResult.urls).to.deep.include({
-          id: mbid.url.BigInJapan,
-          resource: spotify.track.BigInJapan.url
-        }, 'BigInJapan');
+        expect(urlsResult.urls).to.deep.include(
+          {
+            id: mbid.url.BigInJapan,
+            resource: spotify.track.BigInJapan.url
+          },
+          'BigInJapan'
+        );
       });
 
       const relations: { inc: UrlIncludes; key: keyof IRelation; mbid: string }[] = [
-        { inc: "artist-rels",        key: "artist",        mbid: url.artist.Mozart },
-        { inc: "event-rels",         key: "event",         mbid: url.event.MolsonCanadianRocksForToronto },
-        { inc: "genre-rels",         key: "genre",         mbid: url.genre.Classical },
-        { inc: "instrument-rels",    key: "instrument",    mbid: url.instrument.Violin },
-        { inc: "label-rels",         key: "label",         mbid: url.label.CapitolRecords },
-        { inc: "place-rels",         key: "place",         mbid: url.place.MadisonSquareGarden },
-        { inc: "recording-rels",     key: "recording",     mbid: url.recording.BlindingLights },
-        { inc: "release-group-rels", key: "release_group", mbid: url.release_group.DontStopMeNow },
-        { inc: "series-rels",        key: "series",        mbid: url.series.StarTrek },
-        { inc: "work-rels",          key: "work",          mbid: url.work.CountingStars },
+        { inc: 'artist-rels', key: 'artist', mbid: url.artist.Mozart },
+        { inc: 'event-rels', key: 'event', mbid: url.event.MolsonCanadianRocksForToronto },
+        { inc: 'genre-rels', key: 'genre', mbid: url.genre.Classical },
+        { inc: 'instrument-rels', key: 'instrument', mbid: url.instrument.Violin },
+        { inc: 'label-rels', key: 'label', mbid: url.label.CapitolRecords },
+        { inc: 'place-rels', key: 'place', mbid: url.place.MadisonSquareGarden },
+        { inc: 'recording-rels', key: 'recording', mbid: url.recording.BlindingLights },
+        { inc: 'release-group-rels', key: 'release_group', mbid: url.release_group.DontStopMeNow },
+        { inc: 'series-rels', key: 'series', mbid: url.series.StarTrek },
+        { inc: 'work-rels', key: 'work', mbid: url.work.CountingStars }
       ];
 
       describe('include relation types', async () => {
-        relations.forEach((relation) => {
+        relations.forEach(relation => {
           it(relation.inc, async () => {
             const urlResult = await mbApi.lookupUrl(relation.mbid, [relation.inc]);
-            assert.isDefined(urlResult, 'Expect a result')
-            assert.isArray(urlResult.relations, 'Has relations')
-            assert.isTrue(urlResult.relations?.some(r => r[relation.key]), `Has ${relation.key} relation`)
-          })
-        })
+            assert.isDefined(urlResult, 'Expect a result');
+            assert.isArray(urlResult.relations, 'Has relations');
+            assert.isTrue(
+              urlResult.relations?.some(r => r[relation.key]),
+              `Has ${relation.key} relation`
+            );
+          });
+        });
       });
     });
 
     describe('Browse', () => {
-
       function areBunchOf(entity: string, bunch: any) {
         assert.isObject(bunch);
         assert.isNumber(bunch[`${entity}-count`]);
         assert.isNumber(bunch[`${entity}-offset`]);
-        assert.isArray(bunch[entity.endsWith('s') ? entity : (`${entity}s`)]);
+        assert.isArray(bunch[entity.endsWith('s') ? entity : `${entity}s`]);
       }
 
       describe('area', async () => {
@@ -697,36 +752,37 @@ describe('MusicBrainz-api', function () {
         }
 
         it('by collection', async () => {
-          const areas = await mbApi.browse('area', {collection: 'de4fdfc4-53aa-458a-b463-8761cc7f5af8', limit: 3});
+          const areas = await mbApi.browse('area', { collection: 'de4fdfc4-53aa-458a-b463-8761cc7f5af8', limit: 3 });
           areBunchOfAreas(areas);
         });
-
       });
 
       describe('artist', async () => {
-
         function areBunchOfArtists(artists: IBrowseArtistsResult) {
           areBunchOf('artist', artists);
         }
 
         it('by area', async () => {
-          const artists = await mbApi.browse('artist', {area: mbid.area.Lisbon, limit: 3});
+          const artists = await mbApi.browse('artist', { area: mbid.area.Lisbon, limit: 3 });
           areBunchOfArtists(artists);
         });
 
         it('by collection', async () => {
-          const artists = await mbApi.browse('artist', {collection: 'de4fdfc4-53aa-458a-b463-8761cc7f5af8', limit: 3});
+          const artists = await mbApi.browse('artist', {
+            collection: 'de4fdfc4-53aa-458a-b463-8761cc7f5af8',
+            limit: 3
+          });
           areBunchOfArtists(artists);
         });
 
         it('by recording', async () => {
-          const artists = await mbApi.browse('artist', {recording: 'a6c9e941-58ab-4f2e-9684-3b1b230f915f', limit: 3});
+          const artists = await mbApi.browse('artist', { recording: 'a6c9e941-58ab-4f2e-9684-3b1b230f915f', limit: 3 });
           areBunchOfArtists(artists);
           assert.strictEqual(artists.artists[0].name, 'Dead Combo');
         });
 
         it('by release', async () => {
-          const artists = await mbApi.browse('artist', {release: 'd9e00093-7a4b-44f1-830d-611e88ec694a', limit: 3});
+          const artists = await mbApi.browse('artist', { release: 'd9e00093-7a4b-44f1-830d-611e88ec694a', limit: 3 });
           areBunchOfArtists(artists);
           assert.strictEqual(artists.artists[0].name, 'Dead Combo');
         });
@@ -741,30 +797,29 @@ describe('MusicBrainz-api', function () {
         });
 
         it('by work', async () => {
-          const artists = await mbApi.browse('artist', {work: '6d7fbf07-3795-4ee1-8c69-4cc5c08e8f09', limit: 3});
+          const artists = await mbApi.browse('artist', { work: '6d7fbf07-3795-4ee1-8c69-4cc5c08e8f09', limit: 3 });
           areBunchOfArtists(artists);
           assert.strictEqual(artists.artists[0].name, 'Dead Combo');
         });
       });
 
       describe('collection', () => {
-
         function areBunchOfCollections(collections: IBrowseCollectionsResult) {
           areBunchOf('collection', collections);
         }
 
         it('by area', async () => {
-          const collections = await mbApi.browse('collection', {area: mbid.area.Lisbon, limit: 3});
+          const collections = await mbApi.browse('collection', { area: mbid.area.Lisbon, limit: 3 });
           areBunchOfCollections(collections);
         });
 
         it('by artist', async () => {
-          const collections = await mbApi.browse('collection', {artist: mbid.artist.Stromae, limit: 3});
+          const collections = await mbApi.browse('collection', { artist: mbid.artist.Stromae, limit: 3 });
           areBunchOfCollections(collections);
         });
 
         it('by editor', async () => {
-          const collections = await mbApi.browse('collection', {editor: 'Borewit', limit: 3});
+          const collections = await mbApi.browse('collection', { editor: 'Borewit', limit: 3 });
           areBunchOfCollections(collections);
         });
 
@@ -775,131 +830,120 @@ describe('MusicBrainz-api', function () {
           });
           areBunchOfCollections(collections);
         });
-
       });
 
       describe('event', () => {
-
         function areBunchOfEvents(events: IBrowseEventsResult) {
           areBunchOf('event', events);
         }
 
         it('by area', async () => {
-          const events = await mbApi.browse('event', {area: mbid.area.Lisbon, limit: 3});
+          const events = await mbApi.browse('event', { area: mbid.area.Lisbon, limit: 3 });
           areBunchOfEvents(events);
         });
 
         it('by artist', async () => {
-          const events = await mbApi.browse('event', {artist: mbid.artist.DeadCombo, limit: 3});
+          const events = await mbApi.browse('event', { artist: mbid.artist.DeadCombo, limit: 3 });
           areBunchOfEvents(events);
         });
 
         it('by collection', async () => {
-          const events = await mbApi.browse('event', {collection: mbid.collection.Ringtone, limit: 3});
+          const events = await mbApi.browse('event', { collection: mbid.collection.Ringtone, limit: 3 });
           areBunchOfEvents(events);
         });
 
         it('by place', async () => {
-          const events = await mbApi.browse('event', {place: mbid.place.Paradiso, limit: 3});
+          const events = await mbApi.browse('event', { place: mbid.place.Paradiso, limit: 3 });
           areBunchOfEvents(events);
         });
-
       });
 
       describe('instrument', () => {
-
         function areBunchOfInstruments(instruments: IBrowseInstrumentsResult) {
           areBunchOf('instrument', instruments);
         }
 
         it('by collection', async () => {
-          const instruments = await mbApi.browse('instrument', {collection: mbid.collection.Ringtone, limit: 3});
+          const instruments = await mbApi.browse('instrument', { collection: mbid.collection.Ringtone, limit: 3 });
           areBunchOfInstruments(instruments);
         });
-
       });
 
       describe('label', () => {
-
         function areBunchOfLabels(labels: IBrowseLabelsResult) {
           areBunchOf('label', labels);
         }
 
         it('by area', async () => {
-          const labels = await mbApi.browse('label', {area: mbid.area.Lisbon, limit: 3});
+          const labels = await mbApi.browse('label', { area: mbid.area.Lisbon, limit: 3 });
           areBunchOfLabels(labels);
         });
 
         it('by collection', async () => {
-          const labels = await mbApi.browse('label', {collection: mbid.collection.Ringtone, limit: 3});
+          const labels = await mbApi.browse('label', { collection: mbid.collection.Ringtone, limit: 3 });
           areBunchOfLabels(labels);
         });
 
         it('by release', async () => {
-          const labels = await mbApi.browse('label', {release: mbid.release.Formidable, limit: 3});
+          const labels = await mbApi.browse('label', { release: mbid.release.Formidable, limit: 3 });
           areBunchOfLabels(labels);
         });
       });
 
       describe('place', () => {
-
         function areBunchOfPlaces(places: IBrowsePlacesResult) {
           areBunchOf('place', places);
         }
 
         it('by area', async () => {
-          const places = await mbApi.browse('place', {area: mbid.area.Lisbon, limit: 3});
+          const places = await mbApi.browse('place', { area: mbid.area.Lisbon, limit: 3 });
           areBunchOfPlaces(places);
         });
 
         it('by collection', async () => {
-          const places = await mbApi.browse('place', {collection: mbid.collection.Ringtone, limit: 3});
+          const places = await mbApi.browse('place', { collection: mbid.collection.Ringtone, limit: 3 });
           areBunchOfPlaces(places);
         });
-
       });
 
       describe('recording', () => {
-
         function areBunchOfRecordings(recordings: IBrowseRecordingsResult) {
           areBunchOf('recording', recordings);
         }
 
         it('by artist', async () => {
-          const recordings = await mbApi.browse('recording', {artist: mbid.artist.DeadCombo, limit: 3});
+          const recordings = await mbApi.browse('recording', { artist: mbid.artist.DeadCombo, limit: 3 });
           areBunchOfRecordings(recordings);
         });
 
         it('by collection', async () => {
-          const recordings = await mbApi.browse('recording', {collection: mbid.collection.Ringtone, limit: 3});
+          const recordings = await mbApi.browse('recording', { collection: mbid.collection.Ringtone, limit: 3 });
           areBunchOfRecordings(recordings);
         });
 
         it('by release', async () => {
-          const recordings = await mbApi.browse('recording', {release: mbid.release.Formidable, limit: 3});
+          const recordings = await mbApi.browse('recording', { release: mbid.release.Formidable, limit: 3 });
           areBunchOfRecordings(recordings);
         });
 
         it('by work', async () => {
-          const recordings = await mbApi.browse('recording', {work: mbid.work.Formidable, limit: 3});
+          const recordings = await mbApi.browse('recording', { work: mbid.work.Formidable, limit: 3 });
           areBunchOfRecordings(recordings);
         });
-
       });
 
       describe('release', () => {
-
         function areBunchOfReleases(releases: IBrowseReleasesResult) {
           areBunchOf('release', releases);
         }
 
         it('by area', async () => {
-          const releases = await mbApi.browse('release', {area: mbid.area.Lisbon, limit: 3});
+          const releases = await mbApi.browse('release', { area: mbid.area.Lisbon, limit: 3 });
           areBunchOfReleases(releases);
         });
 
         it('by artist', async () => {
-          const releases = await mbApi.browse('release', {artist: mbid.artist.DeadCombo, limit: 3});
+          const releases = await mbApi.browse('release', { artist: mbid.artist.DeadCombo, limit: 3 });
           areBunchOfReleases(releases);
         });
 
@@ -914,27 +958,31 @@ describe('MusicBrainz-api', function () {
         });
 
         it('by track_artist, with includes', async () => {
-          const releases = await mbApi.browse('release', {
-            track_artist: mbid.artist.Stromae,
-            limit: 0,
-            offset: 0,
-          }, ['url-rels', 'isrcs', 'recordings']);
+          const releases = await mbApi.browse(
+            'release',
+            {
+              track_artist: mbid.artist.Stromae,
+              limit: 0,
+              offset: 0
+            },
+            ['url-rels', 'isrcs', 'recordings']
+          );
 
           areBunchOfReleases(releases);
         });
 
         it('by labels', async () => {
-          const releases = await mbApi.browse('release', {label: mbid.label.Mosaert, limit: 3});
+          const releases = await mbApi.browse('release', { label: mbid.label.Mosaert, limit: 3 });
           areBunchOfReleases(releases);
         });
 
         it('by recording', async () => {
-          const releases = await mbApi.browse('release', {recording: mbid.recording.Montilla, limit: 3});
+          const releases = await mbApi.browse('release', { recording: mbid.recording.Montilla, limit: 3 });
           areBunchOfReleases(releases);
         });
 
         it('by release-group', async () => {
-          const releases = await mbApi.browse('release', {'release-group': mbid.releaseGroup.Formidable, limit: 3});
+          const releases = await mbApi.browse('release', { 'release-group': mbid.releaseGroup.Formidable, limit: 3 });
           areBunchOfReleases(releases);
         });
 
@@ -947,30 +995,27 @@ describe('MusicBrainz-api', function () {
           });
           areBunchOfReleases(releases);
         });
-
       });
 
       describe('release-group', () => {
-
         function areBunchOfReleaseGroups(releaseGroups: IBrowseReleaseGroupsResult) {
           areBunchOf('release-group', releaseGroups);
         }
 
         it('by artist', async () => {
-          const releaseGroups = await mbApi.browse('release-group', {artist: mbid.artist.DeadCombo, limit: 3});
+          const releaseGroups = await mbApi.browse('release-group', { artist: mbid.artist.DeadCombo, limit: 3 });
           areBunchOfReleaseGroups(releaseGroups);
         });
 
         it('by collection', async () => {
-          const releaseGroups = await mbApi.browse('release-group', {collection: mbid.collection.Ringtone, limit: 3});
+          const releaseGroups = await mbApi.browse('release-group', { collection: mbid.collection.Ringtone, limit: 3 });
           areBunchOfReleaseGroups(releaseGroups);
         });
 
         it('by release', async () => {
-          const releaseGroups = await mbApi.browse('release-group', {release: mbid.release.Formidable, limit: 3});
+          const releaseGroups = await mbApi.browse('release-group', { release: mbid.release.Formidable, limit: 3 });
           areBunchOfReleaseGroups(releaseGroups);
         });
-
 
         it('for a release type', async () => {
           const releaseGroups = await mbApi.browse('release-group', {
@@ -979,39 +1024,35 @@ describe('MusicBrainz-api', function () {
             limit: 3
           });
           // Are singles
-          for (const releaseGroup of releaseGroups["release-groups"]) {
-            assert.strictEqual(releaseGroup["primary-type"], 'Single');
+          for (const releaseGroup of releaseGroups['release-groups']) {
+            assert.strictEqual(releaseGroup['primary-type'], 'Single');
           }
         });
-
       });
 
       describe('series', () => {
-
         function areBunchOfSeries(series: IBrowseSeriesResult) {
           areBunchOf('series', series);
         }
 
         it('by collection', async () => {
-          const series = await mbApi.browse('series', {collection: mbid.collection.Ringtone, limit: 3});
+          const series = await mbApi.browse('series', { collection: mbid.collection.Ringtone, limit: 3 });
           areBunchOfSeries(series);
         });
       });
 
       describe('work', async () => {
-
         function areBunchOfWorks(works: IBrowseWorksResult) {
           areBunchOf('work', works);
         }
 
         it('by collection', async () => {
-          const works = await mbApi.browse('work', {collection: mbid.collection.Ringtone, limit: 3});
+          const works = await mbApi.browse('work', { collection: mbid.collection.Ringtone, limit: 3 });
           areBunchOfWorks(works);
         });
       });
 
       describe('url', async () => {
-
         it('by resources', async () => {
           const url = await mbApi.browse('url', {
             resource: 'https://open.spotify.com/album/5PCfptvsmuFcxsMt86L6wn',
@@ -1020,15 +1061,12 @@ describe('MusicBrainz-api', function () {
           assert.isString(url.id);
         });
       });
-
     });
 
     describe('Search', () => {
-
       describe('search annotation', () => {
-
         it('find annotation by name', async () => {
-          const result = await mbApi.search('annotation', {query: 'Pieds nus sur la braise'});
+          const result = await mbApi.search('annotation', { query: 'Pieds nus sur la braise' });
           assert.isAtLeast(result.count, 1);
           assert.isAtLeast(result.annotations.length, 1);
           assert.strictEqual(result.annotations[0].entity, mbid.annotation.PiedsNusSurLaBraise);
@@ -1036,9 +1074,8 @@ describe('MusicBrainz-api', function () {
       });
 
       describe('search areas', () => {
-
         it('find area by name', async () => {
-          const result = await mbApi.search('area', {query: 'Île-de-France'});
+          const result = await mbApi.search('area', { query: 'Île-de-France' });
           assert.isAtLeast(result.count, 1);
           assert.isAtLeast(result.areas.length, 1);
           assert.strictEqual(result.areas[0].id, mbid.area.IleDeFrance);
@@ -1046,102 +1083,94 @@ describe('MusicBrainz-api', function () {
       });
 
       describe('search artists', () => {
-
         it('find artist: Stromae', async () => {
-          const result = await mbApi.search('artist', {query: 'Stromae'});
+          const result = await mbApi.search('artist', { query: 'Stromae' });
           assert.isAtLeast(result.count, 1);
           assert.isArray(result.artists, 'result.artists');
           assert.isAtLeast(result.artists.length, 1);
           assert.strictEqual(result.artists[0].id, mbid.artist.Stromae);
         });
-
       });
 
       describe('search CD-Stub', () => {
-
         it('find CD-Stub: title: "Doo"', async () => {
-          const result = await mbApi.search('cdstub', {query: {title: 'Doo'}});
+          const result = await mbApi.search('cdstub', { query: { title: 'Doo' } });
           assert.isAtLeast(result.count, 1);
           assert.isArray(result.cdstubs, 'result.cdstubs');
           assert.isAtLeast(result.cdstubs.length, 1);
           assert.isDefined(result.cdstubs[0].id, 'result.cdstubs[0].id');
         });
-
       });
 
       describe('search event', () => {
-
-        const eventName = "Dire Straits - Love Over Gold";
+        const eventName = 'Dire Straits - Love Over Gold';
 
         it(`find event "${eventName}"`, async () => {
-          const result = await mbApi.search('event', {query: eventName});
+          const result = await mbApi.search('event', { query: eventName });
           assert.isAtLeast(result.count, 1);
           assert.isArray(result.events, 'result.events');
           assert.isAtLeast(result.events.length, 1);
           assert.strictEqual(result.events[0].name, eventName);
         });
-
       });
 
       describe('search instrument', () => {
-
         it('find instrument "flamenco guitar"', async () => {
-          const result = await mbApi.search('instrument', {query: 'flamenco guitar'});
+          const result = await mbApi.search('instrument', { query: 'flamenco guitar' });
           assert.isAtLeast(result.count, 1);
           assert.isArray(result.instruments, 'result.instruments');
           assert.isAtLeast(result.instruments.length, 1);
           assert.strictEqual(result.instruments[0].name, 'flamenco guitar');
         });
-
       });
 
       describe('search label', () => {
-
         it('find "Grönland Records"', async () => {
-          const result = await mbApi.search('label', {query: 'Grönland Records'});
+          const result = await mbApi.search('label', { query: 'Grönland Records' });
           assert.isAtLeast(result.count, 1);
           assert.isArray(result.labels, 'result.labels');
           assert.isAtLeast(result.labels.length, 1);
           assert.strictEqual(result.labels[0].name, 'Grönland Records');
         });
-
       });
 
       describe('search place', () => {
-
         it('find Patronaat', async () => {
-          const result = await mbApi.search('place', {query: 'Patronaat'});
+          const result = await mbApi.search('place', { query: 'Patronaat' });
           assert.isAtLeast(result.count, 1);
           assert.isArray(result.places, 'result.places');
           assert.isAtLeast(result.places.length, 1);
           assert.strictEqual(result.places[0].name, 'Patronaat');
         });
-
       });
 
       describe('search recordings', () => {
-
         it('find recording by artist and recoding name', async () => {
-          const result = await mbApi.search('recording', {query: {name: 'Formidable', artist: 'Stromae'}});
+          const result = await mbApi.search('recording', { query: { name: 'Formidable', artist: 'Stromae' } });
           assert.isAtLeast(result.count, 2);
           assert.isArray(result.recordings, 'result.recordings');
           assert.isAtLeast(result.recordings.length, 2);
-          assert.includeMembers(result.recordings.map(recording => recording.id), [mbid.recording.Formidable]);
+          assert.includeMembers(
+            result.recordings.map(recording => recording.id),
+            [mbid.recording.Formidable]
+          );
         });
       });
 
       describe('search release', () => {
-
         it('find release-group: Racine carrée', async () => {
-          const result = await mbApi.search('release', {query: {release: 'Racine carrée'}});
+          const result = await mbApi.search('release', { query: { release: 'Racine carrée' } });
           assert.isAtLeast(result.count, 2);
           assert.isArray(result.releases, 'result.releases');
           assert.isAtLeast(result.releases.length, 2);
-          assert.includeMembers(result.releases.map(release => release.id), mbid.release.RacineCarree);
+          assert.includeMembers(
+            result.releases.map(release => release.id),
+            mbid.release.RacineCarree
+          );
         });
 
         it('find release by barcode', async () => {
-          const result = await mbApi.search('release', {query: {barcode: 602537479870}});
+          const result = await mbApi.search('release', { query: { barcode: 602537479870 } });
           assert.isAtLeast(result.count, 1);
           assert.isArray(result.releases, 'result.releases');
           assert.isAtLeast(result.releases.length, 1);
@@ -1150,7 +1179,7 @@ describe('MusicBrainz-api', function () {
 
         it('find releases by artist use query API', async () => {
           const artist_mbid = 'eeb41a1e-4326-4d04-8c47-0f564ceecd68';
-          const result = await mbApi.search('release', {query: {arid: artist_mbid}});
+          const result = await mbApi.search('release', { query: { arid: artist_mbid } });
           assert.isAtLeast(result.count, 1);
           assert.isArray(result.releases, 'result.releases');
           assert.isAtLeast(result.releases.length, 1);
@@ -1158,7 +1187,7 @@ describe('MusicBrainz-api', function () {
 
         it('find releases by artist use browse API', async () => {
           const artist_mbid = 'eeb41a1e-4326-4d04-8c47-0f564ceecd68';
-          const result = await mbApi.search('release', {artist: artist_mbid});
+          const result = await mbApi.search('release', { artist: artist_mbid });
           assert.isArray(result.releases, 'result.releases');
           assert.isAtLeast(result['release-count'], 1);
           assert.isAtLeast(result.releases.length, 1);
@@ -1176,10 +1205,9 @@ describe('MusicBrainz-api', function () {
         });
 
         describe('Query release', () => {
-
           it('query: Release by barcode', async () => {
-            const query = "query=barcode:00888072456686";
-            const result = await mbApi.search('release', {query});
+            const query = 'query=barcode:00888072456686';
+            const result = await mbApi.search('release', { query });
             assert.isAtLeast(result.count, 1);
             const release = result.releases[0];
             assert.strictEqual(release.count, 1);
@@ -1188,23 +1216,22 @@ describe('MusicBrainz-api', function () {
 
           it('query: Queen - Made In Heaven', async () => {
             const query = 'query=artist:"Queen" AND release:"Made in Heaven"';
-            const result = await mbApi.search('release-group', {query});
+            const result = await mbApi.search('release-group', { query });
             assert.isAtLeast(result.count, 1);
-            assert.strictEqual(result["release-groups"][0].id, '780e6a16-9384-307d-ae65-02e1d6313753');
+            assert.strictEqual(result['release-groups'][0].id, '780e6a16-9384-307d-ae65-02e1d6313753');
           });
 
           it('query: Queen - We Will Rock You', async () => {
             const query = 'query="We Will Rock You" AND arid:0383dadf-2a4e-4d10-a46a-e9e041da8eb3';
-            const result = await mbApi.search('release-group', {query});
+            const result = await mbApi.search('release-group', { query });
             assert.isAtLeast(result.count, 1);
-            const releaseGroup = result["release-groups"][0];
+            const releaseGroup = result['release-groups'][0];
             assert.isNumber(releaseGroup.count, 'releaseGroup.count');
             assert.strictEqual(releaseGroup.score, 100);
           });
 
           // Based on https://stackoverflow.com/a/79369493/28701779
           it('Find all artist relations of Queen - Made in Heaven', async () => {
-
             /**
              * Find all artists for provided MBID (MusicBrainz ID)
              * @param mbidRelease MBID (MusicBrainz ID) Release
@@ -1247,20 +1274,20 @@ describe('MusicBrainz-api', function () {
             assert.include(artistNames, 'Roger Taylor');
           });
         });
-
       });
 
       describe('search release-group', () => {
-
         it('find release-group: Racine carrée', async () => {
-          const result = await mbApi.search('release-group', {query: 'Racine carrée'});
+          const result = await mbApi.search('release-group', { query: 'Racine carrée' });
           assert.isAtLeast(result.count, 1);
           assert.isAtLeast(result['release-groups'].length, 1);
           assert.strictEqual(result['release-groups'][0].id, mbid.releaseGroup.RacineCarree);
         });
 
         it('find release-group: Racine carrée, by artist and group name', async () => {
-          const result = await mbApi.search('release-group', {query: {release: 'Racine carrée', artist: 'Stromae'}});
+          const result = await mbApi.search('release-group', {
+            query: { release: 'Racine carrée', artist: 'Stromae' }
+          });
           assert.isAtLeast(result.count, 1);
           assert.isAtLeast(result['release-groups'].length, 1);
           assert.strictEqual(result['release-groups'][0].id, mbid.releaseGroup.RacineCarree);
@@ -1268,45 +1295,40 @@ describe('MusicBrainz-api', function () {
       });
 
       describe('search series', () => {
-
         const seriesName = 'Studio Brussel: Life Is Music';
 
         it('find series by name', async () => {
-          const result = await mbApi.search('series', {query: {name: seriesName}});
+          const result = await mbApi.search('series', { query: { name: seriesName } });
           assert.isAtLeast(result.count, 2);
           assert.isArray(result.series, 'result.series');
           assert.isAtLeast(result.series.length, 2);
         });
-
       });
 
       describe('search tags', () => {
-
         const tagName = 'shoegaze';
 
         it('find tag "shoegaze"', async () => {
-          const result = await mbApi.search('tag', {query: {name: tagName}});
+          const result = await mbApi.search('tag', { query: { name: tagName } });
           assert.isAtLeast(result.count, 2);
           assert.isArray(result.tags, 'result.tags');
           assert.isAtLeast(result.tags.length, 2);
           assert.isString(result.tags[0].name, 'result.tags[0].name');
         });
-
       });
 
       describe('search url', () => {
-
         const spotifyUrl = `https://open.spotify.com/album/${spotify.album.RacineCarree.id}`;
 
         it('find url by url', async () => {
-          const result = await mbApi.search('url', {query: {url: spotifyUrl}});
+          const result = await mbApi.search('url', { query: { url: spotifyUrl } });
           assert.isAtLeast(result.count, 1);
           assert.isAtLeast(result.urls.length, 1);
           assert.strictEqual(result.urls[0].resource, spotifyUrl);
         });
 
         it('find url by url with relations', async () => {
-          const result = await mbApi.search('url', {query: {url: spotifyUrl}, inc: ["release-rels"]});
+          const result = await mbApi.search('url', { query: { url: spotifyUrl }, inc: ['release-rels'] });
           assert.isAtLeast(result.count, 1);
           assert.isAtLeast(result.urls.length, 1);
           assert.strictEqual(result.urls[0].resource, spotifyUrl);
@@ -1315,23 +1337,19 @@ describe('MusicBrainz-api', function () {
       });
 
       describe('search work', () => {
-
         const spotifyUrl = `https://open.spotify.com/album/${spotify.album.RacineCarree.id}`;
 
         it('find work by url', async () => {
-          const result = await mbApi.search('work', {query: {url: spotifyUrl}});
+          const result = await mbApi.search('work', { query: { url: spotifyUrl } });
           assert.isAtLeast(result.count, 1);
           assert.isAtLeast(result.works.length, 1);
           assert.isDefined(result.works[0].title, 'works[0].title');
         });
       });
-
     });
-
   });
 
   describe('Submit API', () => {
-
     // Repeating this fixed ISRC submission is safe if the test server connection fails.
     it('Post ISRC Formidable', async () => {
       const isrc_Formidable = 'BET671300161';
@@ -1341,22 +1359,21 @@ describe('MusicBrainz-api', function () {
 
       await mbTestApi.post('recording', xmlMetadata);
     }).retries(2);
-
   });
 
-
   describe('OAuth Bearer token', () => {
-
     afterEach(() => {
       sinon.restore();
     });
 
     it('sends configured accessToken as Authorization Bearer header (default entrypoint)', async () => {
       const accessToken = 'test-access-token';
-      const mbApi = new MusicBrainzApi(await makeSearchApiConfig({
-        accessToken,
-        disableRateLimiting: true
-      }));
+      const mbApi = new MusicBrainzApi(
+        await makeSearchApiConfig({
+          accessToken,
+          disableRateLimiting: true
+        })
+      );
       const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('{}'));
 
       await mbApi.restGet<IArtist>(`/artist/${mbid.artist.Stromae}`);
@@ -1366,14 +1383,15 @@ describe('MusicBrainz-api', function () {
       const headers = requestInit.headers as Headers;
       assert.strictEqual(headers.get('Authorization'), `Bearer ${accessToken}`);
     });
-
 
     it('sends configured accessToken as Authorization Bearer header (node entrypoint)', async () => {
       const accessToken = 'test-access-token';
-      const mbApi = new MusicBrainzApiNode(await makeSearchApiConfig({
-        accessToken,
-        disableRateLimiting: true
-      }));
+      const mbApi = new MusicBrainzApiNode(
+        await makeSearchApiConfig({
+          accessToken,
+          disableRateLimiting: true
+        })
+      );
       const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('{}'));
       await mbApi.restGet<IArtist>(`/artist/${mbid.artist.Stromae}`);
       assert.isTrue(fetchStub.calledOnce);
@@ -1382,11 +1400,12 @@ describe('MusicBrainz-api', function () {
       assert.strictEqual(headers.get('Authorization'), `Bearer ${accessToken}`);
     });
 
-
     it('does not send Authorization header when accessToken is not configured', async () => {
-      const mbApi = new MusicBrainzApi(await makeSearchApiConfig({
-        disableRateLimiting: true
-      }));
+      const mbApi = new MusicBrainzApi(
+        await makeSearchApiConfig({
+          disableRateLimiting: true
+        })
+      );
       const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('{}'));
 
       await mbApi.restGet<IArtist>(`/artist/${mbid.artist.Stromae}`);
@@ -1398,16 +1417,18 @@ describe('MusicBrainz-api', function () {
     });
     it('does not overwrite a caller-provided non-empty Authorization header', async () => {
       const accessToken = 'configured-token';
-      const mbApi = new MusicBrainzApi(await makeSearchApiConfig({
-        accessToken,
-        disableRateLimiting: true
-      }));
+      const mbApi = new MusicBrainzApi(
+        await makeSearchApiConfig({
+          accessToken,
+          disableRateLimiting: true
+        })
+      );
       const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('{}'));
 
       // Exercise override behavior via the underlying httpClient so we can
       // pass a custom Authorization header directly.
       const httpClient = (mbApi as unknown as { httpClient: HttpClient }).httpClient;
-      await httpClient.get('/ws/2/artist/' + mbid.artist.Stromae, {
+      await httpClient.get(`/ws/2/artist/${mbid.artist.Stromae}`, {
         headers: { Authorization: 'Bearer caller-supplied-token' }
       });
 
@@ -1423,14 +1444,16 @@ describe('MusicBrainz-api', function () {
 
     it('overrides an empty Authorization header with the configured Bearer token', async () => {
       const accessToken = 'configured-token';
-      const mbApi = new MusicBrainzApi(await makeSearchApiConfig({
-        accessToken,
-        disableRateLimiting: true
-      }));
+      const mbApi = new MusicBrainzApi(
+        await makeSearchApiConfig({
+          accessToken,
+          disableRateLimiting: true
+        })
+      );
       const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('{}'));
 
       const httpClient = (mbApi as unknown as { httpClient: HttpClient }).httpClient;
-      await httpClient.get('/ws/2/artist/' + mbid.artist.Stromae, {
+      await httpClient.get(`/ws/2/artist/${mbid.artist.Stromae}`, {
         headers: { Authorization: '   ' } // whitespace-only counts as empty
       });
 
@@ -1446,23 +1469,20 @@ describe('MusicBrainz-api', function () {
         baseUrl: 'http://musicbrainz.org', // intentionally non-HTTPS
         disableRateLimiting: true
       });
-      assert.throws(
-        () => new MusicBrainzApi(base),
-        /HTTPS baseUrl/
-      );
+      assert.throws(() => new MusicBrainzApi(base), /HTTPS baseUrl/);
     });
 
     it('uses Bearer token for XML web-service post() and skips Digest challenge', async () => {
       const accessToken = 'submit-isrc-token';
-      const mbApi = new MusicBrainzApi(await makeTestApiConfig({
-        accessToken,
-        disableRateLimiting: true,
-        // No botAccount required when accessToken is configured
-        botAccount: undefined
-      }));
-      const fetchStub = sinon.stub(globalThis, 'fetch').resolves(
-        new Response('', { status: 200 })
+      const mbApi = new MusicBrainzApi(
+        await makeTestApiConfig({
+          accessToken,
+          disableRateLimiting: true,
+          // No botAccount required when accessToken is configured
+          botAccount: undefined
+        })
       );
+      const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('', { status: 200 }));
 
       const xmlMetadata = new XmlMetadata();
       const xmlRecording = xmlMetadata.pushRecording(mbid.recording.Formidable);
@@ -1477,12 +1497,17 @@ describe('MusicBrainz-api', function () {
       assert.strictEqual(headers.get('Content-Type'), 'application/xml');
     });
 
-    for (const [entrypoint, Api] of [['default', MusicBrainzApiDefault], ['node', MusicBrainzApiNode]] as const) {
+    for (const [entrypoint, Api] of [
+      ['default', MusicBrainzApiDefault],
+      ['node', MusicBrainzApiNode]
+    ] as const) {
       it(`uses updated tokens for reads and XML submissions (${entrypoint} entrypoint)`, async () => {
-        const mbApi = new Api(await makeSearchApiConfig({
-          accessToken: 'original-token',
-          disableRateLimiting: true
-        }));
+        const mbApi = new Api(
+          await makeSearchApiConfig({
+            accessToken: 'original-token',
+            disableRateLimiting: true
+          })
+        );
         const fetchStub = sinon.stub(globalThis, 'fetch').callsFake(async () => new Response('{}'));
 
         await mbApi.restGet(`/artist/${mbid.artist.Stromae}`);
@@ -1491,23 +1516,28 @@ describe('MusicBrainz-api', function () {
         await mbApi.post('recording', new XmlMetadata());
         mbApi.config.accessToken = undefined;
         await mbApi.restGet(`/artist/${mbid.artist.Stromae}`);
-        mbApi.config.botAccount = {username: 'test-user', password: 'test-password'};
+        mbApi.config.botAccount = { username: 'test-user', password: 'test-password' };
         await mbApi.post('recording', new XmlMetadata());
 
-        assert.deepEqual(fetchStub.args.map(([, init]) => new Headers(init?.headers).get('Authorization')), [
-          'Bearer original-token',
-          'Bearer replacement-token',
-          'Bearer replacement-token',
-          null,
-          null // The initial Digest request must not use the removed Bearer token.
-        ]);
+        assert.deepEqual(
+          fetchStub.args.map(([, init]) => new Headers(init?.headers).get('Authorization')),
+          [
+            'Bearer original-token',
+            'Bearer replacement-token',
+            'Bearer replacement-token',
+            null,
+            null // The initial Digest request must not use the removed Bearer token.
+          ]
+        );
       });
 
       it(`rejects tokens added to an HTTP client (${entrypoint} entrypoint)`, async () => {
-        const mbApi = new Api(await makeSearchApiConfig({
-          baseUrl: 'http://musicbrainz.org',
-          disableRateLimiting: true
-        }));
+        const mbApi = new Api(
+          await makeSearchApiConfig({
+            baseUrl: 'http://musicbrainz.org',
+            disableRateLimiting: true
+          })
+        );
         const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('{}'));
         mbApi.config.accessToken = 'new-token';
 
@@ -1525,15 +1555,17 @@ describe('MusicBrainz-api', function () {
 
       for (const status of [400, 401, 403, 503]) {
         it(`rejects OAuth XML submissions with HTTP ${status} (${entrypoint} entrypoint)`, async () => {
-          const mbApi = new Api(await makeTestApiConfig({
-            accessToken: 'test-access-token',
-            disableRateLimiting: true,
-            botAccount: undefined
-          }));
-          const body = '<error>Submission rejected</error>';
-          const fetchStub = sinon.stub(globalThis, 'fetch').resolves(
-            new Response(body, { status, statusText: 'Submission rejected' })
+          const mbApi = new Api(
+            await makeTestApiConfig({
+              accessToken: 'test-access-token',
+              disableRateLimiting: true,
+              botAccount: undefined
+            })
           );
+          const body = '<error>Submission rejected</error>';
+          const fetchStub = sinon
+            .stub(globalThis, 'fetch')
+            .resolves(new Response(body, { status, statusText: 'Submission rejected' }));
 
           let thrown: unknown;
           try {
@@ -1557,10 +1589,12 @@ describe('MusicBrainz-api', function () {
     }
 
     it('post() throws when neither accessToken nor botAccount credentials are configured', async () => {
-      const mbApi = new MusicBrainzApi(await makeTestApiConfig({
-        disableRateLimiting: true,
-        botAccount: undefined
-      }));
+      const mbApi = new MusicBrainzApi(
+        await makeTestApiConfig({
+          disableRateLimiting: true,
+          botAccount: undefined
+        })
+      );
 
       const xmlMetadata = new XmlMetadata();
       xmlMetadata.pushRecording(mbid.recording.Formidable);
@@ -1575,15 +1609,12 @@ describe('MusicBrainz-api', function () {
         thrown = err as Error;
       }
       assert.isDefined(thrown, 'post() should have thrown');
-      assert.match(
-        (thrown as Error).message,
-        /accessToken.*botAccount|botAccount.*accessToken/i
-      );
+      assert.match((thrown as Error).message, /accessToken.*botAccount|botAccount.*accessToken/i);
       assert.isFalse(fetchStub.called, 'no HTTP request should be made without credentials');
     });
   });
 
-  describe("Rate limiting", () => {
+  describe('Rate limiting', () => {
     let mbTestApiNoLimit: MusicBrainzApi;
     let mbTestApiLimit: MusicBrainzApi;
     let mbApiNoLimit: MusicBrainzApi;
@@ -1591,22 +1622,30 @@ describe('MusicBrainz-api', function () {
     let rateLimiterSpy: sinon.SinonSpy;
 
     before(async () => {
-      mbApiNoLimit = new MusicBrainzApi(await makeSearchApiConfig({
-        disableRateLimiting: true
-      }));
-      mbApiLimit = new MusicBrainzApi(await makeSearchApiConfig({
-        disableRateLimiting: false
-      }));
-      mbTestApiNoLimit = new MusicBrainzApi(await makeTestApiConfig({
-        disableRateLimiting: true
-      }));
-      mbTestApiLimit = new MusicBrainzApi(await makeTestApiConfig({
-        disableRateLimiting: false
-      }));
+      mbApiNoLimit = new MusicBrainzApi(
+        await makeSearchApiConfig({
+          disableRateLimiting: true
+        })
+      );
+      mbApiLimit = new MusicBrainzApi(
+        await makeSearchApiConfig({
+          disableRateLimiting: false
+        })
+      );
+      mbTestApiNoLimit = new MusicBrainzApi(
+        await makeTestApiConfig({
+          disableRateLimiting: true
+        })
+      );
+      mbTestApiLimit = new MusicBrainzApi(
+        await makeTestApiConfig({
+          disableRateLimiting: false
+        })
+      );
     });
 
     beforeEach(() => {
-      rateLimiterSpy = sinon.spy(RateLimitThreshold.prototype, "limit");
+      rateLimiterSpy = sinon.spy(RateLimitThreshold.prototype, 'limit');
     });
 
     afterEach(() => {
@@ -1614,30 +1653,23 @@ describe('MusicBrainz-api', function () {
     });
 
     describe('restGet', () => {
-
       beforeEach(() => {
         // Stub to avoid unnecessary HTTP requests in the context of these tests
-        sinon.stub(HttpClient.prototype, "get").resolves(new Response('{}'));
+        sinon.stub(HttpClient.prototype, 'get').resolves(new Response('{}'));
       });
 
-      it("rate limits by default", async () => {
-        await mbApi.restGet<IRecording>(
-          `/recording/${mbid.recording.Formidable}`
-        );
+      it('rate limits by default', async () => {
+        await mbApi.restGet<IRecording>(`/recording/${mbid.recording.Formidable}`);
         assert.isTrue(rateLimiterSpy.calledOnce);
       });
 
-      it("rate limits when disableRateLimiting is false", async () => {
-        await mbApiLimit.restGet<IRecording>(
-          `/recording/${mbid.recording.Formidable}`
-        );
+      it('rate limits when disableRateLimiting is false', async () => {
+        await mbApiLimit.restGet<IRecording>(`/recording/${mbid.recording.Formidable}`);
         assert.isTrue(rateLimiterSpy.calledOnce);
       });
 
-      it("does not rate limit when disableRateLimiting is true", async () => {
-        await mbApiNoLimit.restGet<IRecording>(
-          `/recording/${mbid.recording.Formidable}`
-        );
+      it('does not rate limit when disableRateLimiting is true', async () => {
+        await mbApiNoLimit.restGet<IRecording>(`/recording/${mbid.recording.Formidable}`);
         assert.isFalse(rateLimiterSpy.called);
       });
 
@@ -1647,24 +1679,23 @@ describe('MusicBrainz-api', function () {
     });
 
     describe('post', () => {
-
       beforeEach(() => {
         // Stub every client used by these rate-limiter tests.
-        sinon.stub(HttpClient.prototype, "post").resolves(new Response('{}'));
+        sinon.stub(HttpClient.prototype, 'post').resolves(new Response('{}'));
       });
 
-      it("rate limits by default", async () => {
-        await mbTestApi.post("recording", new XmlMetadata());
+      it('rate limits by default', async () => {
+        await mbTestApi.post('recording', new XmlMetadata());
         assert.isTrue(rateLimiterSpy.calledOnce);
       });
 
-      it("rate limits when disableRateLimiting is false", async () => {
-        await mbTestApiLimit.post("recording", new XmlMetadata());
+      it('rate limits when disableRateLimiting is false', async () => {
+        await mbTestApiLimit.post('recording', new XmlMetadata());
         assert.isTrue(rateLimiterSpy.calledOnce);
       });
 
-      it("does not rate limit when disableRateLimiting is true", async () => {
-        await mbTestApiNoLimit.post("recording", new XmlMetadata());
+      it('does not rate limit when disableRateLimiting is true', async () => {
+        await mbTestApiNoLimit.post('recording', new XmlMetadata());
         assert.isFalse(rateLimiterSpy.called);
       });
 
@@ -1673,11 +1704,9 @@ describe('MusicBrainz-api', function () {
       });
     });
   });
-
 });
 
 describe('Cover Art Archive API', function () {
-
   // Base URL used by cover-art-archive to refer back to MusicBrainz release
   // The addresses are normalized to https by `CoverArtArchiveApi`
   const releaseMusicBrainzBaseUrl = 'https://musicbrainz.org/release/';
@@ -1692,7 +1721,11 @@ describe('Cover Art Archive API', function () {
     const coverArtArchiveApiClient = new CoverArtArchiveApi();
     const releaseCoversInfo = await coverArtArchiveApiClient.getReleaseCovers(mbid.release.Formidable);
     assert.isDefined(releaseCoversInfo);
-    assert.strictEqual(releaseCoversInfo.release, releaseMusicBrainzBaseUrl + mbid.release.Formidable, 'releaseCoversInfo.release');
+    assert.strictEqual(
+      releaseCoversInfo.release,
+      releaseMusicBrainzBaseUrl + mbid.release.Formidable,
+      'releaseCoversInfo.release'
+    );
     assert.isDefined(releaseCoversInfo.images, 'releaseCoversInfo.images');
     assert.ok(releaseCoversInfo.images.length > 0, 'releaseCoversInfo.images.length > 0');
   });
@@ -1701,7 +1734,9 @@ describe('Cover Art Archive API', function () {
     const coverArtArchiveApiClient = new CoverArtArchiveApi();
     const releaseCoverInfo = await coverArtArchiveApiClient.getReleaseCover(mbid.release.DireStraits, 'back');
     assert.isDefined(releaseCoverInfo);
-    expect(releaseCoverInfo.url).to.be.a('string').and.to.match(/^https/);
+    expect(releaseCoverInfo.url)
+      .to.be.a('string')
+      .and.to.match(/^https/);
   });
 
   it('Get cover information for release group Formidable', async () => {
@@ -1716,31 +1751,38 @@ describe('Cover Art Archive API', function () {
     const coverArtArchiveApiClient = new CoverArtArchiveApi();
     const releaseCoverInfo = await coverArtArchiveApiClient.getReleaseGroupCover(mbid.releaseGroup.Formidable, 'front');
     assert.isDefined(releaseCoverInfo);
-    expect(releaseCoverInfo.url).to.be.a('string').and.to.match(/^https/);
+    expect(releaseCoverInfo.url)
+      .to.be.a('string')
+      .and.to.match(/^https/);
   });
 
   it('Test an ID that does not exist', async () => {
     const coverArtArchiveApiClient = new CoverArtArchiveApi();
-    const releaseCoversInfo = await coverArtArchiveApiClient.getReleaseGroupCovers('a8d5bd1b-e325-462d-af75-13ff94353101');
+    const releaseCoversInfo = await coverArtArchiveApiClient.getReleaseGroupCovers(
+      'a8d5bd1b-e325-462d-af75-13ff94353101'
+    );
     assert.isDefined(releaseCoversInfo);
-    // @ts-expect-error 
+    // @ts-expect-error
     assert.isDefined(releaseCoversInfo.error);
-
   });
 
   it('Failure test for the content type of the api', async () => {
     const response = await fetch('https://coverartarchive.org/release/a8d5bd1b-e325-462d-af75-13ff94353101', {
-      method: "GET",
+      method: 'GET',
       headers: {
-        Accept: "application/json",
-        UserAgent: "Node.js musicbrains-api"
+        Accept: 'application/json',
+        UserAgent: 'Node.js musicbrains-api'
       }
     });
     const body = await response.text();
-    assert.notEqual(response.headers.get("Content-Type"), "application/json");
-    assert.throws(() => JSON.parse(body), SyntaxError, undefined, 'The cover art api previously returned HTML instead of JSON')
+    assert.notEqual(response.headers.get('Content-Type'), 'application/json');
+    assert.throws(
+      () => JSON.parse(body),
+      SyntaxError,
+      undefined,
+      'The cover art api previously returned HTML instead of JSON'
+    );
   });
-
 });
 
 /**
@@ -1750,23 +1792,21 @@ describe('Cover Art Archive API', function () {
  * The endpoints under `/ws/2/...` accept `Authorization: Bearer <token>`
  */
 describe('Node specific API (OAuth)', () => {
-
   afterEach(() => {
     sinon.restore();
   });
 
   describe('ISRC submission via XML web service', () => {
-
     it('uses Bearer token for post() (no botAccount required)', async () => {
       const accessToken = 'submit-isrc-token';
-      const mbTestApi = new MusicBrainzApiNode(await makeTestApiConfig({
-        accessToken,
-        disableRateLimiting: true,
-        botAccount: undefined
-      }));
-      const fetchStub = sinon.stub(globalThis, 'fetch').resolves(
-        new Response('', { status: 200 })
+      const mbTestApi = new MusicBrainzApiNode(
+        await makeTestApiConfig({
+          accessToken,
+          disableRateLimiting: true,
+          botAccount: undefined
+        })
       );
+      const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('', { status: 200 }));
 
       const xmlMetadata = new XmlMetadata();
       const xmlRecording = xmlMetadata.pushRecording('94fb868b-9233-4f9e-966b-e8036bf7461e');
@@ -1780,7 +1820,5 @@ describe('Node specific API (OAuth)', () => {
       assert.strictEqual(headers.get('Authorization'), `Bearer ${accessToken}`);
       assert.strictEqual(headers.get('Content-Type'), 'application/xml');
     });
-
   });
-
 });

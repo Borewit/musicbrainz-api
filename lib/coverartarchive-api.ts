@@ -1,25 +1,41 @@
 /* eslint-disable-next-line */
-import {HttpClient} from "./http-client.js";
+import { HttpClient } from './http-client.js';
 
-export type CovertType = 'Front' | 'Back' | 'Booklet' | 'Medium' | 'Obi' | 'Spine' | 'Track' | 'Tray' | 'Sticker' |
-'Poster' | 'Liner' | 'Watermark' | 'Raw/Unedited' | 'Matrix/Runout' | 'Top' | 'Bottom' | 'Other';
+export type CovertType =
+  | 'Front'
+  | 'Back'
+  | 'Booklet'
+  | 'Medium'
+  | 'Obi'
+  | 'Spine'
+  | 'Track'
+  | 'Tray'
+  | 'Sticker'
+  | 'Poster'
+  | 'Liner'
+  | 'Watermark'
+  | 'Raw/Unedited'
+  | 'Matrix/Runout'
+  | 'Top'
+  | 'Bottom'
+  | 'Other';
 
 export interface IImage {
-  types: CovertType[],
-  front: boolean,
-  back: boolean,
-  edit: number,
-  image: string,
-  comment: string,
-  approved: boolean,
-  id: string,
+  types: CovertType[];
+  front: boolean;
+  back: boolean;
+  edit: number;
+  image: string;
+  comment: string;
+  approved: boolean;
+  id: string;
   thumbnails: {
     large: string;
     small: string;
     '250': string;
     '500'?: string;
     '1200'?: string;
-  }
+  };
 }
 
 export type CoverType = 'front' | 'back';
@@ -39,7 +55,7 @@ export class CoverArtArchiveApiError extends Error {
   public readonly body?: unknown;
   public readonly url?: string;
 
-  constructor(message: string, options: {status: number; statusText: string; body?: unknown; url?: string}) {
+  constructor(message: string, options: { status: number; statusText: string; body?: unknown; url?: string }) {
     super(message);
     this.name = 'CoverArtArchiveApiError';
     this.status = options.status;
@@ -50,15 +66,19 @@ export class CoverArtArchiveApiError extends Error {
 }
 
 export class CoverArtArchiveApi {
-
   private static readonly retryLimit = 3;
 
-  private httpClient = new HttpClient({baseUrl: 'https://coverartarchive.org', userAgent: 'Node.js musicbrains-api', timeout: 2000, followRedirects: false});
+  private httpClient = new HttpClient({
+    baseUrl: 'https://coverartarchive.org',
+    userAgent: 'Node.js musicbrains-api',
+    timeout: 2000,
+    followRedirects: false
+  });
 
   private async getJson(path: string): Promise<unknown> {
     const response = await this.httpClient.get(path, {
       headers: {
-        Accept: "application/json"
+        Accept: 'application/json'
       },
       retryLimit: CoverArtArchiveApi.retryLimit
     });
@@ -70,9 +90,9 @@ export class CoverArtArchiveApi {
     if (response.status === 404 && !isJson) {
       await response.body?.cancel();
       return {
-        "error": "Not Found",
-        "help": "For usage, please see: https://musicbrainz.org/development/mmd"
-      }
+        error: 'Not Found',
+        help: 'For usage, please see: https://musicbrainz.org/development/mmd'
+      };
     }
 
     const body = await response.text();
@@ -82,10 +102,12 @@ export class CoverArtArchiveApi {
         json = JSON.parse(body);
       } catch {
         if (response.ok) {
-          throw new CoverArtArchiveApiError(
-            `Cover Art Archive returned invalid JSON (${response.status})`,
-            {status: response.status, statusText: response.statusText, body, url: response.url}
-          );
+          throw new CoverArtArchiveApiError(`Cover Art Archive returned invalid JSON (${response.status})`, {
+            status: response.status,
+            statusText: response.statusText,
+            body,
+            url: response.url
+          });
         }
       }
     }
@@ -95,32 +117,34 @@ export class CoverArtArchiveApi {
     }
 
     if (!response.ok) {
-      const apiError = json as {error?: unknown} | undefined;
+      const apiError = json as { error?: unknown } | undefined;
       const detail = typeof apiError?.error === 'string' ? apiError.error : response.statusText;
       const suffix = detail ? `: ${detail}` : '';
-      throw new CoverArtArchiveApiError(
-        `Cover Art Archive request failed (${response.status})${suffix}`,
-        {status: response.status, statusText: response.statusText, body: json ?? body, url: response.url}
-      );
+      throw new CoverArtArchiveApiError(`Cover Art Archive request failed (${response.status})${suffix}`, {
+        status: response.status,
+        statusText: response.statusText,
+        body: json ?? body,
+        url: response.url
+      });
     }
 
     if (!isJson) {
       const receivedType = contentType ? `"${contentType}"` : 'no Content-Type';
       throw new CoverArtArchiveApiError(
         `Cover Art Archive returned ${receivedType} instead of JSON (${response.status})`,
-        {status: response.status, statusText: response.statusText, body, url: response.url}
+        { status: response.status, statusText: response.statusText, body, url: response.url }
       );
     }
 
     return json;
   }
 
-  private async getCoverRedirect(path: string): Promise<string|null> {
+  private async getCoverRedirect(path: string): Promise<string | null> {
     const response = await this.httpClient.get(path, {
       followRedirects: false,
       retryLimit: CoverArtArchiveApi.retryLimit
     });
-    switch(response.status) {
+    switch (response.status) {
       case 307:
         return response.headers.get('LOCATION') as string;
       case 400:
@@ -131,10 +155,12 @@ export class CoverArtArchiveApi {
       case 405:
         throw new Error('Invalid HTTP method');
       case 503:
-        throw new CoverArtArchiveApiError(
-          'Cover Art Archive request failed (503): Service Unavailable',
-          {status: response.status, statusText: response.statusText, body: await response.text(), url: response.url}
-        );
+        throw new CoverArtArchiveApiError('Cover Art Archive request failed (503): Service Unavailable', {
+          status: response.status,
+          statusText: response.statusText,
+          body: await response.text(),
+          url: response.url
+        });
       default:
         throw new Error(`Unexpected HTTP-status response: ${response.status}`);
     }
@@ -178,12 +204,16 @@ export class CoverArtArchiveApi {
     return this.getCover(releaseGroupId, 'release-group', coverType);
   }
 
-  private static makePath(releaseId: string, releaseType: 'release' | 'release-group' = 'release', coverType?: CoverType): string {
+  private static makePath(
+    releaseId: string,
+    releaseType: 'release' | 'release-group' = 'release',
+    coverType?: CoverType
+  ): string {
     const path = [releaseType, releaseId];
     if (coverType) {
       path.push(coverType);
     }
-    return`/${path.join('/')}`;
+    return `/${path.join('/')}`;
   }
 
   /**
@@ -193,8 +223,11 @@ export class CoverArtArchiveApi {
    * @param releaseType Fetch covers for specific release or release-group
    * @param coverType Cover type
    */
-  private async getCovers(releaseId: string, releaseType: 'release' | 'release-group' = 'release'): Promise<ICoversInfo> {
-    const info = await this.getJson(CoverArtArchiveApi.makePath(releaseId, releaseType)) as ICoversInfo;
+  private async getCovers(
+    releaseId: string,
+    releaseType: 'release' | 'release-group' = 'release'
+  ): Promise<ICoversInfo> {
+    const info = (await this.getJson(CoverArtArchiveApi.makePath(releaseId, releaseType))) as ICoversInfo;
     // Hack to correct http addresses into https
     if (info.release?.startsWith('http:')) {
       info.release = `https${info.release.substring(4)}`;
@@ -209,9 +242,12 @@ export class CoverArtArchiveApi {
    * @param releaseType Fetch covers for specific release or release-group
    * @param coverType Cover type
    */
-  private async getCover(releaseId: string, releaseType: 'release' | 'release-group' = 'release', coverType?: CoverType): Promise<ICoverInfo> {
-    const url= await this.getCoverRedirect(CoverArtArchiveApi.makePath(releaseId, releaseType, coverType));
-    return {url: url};
+  private async getCover(
+    releaseId: string,
+    releaseType: 'release' | 'release-group' = 'release',
+    coverType?: CoverType
+  ): Promise<ICoverInfo> {
+    const url = await this.getCoverRedirect(CoverArtArchiveApi.makePath(releaseId, releaseType, coverType));
+    return { url: url };
   }
-
 }

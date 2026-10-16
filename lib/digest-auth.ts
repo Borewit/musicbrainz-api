@@ -1,5 +1,5 @@
-import { v4 as uuidv4 } from 'uuid';
 import sparkMd5 from 'spark-md5';
+import { v4 as uuidv4 } from 'uuid';
 
 interface IChallenge {
   algorithm?: string;
@@ -17,7 +17,6 @@ export interface ICredentials {
 const md5 = sparkMd5.hash;
 
 export class DigestAuth {
-
   /**
    * RFC 2617: handle both MD5 and MD5-sess algorithms.
    *
@@ -26,7 +25,14 @@ export class DigestAuth {
    * If the algorithm directive's value is "MD5-sess", then HA1 is
    *   HA1=MD5(MD5(username:realm:password):nonce:cnonce)
    */
-  public static ha1Compute(algorithm: string, user: string, realm: string, pass: string, nonce: string, cnonce: string): string {
+  public static ha1Compute(
+    algorithm: string,
+    user: string,
+    realm: string,
+    pass: string,
+    nonce: string,
+    cnonce: string
+  ): string {
     const ha1 = md5(`${user}:${realm}:${pass}`); // lgtm [js/insufficient-password-hash]
     return algorithm && algorithm.toLowerCase() === 'md5-sess' ? md5(`${ha1}:${nonce}:${cnonce}`) : ha1;
   }
@@ -64,7 +70,14 @@ export class DigestAuth {
     const qop = /(^|,)\s*auth\s*($|,)/.test(challenge.qop as string) && 'auth';
     const nc = qop && '00000001';
     const cnonce = qop && uuidv4().replace(/-/g, '');
-    const ha1 = DigestAuth.ha1Compute(challenge.algorithm as string, this.credentials.username, challenge.realm as string, this.credentials.password, challenge.nonce as string, cnonce as string);
+    const ha1 = DigestAuth.ha1Compute(
+      challenge.algorithm as string,
+      this.credentials.username,
+      challenge.realm as string,
+      this.credentials.password,
+      challenge.nonce as string,
+      cnonce as string
+    );
     const ha2 = md5(`${method}:${path}`); // lgtm [js/insufficient-password-hash]
     const digestResponse = qop
       ? md5(`${ha1}:${challenge.nonce}:${nc}:${cnonce}:${qop}:${ha2}`) // lgtm [js/insufficient-password-hash]

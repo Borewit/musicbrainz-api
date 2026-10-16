@@ -1,11 +1,9 @@
 import { XmlIsrcList } from './xml-isrc-list.js';
 
 export class XmlRecording {
-
   public isrcList: XmlIsrcList = new XmlIsrcList();
 
-  public constructor(public id: string) {
-  }
+  public constructor(public id: string) {}
 
   public toXml() {
     return {
