@@ -26,7 +26,7 @@ export interface IHttpClientOptions {
 
 export interface IFetchOptions {
   query?: MultiQueryFormData;
-  /** Maximum number of attempts, including the initial request. Defaults to 3 for connection timeouts, 1 otherwise. */
+  /** Maximum number of attempts, including the initial request. Defaults to 3 for GET connection timeouts, 1 otherwise. */
   retryLimit?: number;
   body?: string;
   headers?: HeadersInit;
@@ -37,13 +37,13 @@ function isTransientConnectionError(err: unknown, includeConnectionReset: boolea
   if (typeof err !== 'object' || err === null) return false;
 
   const error = err as {code?: unknown; cause?: unknown; errors?: unknown};
-  if ((includeConnectionReset && error.code === 'ECONNRESET') || error.code === 'ETIMEDOUT'
-    || error.code === 'UND_ERR_CONNECT_TIMEOUT') return true;
-
   // Node can aggregate failed connection attempts to multiple IP addresses.
   if (Array.isArray(error.errors)) {
     return error.errors.length > 0 && error.errors.every(error => isTransientConnectionError(error, includeConnectionReset));
   }
+
+  if ((includeConnectionReset && error.code === 'ECONNRESET') || error.code === 'ETIMEDOUT'
+    || error.code === 'UND_ERR_CONNECT_TIMEOUT') return true;
 
   // Fetch wraps Node/Undici connection errors in a TypeError's cause.
   return isTransientConnectionError(error.cause, includeConnectionReset);
@@ -82,9 +82,8 @@ export class HttpClient {
     const maxAttempts = typeof options.retryLimit === 'number' && Number.isFinite(options.retryLimit)
       ? Math.max(1, Math.floor(options.retryLimit))
       : 1;
-    // A connection timeout happens before sending the request, so it is safe to
-    // retry even submissions. Keep other failures opt-in via retryLimit.
-    const maxConnectionAttempts = options.retryLimit === undefined ? 3 : maxAttempts;
+    // Only retry reads by default: a timeout does not prove a submission was not sent.
+    const maxConnectionAttempts = options.retryLimit === undefined && method === 'get' ? 3 : maxAttempts;
     const retryTimeout = this.httpOptions.timeout ? this.httpOptions.timeout : 500;
     const url = this._buildUrl(path, options.query);
     const cookies = await this.getCookies();
