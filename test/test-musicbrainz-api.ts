@@ -1340,7 +1340,6 @@ describe('MusicBrainz-api', function () {
 
   describe('Submit API', () => {
 
-    // Repeating this fixed ISRC submission is safe if the test server connection fails.
     it('Post ISRC Formidable', async () => {
       const isrc_Formidable = 'BET671300161';
       const xmlMetadata = new XmlMetadata();
@@ -1348,7 +1347,7 @@ describe('MusicBrainz-api', function () {
       xmlRecording.isrcList.pushIsrc(isrc_Formidable);
 
       await mbTestApi.post('recording', xmlMetadata);
-    }).retries(2);
+    });
 
   });
 
