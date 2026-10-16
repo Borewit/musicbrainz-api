@@ -70,6 +70,137 @@ describe('HttpClient retry loop', () => {
     assert.isTrue(delayStub.calledOnceWithExactly(1));
   });
 
+  const connectionTimeouts = [
+    {name: 'Node timeout', error: Object.assign(new Error('connect timed out'), {code: 'ETIMEDOUT'})},
+    {name: 'Undici timeout', error: Object.assign(new Error('connect timed out'), {code: 'UND_ERR_CONNECT_TIMEOUT'})},
+    {
+      name: 'aggregate Node timeout',
+      error: Object.assign(new Error('All connection attempts failed'), {errors: [
+        Object.assign(new Error('connect timed out'), {code: 'ETIMEDOUT'}),
+        Object.assign(new Error('IPv6 network unreachable'), {code: 'ENETUNREACH'})
+      ], code: 'ETIMEDOUT'})
+    },
+    {
+      name: 'aggregate timeout without a top-level code',
+      error: Object.assign(new Error('All connection attempts failed'), {errors: [
+        Object.assign(new Error('connect timed out'), {code: 'ETIMEDOUT'})
+      ]})
+    }
+  ];
+
+  for (const {name, error} of connectionTimeouts) {
+    it(`retries a submission after ${name} by default`, async () => {
+      fetchStub.onFirstCall().rejects(Object.assign(new TypeError('fetch failed'), {cause: error}));
+      fetchStub.onSecondCall().resolves(new Response('{}'));
+
+      const response = await makeClient().post('/resource', {body: '<metadata/>'});
+
+      assert.strictEqual(response.status, 200);
+      assert.strictEqual(fetchStub.callCount, 2);
+      assert.strictEqual(fetchStub.secondCall.args[1].body, '<metadata/>');
+      assert.isTrue(delayStub.calledOnceWithExactly(1));
+    });
+
+    it(`retries a fetch failure caused by ${name}`, async () => {
+      fetchStub.onFirstCall().rejects(Object.assign(new TypeError('fetch failed'), {cause: error}));
+      fetchStub.onSecondCall().resolves(new Response('{}'));
+
+      const response = await makeClient().get('/resource', {retryLimit: 2});
+
+      assert.strictEqual(response.status, 200);
+      assert.strictEqual(fetchStub.callCount, 2);
+      assert.isTrue(delayStub.calledOnceWithExactly(1));
+    });
+
+    it(`rethrows the final ${name} fetch failure`, async () => {
+      const fetchError = Object.assign(new TypeError('fetch failed'), {cause: error});
+      fetchStub.rejects(fetchError);
+
+      let caughtError: unknown;
+      try {
+        await makeClient().get('/resource', {retryLimit: 3});
+      } catch (error) {
+        caughtError = error;
+      }
+
+      assert.strictEqual(caughtError, fetchError);
+      assert.strictEqual(fetchStub.callCount, 3);
+      assert.deepEqual(delayStub.args, [[1], [2]]);
+    });
+  }
+
+  for (const retryLimit of [undefined, 1]) {
+    it(`bounds connection timeout retries with retryLimit=${retryLimit}`, async () => {
+      const fetchError = Object.assign(new TypeError('fetch failed'), {cause: {code: 'ETIMEDOUT'}});
+      fetchStub.rejects(fetchError);
+
+      let caughtError: unknown;
+      try {
+        await makeClient().post('/resource', {retryLimit});
+      } catch (error) {
+        caughtError = error;
+      }
+
+      const expectedAttempts = retryLimit ?? 3;
+      assert.strictEqual(caughtError, fetchError);
+      assert.strictEqual(fetchStub.callCount, expectedAttempts);
+      assert.strictEqual(delayStub.callCount, expectedAttempts - 1);
+    });
+  }
+
+  it('does not retry connection resets by default', async () => {
+    const fetchError = makeConnectionReset();
+    fetchStub.rejects(fetchError);
+
+    let caughtError: unknown;
+    try {
+      await makeClient().post('/resource');
+    } catch (error) {
+      caughtError = error;
+    }
+
+    assert.strictEqual(caughtError, fetchError);
+    assert.strictEqual(fetchStub.callCount, 1);
+    assert.isFalse(delayStub.called);
+  });
+
+  for (const status of [429, 503]) {
+    it(`does not retry HTTP ${status} by default`, async () => {
+      fetchStub.resolves(new Response('', {status}));
+
+      const response = await makeClient().post('/resource');
+
+      assert.strictEqual(response.status, status);
+      assert.strictEqual(fetchStub.callCount, 1);
+      assert.isFalse(delayStub.called);
+    });
+  }
+
+  for (const cause of [
+    undefined,
+    {code: 'ENOTFOUND'},
+    {code: 'CERT_HAS_EXPIRED'},
+    {code: 'UND_ERR_HEADERS_TIMEOUT'},
+    {errors: []},
+    {errors: [{code: 'ETIMEDOUT'}, {code: 'ENOTFOUND'}]}
+  ]) {
+    it(`does not retry an unrelated fetch failure (${JSON.stringify(cause)})`, async () => {
+      const fetchError = Object.assign(new TypeError('fetch failed'), {cause});
+      fetchStub.rejects(fetchError);
+
+      let caughtError: unknown;
+      try {
+        await makeClient().get('/resource', {retryLimit: 3});
+      } catch (error) {
+        caughtError = error;
+      }
+
+      assert.strictEqual(caughtError, fetchError);
+      assert.strictEqual(fetchStub.callCount, 1);
+      assert.isFalse(delayStub.called);
+    });
+  }
+
   it('rethrows the final connection reset', async () => {
     const connectionReset = makeConnectionReset();
     fetchStub.rejects(connectionReset);
