@@ -4,7 +4,7 @@ import type { XmlMetadata } from './xml/xml-metadata.js';
 import { DigestAuth } from './digest-auth.js';
 
 import { RateLimitThreshold } from 'rate-limit-threshold';
-import * as mb from './musicbrainz.types.js';
+import type * as mb from './musicbrainz.types.js';
 import { HttpClient, type IHttpClientOptions, type MultiQueryFormData } from './http-client.js';
 
 export { XmlMetadata } from './xml/xml-metadata.js';
@@ -171,16 +171,6 @@ interface IInternalConfig extends IMusicBrainzConfig {
   baseUrl: string,
 }
 
-export interface ICsrfSession {
-  sessionKey: string;
-  token: string;
-}
-
-export interface ISessionInformation {
-  csrf: ICsrfSession,
-  loggedIn?: boolean;
-}
-
 type MusicBrainzErrorBody = {
   error?: string;
   help?: string;
@@ -217,27 +207,6 @@ export class MusicBrainzApi {
 
   protected rateLimiter: RateLimitThreshold;
   protected httpClient: HttpClient;
-  protected session?: ISessionInformation;
-
-  public static fetchCsrf(html: string): ICsrfSession {
-    return {
-      sessionKey: MusicBrainzApi.fetchValue(html, 'csrf_session_key') as string,
-      token: MusicBrainzApi.fetchValue(html, 'csrf_token') as string
-    };
-  }
-
-  private static fetchValue(html: string, key: string): string | undefined {
-    let pos = html.indexOf(`name="${key}"`);
-    if (pos >= 0) {
-      pos = html.indexOf('value="', pos + key.length + 7);
-      if (pos >= 0) {
-        pos += 7;
-        const endValuePos = html.indexOf('"', pos);
-        return html.substring(pos, endValuePos);
-      }
-    }
-  }
-
   public constructor(_config?: IMusicBrainzConfig) {
 
     this.config = {
@@ -458,15 +427,31 @@ export class MusicBrainzApi {
     const path = `/ws/2/${entity}/`;
     const postData = xmlMetadata.toXml();
 
-    // With an OAuth Bearer token, HttpClient sets the Authorization header.
-    // Submit the body once; no digest-challenge retry is needed.
-    if (this.config.accessToken) {
+    const requestUrl = new URL(`${this.config.baseUrl}${path}`);
+    requestUrl.searchParams.set('client', clientId);
+    const digestUri = requestUrl.pathname + requestUrl.search;
+    let digest: string | undefined;
+
+    for (let attempt = 0; attempt < 5; ++attempt) {
       await this.applyRateLimiter();
+      const headers: Record<string, string> = {'Content-Type': 'application/xml'};
+      if (digest) headers.Authorization = digest;
       const response = await this.httpClient.post(path, {
-        query: { client: clientId },
-        headers: { 'Content-Type': 'application/xml' },
+        query: {client: clientId},
+        headers,
         body: postData
       });
+
+      const challenge = response.headers.get('www-authenticate');
+      if (!this.config.accessToken && response.status === HttpStatus.UNAUTHORIZED
+        && challenge && /^Digest\s/i.test(challenge) && attempt < 4) {
+        // Native fetch exposes status and Headers, not the former client's response fields.
+        await response.text();
+        const auth = new DigestAuth(this.config.botAccount as {username: string, password: string});
+        digest = auth.digest('POST', digestUri, challenge);
+        continue;
+      }
+
       if (!response.ok) {
         const body = await response.text();
         throw new MusicBrainzApiError(
@@ -481,96 +466,6 @@ export class MusicBrainzApi {
       }
       return;
     }
-
-    // Get digest challenge
-    let digest = '';
-    let n = 1;
-
-    do {
-      await this.applyRateLimiter();
-      const response: any = await this.httpClient.post(path, {
-        query: {client: clientId},
-        headers: {
-          authorization: digest,
-          'Content-Type': 'application/xml'
-        },
-        body: postData
-      });
-
-      if (response.statusCode === HttpStatus.UNAUTHORIZED) {
-        // Respond to digest challenge
-        const auth = new DigestAuth(this.config.botAccount as { username: string, password: string });
-        const relPath = response.requestUrl.pathname; // Ensure path is relative
-        digest = auth.digest(response.request.method, relPath as string, response.headers['www-authenticate']);
-        ++n;
-      } else {
-        break;
-      }
-    } while (n++ < 5);
-  }
-
-  /**
-   * Submit entity
-   * @param entity Entity type e.g. 'recording'
-   * @param mbid
-   * @param formData
-   */
-  public async editEntity(entity: mb.EntityType, mbid: string, formData: Record<string, any>): Promise<void> {
-
-    await this.applyRateLimiter();
-
-    this.session = await this.getSession();
-
-    formData.csrf_session_key = this.session.csrf.sessionKey;
-    formData.csrf_token = this.session.csrf.token;
-    formData.username = this.config.botAccount?.username;
-    formData.password = this.config.botAccount?.password;
-    formData.remember_me = 1;
-
-    const response = await this.httpClient.postForm(`/${entity}/${mbid}/edit`, formData, {
-      followRedirects: false
-    });
-    if (response.status === HttpStatus.OK)
-      throw new Error("Failed to submit form data");
-    if (response.status === HttpStatus.MOVED_TEMPORARILY)
-      return;
-    throw new Error(`Unexpected status code: ${response.status}`);
-  }
-
-  /**
-   * Add ISRC to recording
-   * @param recording Recording to update
-   * @param isrc ISRC code to add
-   */
-  public async addIsrc(recording: mb.IRecording, isrc: string) {
-
-    const formData: IFormData = {};
-
-    formData["edit-recording.name"] = recording.title; // Required
-
-    if (!recording.isrcs) {
-      throw new Error('You must retrieve recording with existing ISRC values');
-    }
-
-    if (recording.isrcs.indexOf(isrc) === -1) {
-      recording.isrcs.push(isrc);
-
-      for (const i in recording.isrcs) {
-        formData[`edit-recording.isrcs.${i}`] = recording.isrcs[i];
-      }
-      return this.editEntity('recording', recording.id, formData);
-    }
-  }
-
-
-  protected async getSession(): Promise<ISessionInformation> {
-
-    const response = await this.httpClient.get('login', {
-      followRedirects: false
-    });
-    return {
-      csrf: MusicBrainzApi.fetchCsrf(await response.text())
-    };
   }
 
   protected async applyRateLimiter() {

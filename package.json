@@ -57,7 +57,6 @@
     "jsontoxml": "^1.0.1",
     "rate-limit-threshold": "^0.2.0",
     "spark-md5": "^3.0.2",
-    "tough-cookie": "^5.0.0",
     "uuid": "^14.0.0"
   },
   "dependenciesMeta": {
@@ -73,7 +72,6 @@
     "@types/node": "^25.0.3",
     "@types/sinon": "^22.0.0",
     "@types/spark-md5": "^3",
-    "@types/tough-cookie": "^4.0.5",
     "@types/uuid": "^11.0.0",
     "c8": "^12.0.0",
     "chai": "^6.2.0",
