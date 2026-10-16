@@ -11,12 +11,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
-          node-version: 20.x
+          node-version: 24.x
 
       - name: Enable Corepack
         run: corepack enable
@@ -55,16 +55,20 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x, 22.x, 24.x]
+        node-version: [20.x, 22.x, 24.x, 26.x]
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
+
+      - name: Install Corepack
+        if: matrix.node-version == '26.x'
+        run: npm install --global corepack
 
       - name: Enable Corepack
         run: corepack enable
@@ -88,7 +92,7 @@ jobs:
         run: yarn run test-coverage
 
       - name: Upload Node.js ${{ matrix.node-version }} coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           files: ./coverage/lcov.info
           flags: node-${{ matrix.node-version }}
