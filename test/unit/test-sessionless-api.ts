@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
 import { assert } from 'chai';
 import sinon from 'sinon';
-import { MusicBrainzApi as DefaultApi, MusicBrainzApiError, XmlMetadata } from '../lib/entry-default.js';
-import { MusicBrainzApi as NodeApi } from '../lib/entry-node.js';
+import { MusicBrainzApi as DefaultApi, MusicBrainzApiError, XmlMetadata } from '../../lib/entry-default.js';
+import { MusicBrainzApi as NodeApi } from '../../lib/entry-node.js';
 
 function makeMetadata(): XmlMetadata {
   const metadata = new XmlMetadata();

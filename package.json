@@ -104,7 +104,9 @@
     "test-coverage:compiled": "c8 yarn run test:compiled",
     "send-codacy": "c8 report --reporter=text-lcov | codacy-coverage",
     "prepublishOnly": "yarn run build:prod",
-    "update-biome": "yarn add -D --exact @biomejs/biome && npx @biomejs/biome migrate --write && npm run lint:fix"
+    "update-biome": "yarn add -D --exact @biomejs/biome && npx @biomejs/biome migrate --write && npm run lint:fix",
+    "test:live": "mocha --config .mocharc.live.json",
+    "test:live:compiled": "mocha --config .mocharc.live.compiled.json"
   },
   "nyc": {
     "exclude": [

@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import sinon from 'sinon';
-import { CoverArtArchiveApi, CoverArtArchiveApiError } from '../lib/coverartarchive-api.js';
-import { HttpClient } from '../lib/http-client.js';
+import { CoverArtArchiveApi, CoverArtArchiveApiError } from '../../lib/coverartarchive-api.js';
+import { HttpClient } from '../../lib/http-client.js';
 
 const releaseGroupId = 'c8b19d4b-ccac-48e6-8848-4b9a0a4e24c0';
 
@@ -266,4 +266,53 @@ describe('CoverArtArchiveApi response handling', () => {
 
     assert.deepEqual(covers as unknown, { error: 'Not Found' });
   });
+});
+
+describe('Cover Art Archive public endpoints', () => {
+  afterEach(() => sinon.restore());
+
+  it('normalizes the MusicBrainz release URL in cover metadata', async () => {
+    const fetchStub = sinon.stub(globalThis, 'fetch').resolves(
+      new Response(
+        JSON.stringify({
+          images: [],
+          release: 'http://musicbrainz.org/release/release-id'
+        }),
+        { headers: { 'Content-Type': 'application/json' } }
+      )
+    );
+    const result = await new CoverArtArchiveApi().getReleaseCovers('release-id');
+    assert.deepEqual(result, { images: [], release: 'https://musicbrainz.org/release/release-id' });
+    assert.strictEqual(new URL(String(fetchStub.firstCall.args[0])).pathname, '/release/release-id');
+    assert.strictEqual(new Headers(fetchStub.firstCall.args[1]?.headers).get('Accept'), 'application/json');
+  });
+
+  it('returns the requested release cover redirect without following it', async () => {
+    const fetchStub = sinon.stub(globalThis, 'fetch').resolves(
+      new Response('', {
+        status: 307,
+        headers: { Location: 'https://example.test/back.jpg' }
+      })
+    );
+    assert.deepEqual(await new CoverArtArchiveApi().getReleaseCover('release-id', 'back'), {
+      url: 'https://example.test/back.jpg'
+    });
+    assert.strictEqual(new URL(String(fetchStub.firstCall.args[0])).pathname, '/release/release-id/back');
+    assert.strictEqual(fetchStub.firstCall.args[1]?.redirect, 'manual');
+  });
+
+  for (const [status, message] of [
+    [400, 'Invalid UUID'],
+    [405, 'Invalid HTTP method'],
+    [500, 'Unexpected HTTP-status response: 500']
+  ] as const) {
+    it(`reports cover redirect HTTP ${status}`, async () => {
+      sinon.stub(globalThis, 'fetch').resolves(new Response('', { status }));
+      const error = await new CoverArtArchiveApi().getReleaseCover('release-id', 'front').then(
+        () => undefined,
+        error => error
+      );
+      assert.strictEqual(error.message, message);
+    });
+  }
 });
