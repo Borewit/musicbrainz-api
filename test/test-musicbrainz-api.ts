@@ -18,7 +18,6 @@ import {
   type IReleaseGroup,
   type ReleaseGroupIncludes,
   type ReleaseIncludes,
-  LinkType,
   MusicBrainzApi, type RecordingIncludes, type IRecording,
   type IMusicBrainzConfig, type IArtist
 } from '../lib/entry-default.js';
@@ -1853,37 +1852,6 @@ describe.skip('Node specific API', function () {
         assert.isTrue(await mbTestApi.login(), `Login ${n}`);
         assert.isTrue(await mbTestApi.logout(), `Logout ${n}`);
       }
-    });
-
-    describe('Recording', () => {
-
-      it('add link', async () => {
-        const recording = await mbTestApi.lookup('recording', mbid.recording.Formidable);
-        assert.strictEqual(recording.id, mbid.recording.Formidable);
-        assert.strictEqual(recording.title, 'Formidable');
-
-        await mbTestApi.addUrlToRecording(recording, {
-          linkTypeId: LinkType.stream_for_free,
-          text: `https://open.spotify.com/track/${spotify.track.Formidable.id}`
-        });
-      });
-
-      it('add Spotify-ID', async () => {
-        const recording = await mbTestApi.lookup('recording', mbid.recording.Formidable);
-
-        const editNote = `Unit-test musicbrainz-api (${appUrl}), test augment recording with Spotify URL & ISRC`;
-        await mbTestApi.addSpotifyIdToRecording(recording, spotify.track.Formidable.id, editNote);
-      });
-
-      it('add Spotify-ID to recording with ISRC', async () => {
-        // https://test.musicbrainz.org/recording/a75b85bf-63dd-4fe1-8008-d15541b93bac
-        const recording_id = 'a75b85bf-63dd-4fe1-8008-d15541b93bac';
-
-        const recording = await mbTestApi.lookup('recording', recording_id);
-        const editNote = `Unit-test musicbrainz-api (${appUrl}), test augment recording with Spotify URL & ISRC`;
-        await mbTestApi.addSpotifyIdToRecording(recording, '3ZDO5YINwfoifRQ3ElshPM', editNote);
-      });
-
     });
 
     describe('ISRC', () => {

@@ -533,28 +533,12 @@ assert.isTrue(succeed, 'Login successful');
 await mbApi.addIsrc(recording, isrc_Formidable);
 ```
 
-### Submit recording URL
+### URL relationships
 
-```js
-const recording = await mbApi.lookup('recording', '16afa384-174e-435e-bfa3-5591accda31c');
-
-const succeed = await mbApi.login();
-assert.isTrue(succeed, 'Login successful');
-
-await mbApi.addUrlToRecording(recording, {
-  linkTypeId: LinkType.stream_for_free,
-  text: 'https://open.spotify.com/track/2AMysGXOe0zzZJMtH3Nizb'
-});
-```
-
-Actually a Spotify-track-ID can be submitted easier: 
-```js
-const recording = await mbApi.lookup('recording', '16afa384-174e-435e-bfa3-5591accda31c');
-
-const succeed = await mbApi.login();
-assert.isTrue(succeed, 'Login successful');
-await mbApi.addSpotifyIdToRecording(recording, '2AMysGXOe0zzZJMtH3Nizb');
-```
+The `addUrlToRecording()` and `addSpotifyIdToRecording()` convenience methods have
+been removed. To write URL relationships, including Spotify links, use
+`editEntity()` with the MusicBrainz website form fields for URL relationships.
+This requires `botAccount` credentials.
 
 ## Cover Art Archive API
 
