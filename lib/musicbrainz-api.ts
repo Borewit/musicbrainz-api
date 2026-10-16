@@ -332,7 +332,7 @@ export class MusicBrainzApi {
   public browse(entity: 'url', query?: mb.IBrowseUrlsQuery, inc?: UrlIncludes[]): Promise<mb.IUrl>;
   public browse(entity: 'work', query?: mb.IBrowseWorksQuery, inc?: WorkIncludes[]): Promise<mb.IBrowseWorksResult>;
   public browse<T>(entity: mb.EntityType, query?: { [key: string]: any }, inc?: string[]): Promise<T> {
-    const browseQuery = query ? query : {};
+    const browseQuery = query ? { ...query } : {};
     if (inc) {
       // Serialize include parameter
       browseQuery.inc = inc.join(' ');
