@@ -77,7 +77,7 @@ describe('HttpClient retry loop', () => {
       name: 'aggregate Node timeout',
       error: Object.assign(new Error('All connection attempts failed'), {errors: [
         Object.assign(new Error('connect timed out'), {code: 'ETIMEDOUT'}),
-        Object.assign(new Error('IPv6 network unreachable'), {code: 'ENETUNREACH'})
+        Object.assign(new Error('connect timed out'), {code: 'ETIMEDOUT'})
       ], code: 'ETIMEDOUT'})
     },
     {
@@ -89,17 +89,44 @@ describe('HttpClient retry loop', () => {
   ];
 
   for (const {name, error} of connectionTimeouts) {
-    it(`retries a submission after ${name} by default`, async () => {
+    it(`retries a read after ${name} by default`, async () => {
       fetchStub.onFirstCall().rejects(Object.assign(new TypeError('fetch failed'), {cause: error}));
       fetchStub.onSecondCall().resolves(new Response('{}'));
 
-      const response = await makeClient().post('/resource', {body: '<metadata/>'});
+      const response = await makeClient().get('/resource');
 
       assert.strictEqual(response.status, 200);
       assert.strictEqual(fetchStub.callCount, 2);
-      assert.strictEqual(fetchStub.secondCall.args[1].body, '<metadata/>');
       assert.isTrue(delayStub.calledOnceWithExactly(1));
     });
+
+    for (const retryLimit of [undefined, 2]) {
+      it(`requires opt-in to retry a submission after ${name} (retryLimit=${retryLimit})`, async () => {
+        const fetchError = Object.assign(new TypeError('fetch failed'), {cause: error});
+        fetchStub.onFirstCall().rejects(fetchError);
+        fetchStub.onSecondCall().resolves(new Response('{}'));
+
+        let caughtError: unknown;
+        let response: Response | undefined;
+        try {
+          response = await makeClient().post('/resource', {body: '<metadata/>', retryLimit});
+        } catch (error) {
+          caughtError = error;
+        }
+
+        if (retryLimit === undefined) {
+          assert.strictEqual(caughtError, fetchError);
+          assert.strictEqual(fetchStub.callCount, 1);
+          assert.isFalse(delayStub.called);
+        } else {
+          assert.isUndefined(caughtError);
+          assert.strictEqual(response?.status, 200);
+          assert.strictEqual(fetchStub.callCount, 2);
+          assert.strictEqual(fetchStub.secondCall.args[1].body, '<metadata/>');
+          assert.isTrue(delayStub.calledOnceWithExactly(1));
+        }
+      });
+    }
 
     it(`retries a fetch failure caused by ${name}`, async () => {
       fetchStub.onFirstCall().rejects(Object.assign(new TypeError('fetch failed'), {cause: error}));
@@ -136,7 +163,7 @@ describe('HttpClient retry loop', () => {
 
       let caughtError: unknown;
       try {
-        await makeClient().post('/resource', {retryLimit});
+        await makeClient().get('/resource', {retryLimit});
       } catch (error) {
         caughtError = error;
       }
@@ -182,6 +209,7 @@ describe('HttpClient retry loop', () => {
     {code: 'CERT_HAS_EXPIRED'},
     {code: 'UND_ERR_HEADERS_TIMEOUT'},
     {errors: []},
+    {code: 'ETIMEDOUT', errors: [{code: 'ETIMEDOUT'}, {code: 'ENETUNREACH'}]},
     {errors: [{code: 'ETIMEDOUT'}, {code: 'ENOTFOUND'}]}
   ]) {
     it(`does not retry an unrelated fetch failure (${JSON.stringify(cause)})`, async () => {
