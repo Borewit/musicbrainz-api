@@ -39,7 +39,7 @@ import type {
   PlaceIncludes,
   SeriesIncludes,
   UrlIncludes,
-  SeriesIncludes as WorkIncludes
+  WorkIncludes
 } from '../../lib/musicbrainz-api.js';
 import { MusicBrainzApi as MusicBrainzApiDefault } from '../../lib/musicbrainz-api.js';
 
@@ -1249,9 +1249,11 @@ describe('Live integration tests', () => {
 
                 const artistRelations = new Map<string, IArtist>(); // Set to track unique relations
 
-                for (const media of release.media) {
-                  for (const track of media.tracks) {
+                assert.isArray(release.media, 'release.media');
+                for (const media of release.media ?? []) {
+                  for (const track of media.tracks ?? []) {
                     const recording = track.recording;
+                    assert.exists(recording, 'track.recording');
                     assert.exists(recording.relations, 'recording.relations');
                     for (const relation of recording.relations) {
                       if (relation.artist) {
