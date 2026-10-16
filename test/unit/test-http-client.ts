@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import sinon from 'sinon';
-import { HttpClient } from '../lib/http-client.js';
-import { MusicBrainzApi, MusicBrainzApiError, XmlIsrcList } from '../lib/musicbrainz-api.js';
+import { HttpClient } from '../../lib/http-client.js';
+import { MusicBrainzApi, MusicBrainzApiError, XmlIsrcList } from '../../lib/musicbrainz-api.js';
 
 function makeClient(): HttpClient {
   return new HttpClient({
@@ -381,5 +381,37 @@ describe('MusicBrainzApi request edge cases', () => {
 
   it('omits an empty ISRC list from XML output', () => {
     assert.isNull(new XmlIsrcList().toXml());
+  });
+});
+
+describe('HttpClient request encoding', () => {
+  afterEach(() => sinon.restore());
+
+  it('encodes form submissions with the matching content type', async () => {
+    const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('{}'));
+    await makeClient().postForm('/form', { title: 'A & B', artist: 'Stromae' });
+    const options = fetchStub.firstCall.args[1];
+    assert.strictEqual(options?.body, 'title=A+%26+B&artist=Stromae');
+    assert.strictEqual(new Headers(options?.headers).get('Content-Type'), 'application/x-www-form-urlencoded');
+    assert.strictEqual(options?.method, 'post');
+  });
+
+  it('serializes JSON submission bodies', async () => {
+    const fetchStub = sinon.stub(globalThis, 'fetch').resolves(new Response('{}'));
+    await makeClient().postJson('/json', { title: 'Formidable' });
+    assert.deepEqual(JSON.parse(String(fetchStub.firstCall.args[1]?.body)), { title: 'Formidable' });
+  });
+
+  it('waits for the configured delay before retrying', async () => {
+    const clock = sinon.useFakeTimers();
+    const fetchStub = sinon.stub(globalThis, 'fetch');
+    fetchStub.onFirstCall().resolves(new Response('', { status: 503 }));
+    fetchStub.onSecondCall().resolves(new Response('{}'));
+    const response = makeClient().get('/resource', { retryLimit: 2 });
+    await clock.tickAsync(0);
+    assert.strictEqual(fetchStub.callCount, 1);
+    await clock.tickAsync(1);
+    assert.strictEqual((await response).status, 200);
+    assert.strictEqual(fetchStub.callCount, 2);
   });
 });

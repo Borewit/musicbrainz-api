@@ -2,9 +2,13 @@
   "reporter": ["lcov", "text"],
   "all": true,
   "check-coverage": true,
-  "lines": 1,
+  "lines": 95,
   "extension": [".ts"],
   "include": ["lib/**/*.ts"],
   "exclude": ["lib/**/*.d.ts"],
-  "exclude-after-remap": true
+  "exclude-after-remap": true,
+  "per-file": true,
+  "statements": 95,
+  "functions": 95,
+  "branches": 85
 }

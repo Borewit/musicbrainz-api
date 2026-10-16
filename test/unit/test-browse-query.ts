@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import sinon from 'sinon';
-import type { IBrowseReleasesQuery } from '../lib/musicbrainz.types.js';
-import { MusicBrainzApi } from '../lib/musicbrainz-api.js';
+import type { IBrowseReleasesQuery } from '../../lib/musicbrainz.types.js';
+import { MusicBrainzApi } from '../../lib/musicbrainz-api.js';
 
 describe('Browse query reuse', () => {
   afterEach(() => sinon.restore());

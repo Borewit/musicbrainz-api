@@ -1,6 +1,6 @@
 {
   "extension": ["ts", "tsx"],
   "watch-files": ["lib/**/*.ts", "test/**/*.ts"],
-  "spec": ["test/test-*.ts"],
-  "require": ["tsx/esm"]
+  "spec": ["test/unit/test-*.ts"],
+  "require": ["tsx/esm", "./test/unit/hooks.ts"]
 }

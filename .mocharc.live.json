@@ -1,0 +1,5 @@
+{
+  "extension": ["ts"],
+  "spec": ["test/live/test-*.ts"],
+  "require": ["tsx/esm"]
+}

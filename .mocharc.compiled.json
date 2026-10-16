@@ -1,5 +1,6 @@
 {
   "extension": ["js"],
   "watch-files": ["lib/**/*.js", "test/**/*.js"],
-  "spec": ["test/test-*.js"]
+  "spec": ["test/unit/test-*.js"],
+  "require": ["./test/unit/hooks.js"]
 }

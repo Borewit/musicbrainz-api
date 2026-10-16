@@ -39,11 +39,16 @@ The distributed JavaScript codebase is compliant with the [ECMAScript 2020 (11th
 Use Node.js 24 and enable Corepack (`corepack enable`) to use the Yarn version pinned in `package.json`.
 Install dependencies with `yarn install --immutable`.
 
-- `yarn test` runs the TypeScript tests with `tsx`.
+- `yarn test` runs the mocked unit tests in `test/unit` with `tsx`. These tests require no credentials and reject unmocked network requests.
 - `yarn build:dev` compiles the library and tests with TypeScript.
-- `yarn test-coverage:compiled` runs the compiled tests with coverage, as in CI. Run `yarn build:dev` first.
+- `yarn test-coverage` runs the mocked tests with coverage.
+- `yarn test-coverage:compiled` runs the compiled mocked tests with coverage, as in CI. Run `yarn build:dev` first.
+- `yarn test:live` runs the live integration tests in `test/live`; `yarn test:live:compiled` runs their compiled equivalents.
 
-The integration tests require `MBUSER` and `MBPWD` for a test MusicBrainz account.
+Live integration tests run only when both `MBUSER` and `MBPWD` are non-empty credentials for an account on `test.musicbrainz.org`.
+When either is unavailable, including fork PR workflows, the entire live suite is skipped before making any requests.
+CI always runs the mocked suite, enforcing per-file coverage of at least 95% for lines, statements and functions, and 85% for branches.
+Coverage reports include only the mocked suite so PR coverage does not depend on access to secrets or live services.
 
 ## Support the Project
 If you find this project useful and would like to support its development, consider sponsoring or contributing:
