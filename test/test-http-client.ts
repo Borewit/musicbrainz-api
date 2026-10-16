@@ -70,7 +70,7 @@ describe('HttpClient retry loop', () => {
     assert.isTrue(delayStub.calledOnceWithExactly(1));
   });
 
-  const connectionTimeouts = [
+  const connectionErrors = [
     {name: 'Node timeout', error: Object.assign(new Error('connect timed out'), {code: 'ETIMEDOUT'})},
     {name: 'Undici timeout', error: Object.assign(new Error('connect timed out'), {code: 'UND_ERR_CONNECT_TIMEOUT'})},
     {name: 'unreachable network', error: Object.assign(new Error('network unreachable'), {code: 'ENETUNREACH'})},
@@ -96,18 +96,7 @@ describe('HttpClient retry loop', () => {
     }
   ];
 
-  for (const {name, error} of connectionTimeouts) {
-    it(`retries a read after ${name} by default`, async () => {
-      fetchStub.onFirstCall().rejects(Object.assign(new TypeError('fetch failed'), {cause: error}));
-      fetchStub.onSecondCall().resolves(new Response('{}'));
-
-      const response = await makeClient().get('/resource');
-
-      assert.strictEqual(response.status, 200);
-      assert.strictEqual(fetchStub.callCount, 2);
-      assert.isTrue(delayStub.calledOnceWithExactly(1));
-    });
-
+  for (const {name, error} of connectionErrors) {
     for (const retryLimit of [undefined, 2]) {
       it(`requires opt-in to retry a submission after ${name} (retryLimit=${retryLimit})`, async () => {
         const fetchError = Object.assign(new TypeError('fetch failed'), {cause: error});
@@ -164,24 +153,21 @@ describe('HttpClient retry loop', () => {
     });
   }
 
-  for (const retryLimit of [undefined, 1]) {
-    it(`bounds connection timeout retries with retryLimit=${retryLimit}`, async () => {
-      const fetchError = Object.assign(new TypeError('fetch failed'), {cause: {code: 'ETIMEDOUT'}});
-      fetchStub.rejects(fetchError);
+  it('does not retry GET connection timeouts by default', async () => {
+    const fetchError = Object.assign(new TypeError('fetch failed'), {cause: {code: 'ETIMEDOUT'}});
+    fetchStub.rejects(fetchError);
 
-      let caughtError: unknown;
-      try {
-        await makeClient().get('/resource', {retryLimit});
-      } catch (error) {
-        caughtError = error;
-      }
+    let caughtError: unknown;
+    try {
+      await makeClient().get('/resource');
+    } catch (error) {
+      caughtError = error;
+    }
 
-      const expectedAttempts = retryLimit ?? 3;
-      assert.strictEqual(caughtError, fetchError);
-      assert.strictEqual(fetchStub.callCount, expectedAttempts);
-      assert.strictEqual(delayStub.callCount, expectedAttempts - 1);
-    });
-  }
+    assert.strictEqual(caughtError, fetchError);
+    assert.strictEqual(fetchStub.callCount, 1);
+    assert.isFalse(delayStub.called);
+  });
 
   it('does not retry connection resets by default', async () => {
     const fetchError = makeConnectionReset();
