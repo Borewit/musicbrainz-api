@@ -16,20 +16,7 @@ export { XmlRecording } from './xml/xml-recording.js';
  * https://musicbrainz.org/doc/Development/XML_Web_Service/Version_2#Subqueries
  */
 
-export type RelationsIncludes =
-  | 'area-rels'
-  | 'artist-rels'
-  | 'event-rels'
-  | 'genre-rels'
-  | 'instrument-rels'
-  | 'label-rels'
-  | 'place-rels'
-  | 'recording-rels'
-  | 'release-rels'
-  | 'release-group-rels'
-  | 'series-rels'
-  | 'url-rels'
-  | 'work-rels';
+export type RelationsIncludes = mb.Relationships;
 
 export type SubQueryIncludes =
   /**
@@ -53,44 +40,156 @@ export type SubQueryIncludes =
    */
   | 'various-artists';
 
-export type MiscIncludes = 'aliases' | 'annotation' | 'tags' | 'genres' | 'ratings' | 'media';
+export type TagIncludes = 'tags' | 'genres' | 'user-tags' | 'user-genres';
+export type RatingIncludes = 'ratings' | 'user-ratings';
+export type MiscIncludes = 'aliases' | 'annotation' | TagIncludes | RatingIncludes;
 
 export type AreaIncludes = MiscIncludes | RelationsIncludes;
 
-export type ArtistIncludes = MiscIncludes | RelationsIncludes | 'recordings' | 'releases' | 'release-groups' | 'works';
+export type ArtistIncludes =
+  | MiscIncludes
+  | RelationsIncludes
+  | SubQueryIncludes
+  | 'recordings'
+  | 'releases'
+  | 'release-groups'
+  | 'works';
 
-export type CollectionIncludes = MiscIncludes | RelationsIncludes | 'user-collections';
+export type CollectionIncludes =
+  | 'user-collections'
+  | 'tags'
+  | 'areas'
+  | 'artists'
+  | 'events'
+  | 'genres'
+  | 'instruments'
+  | 'labels'
+  | 'places'
+  | 'recordings'
+  | 'releases'
+  | 'release-groups'
+  | 'series'
+  | 'works';
 
 export type EventIncludes = MiscIncludes | RelationsIncludes;
 
-export type GenreIncludes = MiscIncludes;
+/** Genre lookup and browsing currently accept no includes. */
+export type GenreIncludes = never;
 
-export type InstrumentIncludes = MiscIncludes | RelationsIncludes;
+export type InstrumentIncludes = Exclude<MiscIncludes, RatingIncludes> | RelationsIncludes;
 
-export type LabelIncludes = MiscIncludes | RelationsIncludes | 'releases';
+export type LabelIncludes =
+  | MiscIncludes
+  | RelationsIncludes
+  | Exclude<SubQueryIncludes, 'various-artists' | 'isrcs'>
+  | 'releases';
 
 export type PlaceIncludes = MiscIncludes | RelationsIncludes;
 
-export type RecordingIncludes = MiscIncludes | RelationsIncludes | SubQueryIncludes | 'artists' | 'releases' | 'isrcs';
+export type RecordingIncludes =
+  | MiscIncludes
+  | RelationsIncludes
+  | Exclude<SubQueryIncludes, 'various-artists'>
+  | 'artists'
+  | 'releases'
+  | 'release-groups'
+  | 'work-level-rels';
 
 export type ReleaseIncludes =
   | MiscIncludes
-  | SubQueryIncludes
+  | Exclude<SubQueryIncludes, 'various-artists'>
   | RelationsIncludes
   | 'artists'
   | 'collections'
+  | 'user-collections'
   | 'labels'
   | 'recordings'
   | 'release-groups'
-  | 'recording-level-rels';
+  | 'recording-level-rels'
+  | 'release-group-level-rels'
+  | 'work-level-rels';
 
-export type ReleaseGroupIncludes = MiscIncludes | SubQueryIncludes | RelationsIncludes | 'artists' | 'releases';
+export type ReleaseGroupIncludes =
+  | MiscIncludes
+  | Exclude<SubQueryIncludes, 'various-artists' | 'isrcs'>
+  | RelationsIncludes
+  | 'artists'
+  | 'releases';
 
-export type SeriesIncludes = MiscIncludes | RelationsIncludes;
+export type SeriesIncludes = Exclude<MiscIncludes, RatingIncludes> | RelationsIncludes;
 
-export type WorkIncludes = MiscIncludes | RelationsIncludes;
+export type WorkIncludes = MiscIncludes | RelationsIncludes | 'artist-credits';
 
-export type UrlIncludes = RelationsIncludes;
+export type UrlIncludes = RelationsIncludes | 'artist-credits';
+
+// Non-MBID controllers have their own allowed includes, which differ from MBID lookups.
+export type IsrcIncludes =
+  | RelationsIncludes
+  | 'artists'
+  | 'releases'
+  | 'isrcs'
+  | 'artist-credits'
+  | 'aliases'
+  | 'tags'
+  | 'user-tags'
+  | RatingIncludes
+  | 'discids'
+  | 'media';
+export type IswcIncludes =
+  | RelationsIncludes
+  | 'artists'
+  | 'artist-credits'
+  | 'aliases'
+  | 'tags'
+  | 'user-tags'
+  | RatingIncludes;
+export type DiscIncludes =
+  | RelationsIncludes
+  | TagIncludes
+  | 'artists'
+  | 'labels'
+  | 'recordings'
+  | 'release-groups'
+  | 'artist-credits'
+  | 'aliases'
+  | 'isrcs';
+
+export interface EntityIncludesMap {
+  annotation: MiscIncludes | RelationsIncludes;
+  area: AreaIncludes;
+  artist: ArtistIncludes;
+  cdstub: MiscIncludes | RelationsIncludes;
+  collection: CollectionIncludes;
+  event: EventIncludes;
+  genre: GenreIncludes;
+  instrument: InstrumentIncludes;
+  label: LabelIncludes;
+  place: PlaceIncludes;
+  recording: RecordingIncludes;
+  release: ReleaseIncludes;
+  'release-group': ReleaseGroupIncludes;
+  series: SeriesIncludes;
+  tag: MiscIncludes | RelationsIncludes;
+  url: UrlIncludes;
+  work: WorkIncludes;
+}
+
+/** Serialize API query values without modifying the caller's options. */
+function serializeQuery(query: object): MultiQueryFormData {
+  const result: MultiQueryFormData = {};
+  for (const [key, value] of Object.entries(query)) {
+    if (value === undefined) {
+      continue;
+    }
+    if (Array.isArray(value)) {
+      result[key] =
+        key === 'inc' ? value.join(' ') : key === 'type' || key === 'status' ? value.join('|') : value.map(String);
+    } else {
+      result[key] = String(value);
+    }
+  }
+  return result;
+}
 
 export type IFormData = { [key: string]: string | number };
 
@@ -250,36 +349,107 @@ export class MusicBrainzApi {
 
   /**
    * Lookup entity
-   * @param entity 'area', 'artist', collection', 'instrument', 'label', 'place', 'release', 'release-group', 'recording', 'series', 'work', 'url' or 'event'
-   * @param mbid Entity MBID
+   * @param entity Core entity, collection, or identifier resource (discid, isrc, iswc).
+   * @param mbid Entity MBID or resource identifier
    * @param inc Includes, which allows you to request more information to be included about the entity
    */
-  public lookup(entity: 'area', mbid: string, inc?: AreaIncludes[]): Promise<mb.IArea>;
-  public lookup(entity: 'artist', mbid: string, inc?: ArtistIncludes[]): Promise<mb.IArtist>;
-  public lookup(entity: 'collection', mbid: string, inc?: CollectionIncludes[]): Promise<mb.ICollection>;
-  public lookup(entity: 'instrument', mbid: string, inc?: InstrumentIncludes[]): Promise<mb.IInstrument>;
-  public lookup(entity: 'label', mbid: string, inc?: LabelIncludes[]): Promise<mb.ILabel>;
-  public lookup(entity: 'place', mbid: string, inc?: PlaceIncludes[]): Promise<mb.IPlace>;
-  public lookup(entity: 'release', mbid: string, inc?: ReleaseIncludes[]): Promise<mb.IRelease>;
-  public lookup(entity: 'release-group', mbid: string, inc?: ReleaseGroupIncludes[]): Promise<mb.IReleaseGroup>;
-  public lookup(entity: 'recording', mbid: string, inc?: RecordingIncludes[]): Promise<mb.IRecording>;
-  public lookup(entity: 'series', mbid: string, inc?: SeriesIncludes[]): Promise<mb.ISeries>;
-  public lookup(entity: 'work', mbid: string, inc?: WorkIncludes[]): Promise<mb.IWork>;
+  public lookup(entity: 'area', mbid: string, inc?: AreaIncludes[]): Promise<mb.ILookupResultMap['area']>;
+  public lookup(
+    entity: 'artist',
+    mbid: string,
+    inc?: ArtistIncludes[],
+    query?: mb.IReleaseTypeAndStatus
+  ): Promise<mb.ILookupResultMap['artist']>;
+  public lookup(
+    entity: 'collection',
+    mbid: string,
+    inc?: CollectionIncludes[]
+  ): Promise<mb.ILookupResultMap['collection']>;
+  public lookup(
+    entity: 'instrument',
+    mbid: string,
+    inc?: InstrumentIncludes[]
+  ): Promise<mb.ILookupResultMap['instrument']>;
+  public lookup(
+    entity: 'label',
+    mbid: string,
+    inc?: LabelIncludes[],
+    query?: mb.IReleaseTypeAndStatus
+  ): Promise<mb.ILookupResultMap['label']>;
+  public lookup(entity: 'place', mbid: string, inc?: PlaceIncludes[]): Promise<mb.ILookupResultMap['place']>;
+  public lookup(
+    entity: 'release',
+    mbid: string,
+    inc?: ReleaseIncludes[],
+    query?: mb.IReleaseTypeAndStatus
+  ): Promise<mb.ILookupResultMap['release']>;
+  public lookup(
+    entity: 'release-group',
+    mbid: string,
+    inc?: ReleaseGroupIncludes[],
+    query?: mb.IReleaseTypeAndStatus
+  ): Promise<mb.ILookupResultMap['release-group']>;
+  public lookup(
+    entity: 'recording',
+    mbid: string,
+    inc?: RecordingIncludes[],
+    query?: mb.IReleaseTypeAndStatus
+  ): Promise<mb.ILookupResultMap['recording']>;
+  public lookup(entity: 'series', mbid: string, inc?: SeriesIncludes[]): Promise<mb.ILookupResultMap['series']>;
+  public lookup(entity: 'work', mbid: string, inc?: WorkIncludes[]): Promise<mb.ILookupResultMap['work']>;
   public lookup(entity: 'url', mbid: string, inc?: UrlIncludes[]): Promise<mb.IUrl>;
-  public lookup(entity: 'event', mbid: string, inc?: EventIncludes[]): Promise<mb.IEvent>;
-  public lookup<T, I extends string = never>(entity: mb.EntityType, mbid: string, inc: I[] = []): Promise<T> {
-    return this.restGet<T>(`/${entity}/${mbid}`, { inc: inc.join(' ') });
+  public lookup(entity: 'event', mbid: string, inc?: EventIncludes[]): Promise<mb.ILookupResultMap['event']>;
+  public lookup(
+    entity: 'genre',
+    mbid: 'all',
+    inc?: GenreIncludes[],
+    query?: mb.IPagination
+  ): Promise<mb.IBrowseGenresResult>;
+  public lookup(entity: 'genre', mbid: string, inc?: GenreIncludes[]): Promise<mb.ILookupResultMap['genre']>;
+  public lookup(
+    entity: 'isrc',
+    mbid: string,
+    inc?: IsrcIncludes[],
+    query?: mb.IReleaseTypeAndStatus
+  ): Promise<mb.IIsrcLookupResult>;
+  public lookup(entity: 'iswc', mbid: string, inc?: IswcIncludes[]): Promise<mb.IIswcLookupResult>;
+  public lookup(
+    entity: 'discid',
+    mbid: string,
+    inc?: DiscIncludes[],
+    query?: mb.IDiscLookupQuery
+  ): Promise<mb.IDiscLookupResult>;
+  public lookup<T>(
+    entity: mb.EntityType | 'isrc' | 'iswc' | 'discid',
+    mbid: string,
+    inc: string[] = [],
+    query: mb.IReleaseTypeAndStatus | mb.IDiscLookupQuery | mb.IPagination = {}
+  ): Promise<T> {
+    return this.restGet<T>(`/${entity}/${encodeURIComponent(mbid)}`, serializeQuery({ ...query, inc }));
+  }
+
+  /** Fetch the alphabetically ordered, paginated genre list. */
+  public getGenres(query: mb.IPagination = {}): Promise<mb.IBrowseGenresResult> {
+    return this.restGet('/genre/all', serializeQuery(query));
+  }
+
+  public getUserTags(query: mb.IUserTagsQuery): Promise<mb.IUserTagsResult> {
+    return this.restGet('/tag', serializeQuery(query));
+  }
+
+  public getUserRating(query: mb.IUserRatingQuery): Promise<mb.IUserRatingResult> {
+    return this.restGet('/rating', serializeQuery(query));
   }
 
   public lookupUrl(url: string, inc?: UrlIncludes[]): Promise<mb.IUrl>;
   public lookupUrl(url: string[], inc?: UrlIncludes[]): Promise<mb.IUrlLookupResult>;
   public async lookupUrl(url: string | string[], inc: UrlIncludes[] = []): Promise<mb.IUrlLookupResult | mb.IUrl> {
-    const result = await this.restGet<mb.IUrlLookupResult>('/url', { resource: url, inc: inc.join(' ') });
+    const result = await this.restGet<mb.IUrlLookupResult | mb.IUrl>('/url', { resource: url, inc: inc.join(' ') });
     if (Array.isArray(url) && url.length <= 1) {
       return {
         'url-count': 1,
         'url-offset': 0,
-        urls: [result as any as mb.IUrl]
+        urls: [result as mb.IUrl]
       };
     }
     return result;
@@ -295,47 +465,11 @@ export class MusicBrainzApi {
    * @param query Query, like: {<entity>: <MBID:}
    * @param inc Includes, which allows you to request more information to be included about the entity
    */
-  public browse(entity: 'area', query?: mb.IBrowseAreasQuery, inc?: AreaIncludes[]): Promise<mb.IBrowseAreasResult>;
-  public browse(
-    entity: 'artist',
-    query?: mb.IBrowseArtistsQuery,
-    inc?: ArtistIncludes[]
-  ): Promise<mb.IBrowseArtistsResult>;
-  public browse(
-    entity: 'collection',
-    query?: mb.IBrowseCollectionsQuery,
-    inc?: CollectionIncludes[]
-  ): Promise<mb.IBrowseCollectionsResult>;
-  public browse(entity: 'event', query?: mb.IBrowseEventsQuery, inc?: EventIncludes[]): Promise<mb.IBrowseEventsResult>;
-  public browse(entity: 'label', query?: mb.IBrowseLabelsQuery, inc?: LabelIncludes[]): Promise<mb.IBrowseLabelsResult>;
-  public browse(
-    entity: 'instrument',
-    query?: mb.IBrowseInstrumentsQuery,
-    inc?: InstrumentIncludes[]
-  ): Promise<mb.IBrowseInstrumentsResult>;
-  public browse(entity: 'place', query?: mb.IBrowsePlacesQuery, inc?: PlaceIncludes[]): Promise<mb.IBrowsePlacesResult>;
-  public browse(
-    entity: 'recording',
-    query?: mb.IBrowseRecordingsQuery,
-    inc?: RecordingIncludes[]
-  ): Promise<mb.IBrowseRecordingsResult>;
-  public browse(
-    entity: 'release',
-    query?: mb.IBrowseReleasesQuery,
-    inc?: ReleaseIncludes[]
-  ): Promise<mb.IBrowseReleasesResult>;
-  public browse(
-    entity: 'release-group',
-    query?: mb.IBrowseReleaseGroupsQuery,
-    inc?: ReleaseGroupIncludes[]
-  ): Promise<mb.IBrowseReleaseGroupsResult>;
-  public browse(
-    entity: 'series',
-    query?: mb.IBrowseSeriesQuery,
-    inc?: SeriesIncludes[]
-  ): Promise<mb.IBrowseSeriesResult>;
-  public browse(entity: 'url', query?: mb.IBrowseUrlsQuery, inc?: UrlIncludes[]): Promise<mb.IUrl>;
-  public browse(entity: 'work', query?: mb.IBrowseWorksQuery, inc?: WorkIncludes[]): Promise<mb.IBrowseWorksResult>;
+  public browse<E extends keyof mb.IBrowseResultMap>(
+    entity: E,
+    query?: mb.IBrowseQueryMap[NoInfer<E>],
+    inc?: EntityIncludesMap[NoInfer<E>][]
+  ): Promise<mb.IBrowseResultMap[E]>;
   public browse<T>(entity: mb.EntityType, query?: { [key: string]: any }, inc?: string[]): Promise<T> {
     const browseQuery = query ? { ...query } : {};
     if (inc) {
@@ -360,84 +494,35 @@ export class MusicBrainzApi {
    * @param entity e.g. 'recording'
    * @param query e.g.: '" artist: Madonna, track: Like a virgin"' or object with search terms: {artist: Madonna}
    */
-  public async search(
-    entity: 'annotation',
-    query: mb.ISearchQuery<MiscIncludes | RelationsIncludes>
-  ): Promise<mb.IAnnotationList>;
-  public async search(
-    entity: 'area',
-    query: mb.ISearchQuery<AreaIncludes> & mb.ILinkedEntitiesArea
-  ): Promise<mb.IAreaList>;
-  public async search(
-    entity: 'artist',
-    query: mb.ISearchQuery<ArtistIncludes> & mb.ILinkedEntitiesArea
-  ): Promise<mb.IArtistList>;
-  public async search(
-    entity: 'cdstub',
-    query: mb.ISearchQuery<MiscIncludes | RelationsIncludes>
-  ): Promise<mb.ICdStubList>;
-  public async search(
-    entity: 'event',
-    query: mb.ISearchQuery<EventIncludes> & mb.ILinkedEntitiesEvent
-  ): Promise<mb.IEventList>;
-  public async search(
-    entity: 'instrument',
-    query: mb.ISearchQuery<InstrumentIncludes> & mb.ILinkedEntitiesInstrument
-  ): Promise<mb.IInstrumentList>;
-  public async search(
-    entity: 'label',
-    query: mb.ISearchQuery<LabelIncludes> & mb.ILinkedEntitiesLabel
-  ): Promise<mb.ILabelList>;
-  public async search(
-    entity: 'place',
-    query: mb.ISearchQuery<PlaceIncludes> & mb.ILinkedEntitiesPlace
-  ): Promise<mb.IPlaceList>;
-  public async search(
-    entity: 'recording',
-    query: mb.ISearchQuery<RecordingIncludes> & mb.ILinkedEntitiesArea
-  ): Promise<mb.IRecordingList>;
-  public async search(
-    entity: 'release',
-    query: mb.ISearchQuery<ReleaseIncludes> & mb.ILinkedEntitiesArea
-  ): Promise<mb.IReleaseList>;
-  public async search(
-    entity: 'release-group',
-    query: mb.ISearchQuery<ReleaseGroupIncludes> & mb.ILinkedEntitiesArea
-  ): Promise<mb.IReleaseGroupList>;
-  public async search(
-    entity: 'series',
-    query: mb.ISearchQuery<SeriesIncludes> & mb.ILinkedEntitiesSeries
-  ): Promise<mb.ISeriesList>;
-  public async search(entity: 'tag', query: mb.ISearchQuery<MiscIncludes | RelationsIncludes>): Promise<mb.ITagList>;
-  public async search(entity: 'url', query: mb.ISearchQuery<UrlIncludes> & mb.ILinkedEntitiesUrl): Promise<mb.IUrlList>;
-  public async search(
-    entity: 'work',
-    query: mb.ISearchQuery<WorkIncludes> & mb.ILinkedEntitiesWork
-  ): Promise<mb.IWorkList>;
-  public async search<T extends mb.ISearchResult, I extends string = never>(
+  public search<E extends keyof mb.ISearchResultMap>(
+    entity: E,
+    query: mb.ISearchQuery<EntityIncludesMap[NoInfer<E>]>
+  ): Promise<mb.ISearchResultMap[E]>;
+  /** Compatibility with callers using search() for browse requests. */
+  public search<E extends keyof mb.IBrowseResultMap>(
+    entity: E,
+    query: mb.IBrowseQueryMap[NoInfer<E>] & { query?: never; inc?: EntityIncludesMap[NoInfer<E>][] }
+  ): Promise<mb.IBrowseResultMap[E]>;
+  public async search<T>(
     entity: mb.EntityType | mb.OtherEntityTypes,
-    query: mb.ISearchQuery<I>
+    query: { query?: string | IFormData; inc?: string[] }
   ): Promise<T> {
-    const urlQuery: any = { ...query };
+    const urlQuery = { ...query };
     if (typeof query.query === 'object') {
       urlQuery.query = makeAndQueryString(query.query);
     }
-    if (Array.isArray(query.inc)) {
-      urlQuery.inc = urlQuery.inc.join(' ');
-    }
-    const result = await this.restGet<T>(`/${entity}/`, urlQuery);
+    const result = await this.restGet<T>(`/${entity}/`, serializeQuery(urlQuery));
 
     // Temporary workaround for https://tickets.metabrainz.org/browse/SEARCH-444
     // Should be resolved by https://github.com/metabrainz/mb-solr/pull/69
-    if (entity === 'url') {
-      // @ts-expect-error
-      (result as mb.IUrlList).urls.forEach(url => {
-        // @ts-expect-error
-        if (!url.relations && url['relation-list']) {
-          // @ts-expect-error
-          url.relations = url['relation-list'];
+    if (entity === 'url' && query.query !== undefined) {
+      const urls = (result as mb.IUrlList).urls;
+      for (const url of urls) {
+        const legacy = url as mb.IUrl & { 'relation-list'?: mb.IRelation[] };
+        if (!url.relations && legacy['relation-list']) {
+          url.relations = legacy['relation-list'];
         }
-      });
+      }
     }
 
     return result;
