@@ -21,7 +21,7 @@ export interface IHttpClientOptions {
    */
   accessToken?: string;
   followRedirects?: boolean;
-  /** milliseconds after which to timeout request */
+  /** Request timeout in milliseconds; no timeout by default. */
   requestTimeout?: number;
 }
 
@@ -115,9 +115,10 @@ export class HttpClient {
       }
       ++attempt;
       const retryDelay = retryTimeout * attempt;
-      const signal = this.httpOptions.requestTimeout !== undefined
-        ? AbortSignal.timeout(this.httpOptions.requestTimeout)
-        : undefined;
+      const signal =
+        this.httpOptions.requestTimeout !== undefined
+          ? AbortSignal.timeout(this.httpOptions.requestTimeout)
+          : undefined;
       let response: Response;
       try {
         response = await fetch(url, {

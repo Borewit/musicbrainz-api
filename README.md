@@ -124,7 +124,7 @@ const config = {
     //           (default: 15 requests every 18 seconds)
     rateLimit: [15, 18],
 
-    // Optional: Number of milliseconds to timeout a request after (default: 15000)
+    // Optional: Request timeout in milliseconds (default: no timeout)
     requestTimeout: 15000
 };
 

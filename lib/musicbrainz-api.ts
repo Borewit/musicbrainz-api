@@ -134,7 +134,7 @@ export interface IMusicBrainzConfig {
    */
   rateLimit?: [number, number];
   /**
-   * Milliseconds after which a request times out; defaults to 15000
+   * Milliseconds after which a request times out; no timeout by default.
    */
   requestTimeout?: number;
 }
@@ -181,8 +181,7 @@ export class MusicBrainzApi {
   public constructor(_config?: IMusicBrainzConfig) {
     this.config = {
       ...{
-        baseUrl: 'https://musicbrainz.org',
-        requestTimeout: 15000
+        baseUrl: 'https://musicbrainz.org'
       },
       ..._config
     };
